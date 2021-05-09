@@ -1,0 +1,92 @@
+(library
+ (public_name bitwuzla.z)
+ (optional)
+ (name bitwuzla_z)
+ (modules bitwuzla_z)
+ (foreign_stubs (language c) (names z_stubs)
+  (include_dirs vendor/bitwuzla/src (lib zarith)))
+ (libraries zarith bitwuzla.c))
+
+(library
+ (public_name bitwuzla.c)
+ (name bitwuzla_c)
+ (modules bitwuzla_c)
+ (foreign_archives bitwuzla btor2parser cadical)
+ (foreign_stubs (language c) (names c_stubs)
+  (include_dirs vendor/bitwuzla/src/api/c))
+ (c_library_flags :standard -lstdc++ -lgmp -lpthread))
+
+(data_only_dirs vendor)
+
+(rule
+ (deps libbitwuzla.a)
+ (targets dllbitwuzla.so)
+ (action
+  (no-infer
+   (run g++ -shared -o %{targets} -L %{workspace_root}
+     -Wl,--whole-archive -lbitwuzla -Wl,--no-whole-archive -lgmp -lpthread))))
+
+(rule
+ (deps
+  (file vendor/cadical/src/ccadical.h)
+  (file vendor/btor2tools/src/btor2parser/btor2parser.h)
+  (file libcadical.a) (file libbtor2parser.a)
+  (source_tree vendor/symfpu)
+  (file vendor/add-bitwuzla_sort_dump-primitive.patch)
+  (source_tree vendor/bitwuzla))
+ (targets libbitwuzla.a)
+ (action
+  (no-infer
+   (progn
+    (with-stdin-from vendor/bitwuzla/contrib/symfpu_20201114.patch
+     (run patch -p1 --directory vendor/symfpu))
+    (with-stdin-from vendor/add-bitwuzla_sort_dump-primitive.patch
+     (run patch -p1))
+    (chdir vendor/bitwuzla
+     (run ./configure.sh -fPIC
+          --only-cadical --no-unit-testing
+          --path %{workspace_root}
+          --path %{workspace_root}/vendor
+          --path %{workspace_root}/vendor/cadical/src
+          --path %{workspace_root}/vendor/btor2tools/src))
+    (chdir vendor/bitwuzla/build (run make))
+    (copy vendor/bitwuzla/build/lib/libbitwuzla.a %{targets})))))
+
+(rule
+ (deps libbtor2parser.a)
+ (targets dllbtor2parser.so)
+ (action
+  (no-infer
+   (run g++ -shared -o %{targets} -L %{workspace_root}
+     -Wl,--whole-archive -lbtor2parser -Wl,--no-whole-archive))))
+
+(rule
+ (deps (source_tree vendor/btor2tools))
+ (targets libbtor2parser.a)
+ (action
+  (no-infer
+   (progn
+    (chdir vendor/btor2tools (progn (run ./configure.sh -fPIC) (run make)))
+    (copy vendor/btor2tools/build/libbtor2parser.a %{targets})))))
+
+(rule
+ (deps libcadical.a)
+ (targets dllcadical.so)
+ (action
+  (no-infer
+   (run g++ -shared -o %{targets} -L %{workspace_root}
+     -Wl,--whole-archive -lcadical -Wl,--no-whole-archive))))
+
+(rule
+ (deps
+  (file vendor/cadical/VERSION)
+  (file vendor/cadical/configure)
+  (file vendor/cadical/makefile.in)
+  (source_tree vendor/cadical/scripts)
+  (glob_files vendor/cadical/src/*[.]{h,{h,c}pp}))
+ (targets libcadical.a)
+ (action
+  (no-infer
+   (progn
+    (chdir vendor/cadical (progn (run ./configure -fPIC) (run make)))
+    (copy vendor/cadical/build/libcadical.a %{targets})))))
