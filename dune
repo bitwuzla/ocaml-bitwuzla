@@ -16,6 +16,11 @@
   (include_dirs vendor/bitwuzla/src/api/c))
  (c_library_flags :standard -lstdc++ -lgmp -lpthread))
 
+(install
+ (section bin)
+ (package bitwuzla-bin)
+ (files bitwuzla))
+
 (data_only_dirs vendor)
 
 (rule
@@ -34,7 +39,7 @@
   (source_tree vendor/symfpu)
   (file vendor/add-bitwuzla_sort_dump-primitive.patch)
   (source_tree vendor/bitwuzla))
- (targets libbitwuzla.a)
+ (targets libbitwuzla.a bitwuzla)
  (action
   (no-infer
    (progn
@@ -50,7 +55,8 @@
           --path %{workspace_root}/vendor/cadical/src
           --path %{workspace_root}/vendor/btor2tools/src))
     (chdir vendor/bitwuzla/build (run make))
-    (copy vendor/bitwuzla/build/lib/libbitwuzla.a %{targets})))))
+    (copy vendor/bitwuzla/build/lib/libbitwuzla.a libbitwuzla.a)
+    (copy vendor/bitwuzla/build/bin/bitwuzla bitwuzla)))))
 
 (rule
  (deps libbtor2parser.a)
