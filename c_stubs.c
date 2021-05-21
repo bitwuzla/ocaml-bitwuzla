@@ -993,14 +993,21 @@ ocaml_bitwuzla_sort_is_rm (value vs)
 }
 
 CAMLprim void
-ocaml_bitwuzla_sort_dump (value vsort, value vformatter)
+native_bitwuzla_sort_dump (value vsort, intnat iformat, value vformatter)
 {
   CAMLparam1(vformatter);
   BitwuzlaSort *sort = Sort_val(vsort);
+  const char *format = formats[iformat];
   FILE *file = openfilefromformatter(&vformatter);
-  bitwuzla_sort_dump(sort, file);
+  bitwuzla_sort_dump(sort, format, file);
   fclose(file);
   CAMLreturn0;
+}
+
+CAMLprim void
+ocaml_bitwuzla_sort_dump (value vsort, value viformat, value vformatter)
+{
+  native_bitwuzla_sort_dump(vsort, Long_val(viformat), vformatter);
 }
 
 CAMLprim value

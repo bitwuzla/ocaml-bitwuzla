@@ -37,7 +37,6 @@
   (file vendor/btor2tools/src/btor2parser/btor2parser.h)
   (file libcadical.a) (file libbtor2parser.a)
   (source_tree vendor/symfpu)
-  (file vendor/add-bitwuzla_sort_dump-primitive.patch)
   (source_tree vendor/bitwuzla))
  (targets libbitwuzla.a bitwuzla)
  (action
@@ -45,8 +44,6 @@
    (progn
     (with-stdin-from vendor/bitwuzla/contrib/symfpu_20201114.patch
      (run patch -p1 --directory vendor/symfpu))
-    (with-stdin-from vendor/add-bitwuzla_sort_dump-primitive.patch
-     (run patch -p1))
     (chdir vendor/bitwuzla
      (run ./configure.sh -fPIC
           --only-cadical --no-unit-testing

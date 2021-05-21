@@ -447,13 +447,17 @@ val mk_rm_sort : t -> sort
 (** {2:sort_util Util} *)
 
 (**
-   [sort_dump sort `Smt2 pp]
-   print sort in the SMT-LIB v2 format.
+   [sort_dump sort format pp]
+   print sort.
 
    @param sort The sort.
+   @param format The output format for printing the term. Either [`Btor] for
+                the BTOR format, or [`Smt2] for the SMT-LIB v2 format. Note
+                for the [`Btor] this function won't do anything since BTOR
+                sorts are printed when printing the term via {!val:term_dump}.
    @param pp The outpout formatter.
 *)
-val sort_dump : sort -> [ `Smt2 ] -> Format.formatter -> unit
+val sort_dump : sort -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
 
 
 (** {2:sort_query Query} *)

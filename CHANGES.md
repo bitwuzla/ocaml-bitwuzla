@@ -14,4 +14,4 @@ Vendor submodules:
 - [Cadical](https://github.com/arminbiere/cadical) tag:sc2021
 - [SymFPU](https://github.com/martin-cs/symfpu) commit:8fbe139
 - [Btor2Tools](https://github.com/Boolector/btor2tools) commit:1df768d
-- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) commit:8bb7e1e
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) commit:2f4dad6

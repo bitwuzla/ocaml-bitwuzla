@@ -754,9 +754,9 @@ external sort_is_fun : sort -> bool
   = "ocaml_bitwuzla_sort_is_fun"
 external sort_is_rm : sort -> bool
   = "ocaml_bitwuzla_sort_is_rm"
-external sort_dump : sort -> Format.formatter -> unit
-  = "ocaml_bitwuzla_sort_dump"
-let sort_dump s `Smt2 pp = sort_dump s pp
+external sort_dump : sort -> (int [@untagged]) -> Format.formatter -> unit
+  = "ocaml_bitwuzla_sort_dump" "native_bitwuzla_sort_dump"
+let sort_dump t (f : [ `Btor | `Smt2 ]) k = sort_dump t (format_to_c f) k
 
 external term_hash : term -> int
   = "ocaml_bitwuzla_term_hash"
