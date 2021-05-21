@@ -1,5 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![CI](https://github.com/recoules/ocaml-bitwuzla/workflows/CI/badge.svg)
+![CI](https://github.com/bitwuzla/ocaml-bitwuzla/workflows/CI/badge.svg)
 
 # ocaml-bitwuzla
 
@@ -20,7 +20,7 @@ opam install bitwuzla
 ## From source
 
 The latest version of `ocaml-bitwuzla` is available on GitHub:
-https://github.com/recoules/ocaml-bitwuzla
+https://github.com/bitwuzla/ocaml-bitwuzla
 
 ### Required Dependencies
 

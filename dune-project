@@ -5,10 +5,10 @@
 (version 0.0.0)
 (maintainers "Frédéric Recoules <frederic.recoules@cea.fr>")
 (authors "Frédéric Recoules")
-(source (github  recoules/ocaml-bitwuzla))
+(source (github  bitwuzla/ocaml-bitwuzla))
 (license MIT)
 (homepage "https://bitwuzla.github.io")
-(bug_reports "https://github.com/recoules/ocaml-bitwuzla/issues")
+(bug_reports "https://github.com/bitwuzla/ocaml-bitwuzla/issues")
 
 (package
  (name bitwuzla)
@@ -17,7 +17,7 @@
 OCaml binding for the SMT solver Bitwuzla.
 
 Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fixed-size bit-vectors, arrays and uninterpreted functions and their combinations. Its name is derived from an Austrian dialect expression that can be translated as “someone who tinkers with bits”.")
- (documentation "https://recoules.github.io/docs/ocaml")
+ (documentation "https://bitwuzla.github.io/docs/ocaml/")
  (depends
   (ocaml (>= 4.08))
   (conf-git :build)

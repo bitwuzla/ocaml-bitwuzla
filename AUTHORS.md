@@ -1,6 +1,6 @@
 The main author and developer of this OCaml binding is:
 
-  Frédéric Recoules, CEA, List
+  Frédéric Recoules, CEA, List.
 
 The main authors and developers of Bitwuzla are:
 

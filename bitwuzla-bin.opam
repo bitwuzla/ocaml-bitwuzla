@@ -12,7 +12,7 @@ authors: ["Frédéric Recoules"]
 license: "MIT"
 tags: ["SMT solver" "SMT-COMP 2020" "QF_AUFBVFP"]
 homepage: "https://bitwuzla.github.io"
-bug-reports: "https://github.com/recoules/ocaml-bitwuzla/issues"
+bug-reports: "https://github.com/bitwuzla/ocaml-bitwuzla/issues"
 depends: [
   "dune" {>= "2.6"}
   "conf-git" {build}
@@ -35,4 +35,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/recoules/ocaml-bitwuzla.git"
+dev-repo: "git+https://github.com/bitwuzla/ocaml-bitwuzla.git"
