@@ -14,9 +14,13 @@
     (echo "#define BZLACONFIG_H_INCLUDED\n")
     (echo "#define BZLA_VERSION \"%{version:bitwuzla}\"\n")
     (echo "#define BZLA_GIT_ID \"\"\n")
-    (echo "#define BZLA_LICENSE \"")
-    (run hexdump -v -e "\"\\\\\" \"x\" 1/1 \"%02x\"" %{deps})
-    (echo "\"\n")
+    (echo "#define BZLA_LICENSE ")
+    (pipe-stdout
+     (progn
+      (echo "STRINGIFY(\n")
+      (cat %{deps})
+      (echo "\n)\n"))
+     (run gcc -E -P -D"STRINGIFY(...)=# __VA_ARGS__" -))
     (echo "#endif"))))))
  (foreign_library
  (archive_name bitwuzla)
