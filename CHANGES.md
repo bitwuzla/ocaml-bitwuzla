@@ -1,3 +1,15 @@
+## 0.0.1 (2021-05-24)
+
+- Fix compilation errors on non debian familly os:
+
+    - Remove `bitwuzla-bin` package
+      (it required non always available `static` version of system libraries)
+    - Completely rework the building rules of foreign archives
+      (side effect: drop `conf-cmake` dependency)
+    - Fix Cadical compilation on `archlinux`
+
+- Upgrade `dune` to 2.7 (fix opam lint warning)
+
 ## 0.0.0 (2021-05-20)
 
 Initial release.

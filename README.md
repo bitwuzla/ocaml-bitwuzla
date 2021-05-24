@@ -27,7 +27,7 @@ https://github.com/bitwuzla/ocaml-bitwuzla
 - [CMake >= 3.7](https://cmake.org)
 - [GMP v6.1 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
 - [OCaml >= 4.08](https://github.com/ocaml/ocaml)
-- [Dune >= 2.6](https://github.com/ocaml/dune)
+- [Dune >= 2.7](https://github.com/ocaml/dune)
 
 ### Optional Dependencies
 

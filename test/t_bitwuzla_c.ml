@@ -152,9 +152,8 @@ let with_terms f =
        with_term1; with_term2; with_term3; with_term1_indexed2;
        with_rm_value |]
 
-let%expect_test "version" =
-  string with_t version;
-  [%expect{| 0.1-202011 |}]
+let%test "version" =
+  0 <> String.length @@ with_t version
 
 let%expect_test "copyright" =
   string with_t copyright;
