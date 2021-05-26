@@ -11,6 +11,9 @@ This library contains basic bindings for using Bitwuzla in OCaml code.
 Bitwuzla sources and dependencies are repackaged for convenient use
 with [*opam*](https://opam.ocaml.org/).
 
+Online documentation is avaialbe at
+https://bitwuzla.github.io/docs/ocaml.
+
 ## From Opam
 
 ```bash
