@@ -1,4 +1,4 @@
-(lang dune 2.7)
+(lang dune 2.8)
 (generate_opam_files true)
 
 (name bitwuzla)
@@ -19,14 +19,26 @@ OCaml binding for the SMT solver Bitwuzla.
 Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fixed-size bit-vectors, arrays and uninterpreted functions and their combinations. Its name is derived from an Austrian dialect expression that can be translated as “someone who tinkers with bits”.")
  (documentation "https://bitwuzla.github.io/docs/ocaml/")
  (depends
+   bitwuzla.c
+   zarith
+  (ppx_expect :with-test))
+ (tags
+  ("SMT solver"
+   "SMT-COMP 2020"
+   "QF_AUFBVFP")))
+
+(package
+ (name bitwuzla-c)
+ (synopsis "SMT solver for QF_AUFBVFP (C API)")
+ (description "OCaml binding for the SMT solver Bitwuzla C API.")
+ (documentation "https://bitwuzla.github.io/docs/ocaml/")
+ (depends
   (ocaml (>= 4.08))
   (conf-git :build)
   (conf-gcc :build)
   (conf-g++ :build)
    conf-gmp
   (ppx_expect :with-test))
- (depopts
-   zarith)
  (tags
   ("SMT solver"
    "SMT-COMP 2020"

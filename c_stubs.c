@@ -631,7 +631,7 @@ ocaml_bitwuzla_mk_var (value vt, value vs, value vn)
 {
   Bitwuzla *t = Bitwuzla_val(vt);
   BitwuzlaSort *sort = Sort_val(vs);
-  const char *symbol = String_val(vn);
+  const char *symbol = caml_string_length(vn) ? String_val(vn) : NULL;
   return Val_term(bitwuzla_mk_var(t, sort, symbol));
 }
 

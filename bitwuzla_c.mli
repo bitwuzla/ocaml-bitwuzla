@@ -694,10 +694,9 @@ type roundingmode =
       SMT-LIB: [RTP] roundTowardPositive
   *)
   | Rtz
-  (**
-     Round towards zero.
-     The result shall be the format’s floating-point number closest to and no
-     greater in magnitude than the infinitely precise result.
+  (** Round towards zero.
+      The result shall be the format’s floating-point number closest to and no
+      greater in magnitude than the infinitely precise result.
 
      SMT-LIB: [RTZ] roundTowardZero
   *)
@@ -811,11 +810,11 @@ type kind =
   | Bv_sge
   (** Bit-vector signed greater than or equal.
 
-      SMT-LIB: [bvsle] *)
+      SMT-LIB: [bvsge] *)
   | Bv_sgt
   (** Bit-vector signed greater than.
 
-      SMT-LIB: [bvslt] *)
+      SMT-LIB: [bvsgt] *)
   | Bv_shl
   (** Bit-vector logical left shift.
 
@@ -1267,7 +1266,7 @@ val mk_bv_value : t -> sort -> string -> bvbase -> term
 val mk_bv_value_int : t -> sort -> int -> term
 
 (**
-   [mk_fp_value t bv_sign bv_expenent bv_significand]
+   [mk_fp_value t bv_sign bv_exponent bv_significand]
    create a floating-point value from its IEEE 754 standard representation
    given as three bitvectors representing the sign bit, the exponent and the
    significand.
@@ -2124,8 +2123,8 @@ val simplify : t -> result
 
    @param t The Bitwuzla instance.
 
-   @return [Sat] if the input formula is satisfiable and
-         [Unsat] if it is unsatisfiable, and [Unknown]
+   @return {!constructor:Sat} if the input formula is satisfiable and
+         {!constructor:Unsat} if it is unsatisfiable, and {!constructor:Unknown}
          when neither satisfiability nor unsatisfiability was determined.
          This can happen when [t] was terminated via a termination callback.
 *)
@@ -2137,7 +2136,7 @@ val check_sat : t -> result
    [get_value t term]
    get a term representing the model value of a given term.
 
-   Requires that the last {!val:check_sat} query returned [Sat].
+   Requires that the last {!val:check_sat} query returned {!constructor:Sat}.
 
    @param t The Bitwuzla instance.
    @param term The term to query a model value for.
@@ -2259,7 +2258,7 @@ val is_unsat_assumption : t -> term -> bool
 
    Requires that incremental solving has been enabled via {!val:set_option}.
 
-   Requires that the last {!val:check_sat} query returned [Unsat].
+   Requires that the last {!val:check_sat} query returned {!constructor:Unsat}.
 
    @param t The Bitwuzla instance.
 
@@ -2274,7 +2273,7 @@ val get_unsat_assumptions : t -> term array
    The unsat core consists of the set of assertions that force an input formula
    to become unsatisfiable.
 
-   Requires that the last {!val:check_sat} query returned [Unsat].
+   Requires that the last {!val:check_sat} query returned {!constructor:Unsat}.
 
    @param t The Bitwuzla instance.
 
