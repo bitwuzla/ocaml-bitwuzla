@@ -215,7 +215,7 @@ let%test "get_termination_callback_state" =
 
 let%expect_test "mk_array_sort" =
   dump sort_dump with_ar32_8_sort (fun (_, s, _, _) -> s);
-  [%expect{| ((_ BitVec 32)) (_ BitVec 8) |}]
+  [%expect{| (Array (_ BitVec 32) (_ BitVec 8)) |}]
 
 let%expect_test "mk_bool_sort" =
   dump sort_dump with_t (fun t -> mk_bool_sort t);
@@ -456,7 +456,7 @@ let%expect_test "term_get_children" =
 let%expect_test "term_get_children" =
   dump (array_dump term_dump) with_term3 (fun t -> term_get_children t);
   [%expect {|
-    (declare-const a ((_ BitVec 32)) (_ BitVec 8))
+    (declare-const a (Array (_ BitVec 32) (_ BitVec 8)))
 
     (declare-const b (_ BitVec 32))
      (declare-const c (_ BitVec 8)) |}]
@@ -474,10 +474,10 @@ let%expect_test "term_get_sort" =
   with_terms (fun f -> dump sort_dump f (fun t -> term_get_sort t);
                Format.print_space ());
   [%expect {|
-    (_ BitVec 8) (_ BitVec 8) (_ BitVec 8) (_ FloatingPoint 5 10)
-    (_ FloatingPoint 5 10) ((_ BitVec 32)) (_ BitVec 8)
-    ((_ BitVec 32)) (_ BitVec 8) ((_ BitVec 1) (_ BitVec 1)) (_ BitVec 1)
-    (_ BitVec 8) (_ BitVec 8) ((_ BitVec 32)) (_ BitVec 8) (_ BitVec 2)
+    (_ BitVec 8) (_ BitVec 8) (_ BitVec 8) (_ FloatingPoint 5 11)
+    (_ FloatingPoint 5 11) (Array (_ BitVec 32) (_ BitVec 8))
+    (Array (_ BitVec 32) (_ BitVec 8)) ((_ BitVec 1) (_ BitVec 1)) (_ BitVec 1)
+    (_ BitVec 8) (_ BitVec 8) (Array (_ BitVec 32) (_ BitVec 8)) (_ BitVec 2)
     RoundingMode |}]
 
 let%expect_test "term_array_get_index_sort" =

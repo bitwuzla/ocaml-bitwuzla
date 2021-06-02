@@ -930,8 +930,8 @@ CAMLprim value
 ocaml_bitwuzla_sort_fun_get_domain_sorts (value vs)
 {
   BitwuzlaSort *sort = Sort_val(vs);
-  BitwuzlaSort **ptr = bitwuzla_sort_fun_get_domain_sorts(sort);
-  uint32_t size = bitwuzla_sort_fun_get_arity(sort);
+  size_t size;
+  BitwuzlaSort **ptr = bitwuzla_sort_fun_get_domain_sorts(sort, &size);
   return Val_array(BitwuzlaSort*, Val_sort, ptr, size);
 }
 
@@ -1082,8 +1082,8 @@ CAMLprim value
 ocaml_bitwuzla_term_fun_get_domain_sorts (value ve)
 {
   BitwuzlaTerm *term = Term_val(ve);
-  BitwuzlaSort **ptr = bitwuzla_term_fun_get_domain_sorts(term);
-  uint32_t size = bitwuzla_term_fun_get_arity(term);
+  size_t size;
+  BitwuzlaSort **ptr = bitwuzla_term_fun_get_domain_sorts(term, &size);
   return Val_array(BitwuzlaSort*, Val_sort, ptr, size);
 }
 

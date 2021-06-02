@@ -28,7 +28,7 @@
    ../btor2tools/src/btor2parser/btor2parser.h)
  (flags :standard
         -I../cadical/src
-        -I../btor2tools/src
+        -I../btor2tools/src/btor2parser
         -DBZLA_HAVE_PTHREADS -DBZLA_HAVE_SIGNALS
         -DBZLA_USE_CADICAL -DBZLA_USE_SYMFPU -DNBZLALOG -DNDEBUG))
  (foreign_library
