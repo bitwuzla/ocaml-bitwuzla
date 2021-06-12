@@ -702,6 +702,16 @@ let check_sat t = result_from_c @@ check_sat t
 
 external get_value : t -> term -> term
   = "ocaml_bitwuzla_get_value"
+external get_bv_value : t -> term -> string
+  = "ocaml_bitwuzla_get_bv_value"
+external get_fp_value : t -> term -> string * string * string
+  = "ocaml_bitwuzla_get_fp_value"
+external get_rm_value : t -> term -> string
+  = "ocaml_bitwuzla_get_rm_value"
+external get_array_value : t -> term -> (term * term) array * term option
+  = "ocaml_bitwuzla_get_array_value"
+external get_fun_value : t -> term -> term array array
+  = "ocaml_bitwuzla_get_fun_value"
 external print_model : t -> (int [@untagged]) -> Format.formatter -> unit
   = "ocaml_bitwuzla_print_model" "native_bitwuzla_print_model"
 let print_model t (f : [ `Btor | `Smt2 ]) k = print_model t (format_to_c f) k

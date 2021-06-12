@@ -84,7 +84,7 @@ let with_bv8_sort f =
   with_t (fun t -> f (t, mk_bv_sort t 8))
 
 let with_fp16_sort f =
-  with_t (fun t -> f (t, mk_fp_sort t 5 10))
+  with_t (fun t -> f (t, mk_fp_sort t 5 11))
 
 let with_ar32_8_sort f =
   with_t (fun t ->
@@ -227,7 +227,7 @@ let%expect_test "mk_bv_sort" =
 
 let%expect_test "mk_fp_sort" =
   dump sort_dump with_fp16_sort snd;
-  [%expect{| (_ FloatingPoint 5 10) |}]
+  [%expect{| (_ FloatingPoint 5 11) |}]
 
 let%expect_test "mk_fun_sort" =
   dump sort_dump with_fun1_1_1_sort snd;
@@ -256,7 +256,7 @@ let%test "sort_fp_get_exp_size" =
   with_fp16_sort (fun (_, s) -> sort_fp_get_exp_size s) = 5
 
 let%test "sort_fp_get_sig_size" =
-  with_fp16_sort (fun (_, s) -> sort_fp_get_sig_size s) = 10
+  with_fp16_sort (fun (_, s) -> sort_fp_get_sig_size s) = 11
 
 let%expect_test "sort_array_get_index" =
   dump sort_dump with_ar32_8_sort (fun (_, s, _, _) -> sort_array_get_index s);
@@ -335,23 +335,23 @@ let%expect_test "mk_bv_max_signed" =
 
 let%expect_test "mk_fp_pos_zero" =
   dump term_dump with_fp16_sort (fun (t, s) -> mk_fp_pos_zero t s);
-  [%expect {| (fp #b0 #b00000 #b000000000) |}]
+  [%expect {| (fp #b0 #b00000 #b0000000000) |}]
 
 let%expect_test "mk_fp_neg_zero" =
   dump term_dump with_fp16_sort (fun (t, s) -> mk_fp_neg_zero t s);
-  [%expect {| (fp #b1 #b00000 #b000000000) |}]
+  [%expect {| (fp #b1 #b00000 #b0000000000) |}]
 
 let%expect_test "mk_fp_pos_inf" =
   dump term_dump with_fp16_sort (fun (t, s) -> mk_fp_pos_inf t s);
-  [%expect {| (fp #b0 #b11111 #b000000000) |}]
+  [%expect {| (fp #b0 #b11111 #b0000000000) |}]
 
 let%expect_test "mk_fp_neg_inf" =
   dump term_dump with_fp16_sort (fun (t, s) -> mk_fp_neg_inf t s);
-  [%expect {| (fp #b1 #b11111 #b000000000) |}]
+  [%expect {| (fp #b1 #b11111 #b0000000000) |}]
 
 let%expect_test "mk_fp_nan" =
   dump term_dump with_fp16_sort (fun (t, s) -> mk_fp_nan t s);
-  [%expect {| (fp #b0 #b11111 #b100000000) |}]
+  [%expect {| (fp #b0 #b11111 #b1000000000) |}]
 
 let%expect_test "mk_bv_value" =
   dump term_dump with_bv8_sort (fun (t, s) -> mk_bv_value t s "42" Dec);
@@ -380,12 +380,12 @@ let%expect_test "mk_fp_value" =
 let%expect_test "mk_fp_value_from_real" =
   dump term_dump with_fp16_sort (fun (t, s) ->
       mk_fp_value_from_real t s (mk_rm_value t Rtz) "10.1");
-  [%expect {| (fp #b0 #b10010 #b010000110) |}]
+  [%expect {| (fp #b0 #b10010 #b0100001100) |}]
 
 let%expect_test "mk_fp_value_from_rational" =
   dump term_dump with_fp16_sort (fun (t, s) ->
       mk_fp_value_from_rational t s (mk_rm_value t Rtz) "101" "10");
-  [%expect {| (fp #b0 #b10010 #b010000110) |}]
+  [%expect {| (fp #b0 #b10010 #b0100001100) |}]
 
 let%expect_test "mk_rm_value" =
   [| Rne; Rna; Rtn; Rtp; Rtz |]
@@ -507,7 +507,7 @@ let%expect_test "term_fp_get_exp_size" =
 
 let%expect_test "term_fp_get_sig_size" =
   int with_fp_const (fun t -> term_fp_get_sig_size t);
-  [%expect {| 10 |}]
+  [%expect {| 11 |}]
 
 let%expect_test "term_fun_get_arity" =
   int with_fun_const (fun t -> term_fun_get_arity t);
@@ -716,6 +716,125 @@ let%expect_test "get_value" =
       ignore @@ check_sat t;
       get_value t a);
   [%expect{| true |}]
+
+let%expect_test "get_bv_value" =
+  string with_t_naked (fun t ->
+      set_option t Produce_models 1;
+      let bv8 = mk_bv_sort t 8 in
+      let a = mk_const t bv8 "a" in
+      let v = mk_bv_value_int t bv8 42 in
+      mk_assert t @@ mk_term2 t Equal a v;
+      ignore @@ check_sat t;
+      get_bv_value t a
+    );
+  [%expect {| 00101010 |}]
+
+let%expect_test "get_fp_value" =
+  string with_t_naked (fun t ->
+      set_option t Produce_models 1;
+      let fp32 = mk_fp_sort t 8 24 in
+      let a = mk_const t fp32 "a" in
+      let r = mk_rm_value t Rtz in
+      let v = mk_fp_value_from_real t fp32 r "42" in
+      mk_assert t @@ mk_term2 t Equal a v;
+      ignore @@ check_sat t;
+      let sign, exponent, significand = get_fp_value t a in
+      sign ^ exponent ^ significand
+    );
+  [%expect {| 01000010001010000000000000000000 |}]
+
+let%expect_test "get_rm_value" =
+  string with_t_naked (fun t ->
+      set_option t Produce_models 1;
+      let rm = mk_rm_sort t in
+      let a = mk_const t rm "a" in
+      let v = mk_rm_value t Rtz in
+      mk_assert t @@ mk_term2 t Equal a v;
+      ignore @@ check_sat t;
+      get_rm_value t a);
+  [%expect {| RTZ |}]
+
+let%expect_test "get_array_value" =
+  with_t_naked (fun t ->
+      set_option t Produce_models 1;
+      let bv1 = mk_bool_sort t in
+      let ar1_1 = mk_array_sort t bv1 bv1 in
+      let a = mk_const t ar1_1 "a" in
+      let one = mk_true t in
+      let v = mk_const_array t ar1_1 one in
+      mk_assert t @@ mk_term2 t Equal a v;
+      ignore @@ check_sat t;
+      let values, default = get_array_value t a in
+      Array.iter (fun (i, v) -> Format.printf "a[%s] = %s"
+                     (get_bv_value t i) (get_bv_value t v)) values;
+      match default with
+      | None -> ()
+      | Some d -> Format.printf "a[.] = %s" (get_bv_value t d));
+  [%expect {| a[.] = 1 |}]
+
+let%expect_test "get_array_value" =
+  with_t_naked (fun t ->
+      set_option t Produce_models 1;
+      let bv1 = mk_bool_sort t in
+      let ar1_1 = mk_array_sort t bv1 bv1 in
+      let a = mk_const t ar1_1 "a" in
+      let one = mk_true t and zero = mk_false t in
+      let s = mk_term2 t Array_select a one in
+      mk_assert t @@ mk_term2 t Equal s one;
+      let s = mk_term2 t Array_select a zero in
+      mk_assert t @@ mk_term2 t Equal s zero;
+      ignore @@ check_sat t;
+      let values, default = get_array_value t a in
+      Array.iter (fun (i, v) -> Format.printf "a[%s] = %s; "
+                     (get_bv_value t i) (get_bv_value t v)) values;
+      match default with
+      | None -> ()
+      | Some d -> Format.printf "a[.] = %s" (get_bv_value t d));
+  [%expect {| a[1] = 1; a[0] = 0; |}]
+
+let%expect_test "get_array_value" =
+  with_t_naked (fun t ->
+      set_option t Produce_models 1;
+      let bv1 = mk_bool_sort t in
+      let ar1_1 = mk_array_sort t bv1 bv1 in
+      let a = mk_const t ar1_1 "a" in
+      let one = mk_true t and zero = mk_false t in
+      let v = mk_const_array t ar1_1 one in
+      let v = mk_term3 t Array_store v zero zero in
+      mk_assert t @@ mk_term2 t Equal a v;
+      ignore @@ check_sat t;
+      let values, default = get_array_value t a in
+      Array.iter (fun (i, v) -> Format.printf "a[%s] = %s; "
+                     (get_bv_value t i) (get_bv_value t v)) values;
+      match default with
+      | None -> ()
+      | Some d -> Format.printf "a[.] = %s" (get_bv_value t d));
+  [%expect {| a[0] = 0; a[.] = 1 |}]
+
+let%expect_test "get_fun_value" =
+  with_t_naked (fun t ->
+      set_option t Produce_models 1;
+      let bv1 = mk_bool_sort t in
+      let fn1_1_1 = mk_fun_sort t [| bv1; bv1 |] bv1 in
+      let a = mk_const t fn1_1_1 "a" in
+      let one = mk_true t and zero = mk_false t in
+      let v = mk_term3 t Apply a zero zero in
+      mk_assert t @@ mk_term2 t Equal v one;
+      let v = mk_term3 t Apply a zero one in
+      mk_assert t @@ mk_term2 t Equal v zero;
+      ignore @@ check_sat t;
+      let values = get_fun_value t a in
+      Array.iter (fun a ->
+          print_string "(";
+          print_string (get_bv_value t @@ Array.get a 0);
+          for i = 1 to Array.length a - 2 do
+            print_string ", ";
+            print_string (get_bv_value t @@ Array.get a i)
+          done;
+          print_string "): ";
+          print_string (get_bv_value t @@ Array.get a @@ Array.length a - 1);
+          print_string "; ";) values);
+  [%expect {| (0, 0): 1; (0, 1): 0; |}]
 
 let%expect_test "print_model" =
   with_sat_formula (fun (t, _) ->

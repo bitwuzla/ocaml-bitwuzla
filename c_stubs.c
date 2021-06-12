@@ -746,6 +746,96 @@ static FILE *openfilefromformatter (value *vformatter)
   return file;
 }
 
+CAMLprim value
+ocaml_bitwuzla_get_bv_value (value vt, value vterm)
+{
+  Bitwuzla *t = Bitwuzla_val(vt);
+  BitwuzlaTerm *term = Term_val(vterm);
+  return caml_copy_string(bitwuzla_get_bv_value(t, term));
+}
+
+CAMLprim value
+ocaml_bitwuzla_get_fp_value (value vt, value vterm)
+{
+  CAMLparam0();
+  CAMLlocal3(vsign, vexponent, vsignificand);
+  Bitwuzla *t = Bitwuzla_val(vt);
+  BitwuzlaTerm *term = Term_val(vterm);
+  const char *sign, *exponent, *significand;
+  bitwuzla_get_fp_value(t, term, &sign, &exponent, &significand);
+  vsign = caml_copy_string(sign);
+  vexponent = caml_copy_string(exponent);
+  vsignificand = caml_copy_string(significand);
+  value vtuple = caml_alloc_small(3, 0);
+  Field(vtuple, 0) = vsign;
+  Field(vtuple, 1) = vexponent;
+  Field(vtuple, 2) = vsignificand;
+  CAMLreturn(vtuple);
+}
+
+CAMLprim value
+ocaml_bitwuzla_get_rm_value(value vt, value vterm)
+{
+  Bitwuzla *t = Bitwuzla_val(vt);
+  BitwuzlaTerm *term = Term_val(vterm);
+  return caml_copy_string(bitwuzla_get_rm_value(t, term));
+}
+
+CAMLprim value
+ocaml_bitwuzla_get_array_value (value vt, value vterm)
+{
+  CAMLparam0();
+  CAMLlocal2(vassoc, vdefault);
+  Bitwuzla *t = Bitwuzla_val(vt);
+  BitwuzlaTerm *term = Term_val(vterm);
+  BitwuzlaTerm **indices, **values, *default_value;
+  size_t size;
+  bitwuzla_get_array_value(t, term, &indices, &values, &size, &default_value);
+  vassoc = Atom(0);
+  if (size > 0) {
+    vassoc = caml_alloc(size, 0);
+    for (int i = 0; i < size; i += 1) {
+      value vtuple = caml_alloc_small(2, 0);
+      Field(vtuple, 0) = Val_term(indices[i]);
+      Field(vtuple, 1) = Val_term(values[i]);
+      Store_field(vassoc, i, vtuple);
+    }
+  }
+  if (default_value != NULL) {
+    vdefault = caml_alloc_small(1, 0);
+    Field(vdefault, 0) = Val_term(default_value);;
+  }
+  value vtuple = caml_alloc_small(2, 0);
+  Field(vtuple, 0) = vassoc;
+  Field(vtuple, 1) = vdefault;
+  CAMLreturn(vtuple);
+}
+
+CAMLprim value
+ocaml_bitwuzla_get_fun_value (value vt, value vterm)
+{
+  CAMLparam0();
+  CAMLlocal1(vassoc);
+  Bitwuzla *t = Bitwuzla_val(vt);
+  BitwuzlaTerm *term = Term_val(vterm);
+  BitwuzlaTerm ***args, **values;
+  size_t arity, size;
+  bitwuzla_get_fun_value(t, term, &args, &arity, &values, &size);
+  vassoc = Atom(0);
+  if (size > 0) {
+    vassoc = caml_alloc(size, 0);
+    for (int i = 0; i < size; i += 1) {
+      value vtuple = caml_alloc(arity + 1, 0);
+      for (int j = 0; j < arity; j += 1) {
+	Field(vtuple, j) = Val_term(args[i][j]);
+      }
+      Field(vtuple, arity) = Val_term(values[i]);
+      Store_field(vassoc, i, vtuple);
+    }
+  }
+  CAMLreturn(vassoc);
+}
+
 CAMLprim void
 native_bitwuzla_print_model (value vt, intnat iformat, value vformatter)
 {

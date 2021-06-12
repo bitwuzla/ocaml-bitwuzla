@@ -2136,6 +2136,73 @@ val check_sat : t -> result
 val get_value : t -> term -> term
 
 (**
+   [get_bv_value t term]
+   get string representation of the current model value of given bit-vector
+   term.
+
+   @param t The Bitwuzla instance.
+   @param term The term to query a model value for.
+
+   @return Binary string representation of current model value of term [term].
+*)
+val get_bv_value : t -> term -> string
+
+(**
+   [get_fp_value t term]
+   get string of IEEE 754 standard representation of the current model value of
+   given floating-point term.
+
+   @param t The Bitwuzla instance.
+   @param term The term to query a model value for.
+
+   @return Binary string representations of the sign bit, the exponent
+           bit-vector and significand bit-vector values.
+*)
+val get_fp_value : t -> term -> string * string * string
+
+(**
+   [get_rm_value t term]
+   get string representation of the current model value of given rounding mode
+   term.
+
+   @param t The Bitwuzla instance.
+   @param term The rounding mode term to query a model value for.
+
+   @return String representation of rounding mode (RNA, RNE, RTN, RTP, RTZ).
+*)
+val get_rm_value : t -> term -> string
+
+(**
+   [get_array_value t term]
+   get the current model value of given array term.
+
+   The string representation of indices and values can be queried via
+   {!val:get_bv_value}, {!val:get_fp_value}, and {!val:get_rm_value}.
+
+   @param t The Bitwuzla instance.
+   @param term The term to query a model value for.
+
+   @return An array of associations between indices and values.
+           The value of all other indices is [Some default] when
+           base array is constant array, otherwise, it is [None].
+*)
+val get_array_value : t -> term -> (term * term) array * term option
+
+(**
+   [get_fun_value t term]
+   get the current model value of given function term.
+
+   The string representation of arguments and values can be queried via
+   {!val:get_bv_value}, {!val:get_fp_value}, and {!val:get_rm_value}.
+
+   @param t The Bitwuzla instance.
+   @param term The term to query a model value for.
+
+   @return An array of associations between `arity` arguments and a value.
+*)
+val get_fun_value : t -> term -> term array array
+
+(**
    [print_model t]
    print a model for the current input formula.
 
