@@ -15,13 +15,8 @@
     (echo "#define BZLA_VERSION \"%{version:bitwuzla}\"\n")
     (echo "#define BZLA_GIT_ID \"\"\n")
     (echo "#define BZLA_LICENSE ")
-    (pipe-stdout
-     (progn
-      (echo "STRINGIFY(\n")
-      (cat %{deps})
-      (echo "\n)\n"))
-     (run gcc -E -P -D"STRINGIFY(...)=# __VA_ARGS__" -))
-    (echo "#endif"))))))
+    (pipe-stdout (cat %{deps}) (run ../../../utils/stringify.exe))
+    (echo "\n#endif"))))))
  (foreign_library
  (archive_name bitwuzla)
  (language c)
