@@ -367,6 +367,17 @@ val set_option_str : t -> opt -> string -> unit
 *)
 val get_option : t -> opt -> int
 
+(**
+   [get_option_str t option]
+   get the current value of an option as a string if option can be configured
+   via a string value.
+
+   @param t The Bitwuzla instance.
+   @param option The option.
+
+   @return The option value.
+*)
+val get_option_str : t -> opt -> string
 
 (** {1:sort Sort} *)
 

@@ -581,6 +581,9 @@ let set_option_str t o v = set_option_str t (opt_to_c o) v
 external get_option : t -> (int [@untagged]) -> int
   = "ocaml_bitwuzla_get_option" "native_bitwuzla_get_option"
 let get_option t o = get_option t (opt_to_c o)
+external get_option_str : t -> (int [@untagged]) -> string
+  = "ocaml_bitwuzla_get_option_str" "native_bitwuzla_get_option_str"
+let get_option_str t o = get_option_str t (opt_to_c o)
 
 external mk_array_sort : t  -> sort -> sort -> sort
   = "ocaml_bitwuzla_mk_array_sort"

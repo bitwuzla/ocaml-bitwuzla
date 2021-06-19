@@ -209,6 +209,19 @@ ocaml_bitwuzla_get_option (value vt, value vopt)
 }
 
 CAMLprim value
+native_bitwuzla_get_option_str (value vt, intnat opt)
+{
+  Bitwuzla *t = Bitwuzla_val(vt);
+  return caml_copy_string(bitwuzla_get_option_str(t, opt));
+}
+
+CAMLprim value
+ocaml_bitwuzla_get_option_str (value vt, value vopt)
+{
+  return native_bitwuzla_get_option_str(vt, Long_val(vopt));
+}
+
+CAMLprim value
 ocaml_bitwuzla_mk_array_sort (value vt, value vi, value ve)
 {
   Bitwuzla *t = Bitwuzla_val(vt);

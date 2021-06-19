@@ -201,6 +201,16 @@ let%expect_test "copyright" =
       SymFPU
       https://github.com/martin-cs/symfpu |}]
 
+let%test "get_option" =
+  with_t_naked (fun t -> get_option t Incremental = 0)
+
+let%test "get_option" =
+  with_t (fun t -> get_option t Incremental = 1)
+
+let%expect_test "get_option_str" =
+  string with_t (fun t -> get_option_str t Engine);
+  [%expect {| fun |}]
+
 let%test "terminate" =
   with_hard_formula (fun t ->
       ignore @@ set_termination_callback t (timeout 0.1) @@ Sys.time ();
