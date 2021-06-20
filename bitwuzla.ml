@@ -84,7 +84,9 @@ module Session () = struct
     let hash x = term_hash x
     let sort x = term_get_sort x
 
-    let pp f x = term_dump x `Smt2 f
+    let pp f x =
+      try Format.pp_print_string f @@ term_get_symbol x
+      with Not_found -> term_dump x `Smt2 f
 
     module Bl = struct
 
@@ -788,12 +790,19 @@ module Session () = struct
 
   end
 
-  let assert' b = mk_assert t b
+  let assert' ?name b =
+    Option.iter (fun name -> term_set_symbol b name) name;
+    mk_assert t b
 
   type nonrec result = result =
     | Sat
     | Unsat
     | Unknown
+
+  let pp_result ppf = function
+    | Sat   -> Format.pp_print_string ppf "sat"
+    | Unsat -> Format.pp_print_string ppf "unsat"
+    | Unknown -> Format.pp_print_string ppf "unknown"
 
   let check_sat ?timeout () =
     let terminate = match timeout with
@@ -816,7 +825,9 @@ module Incremental () = struct
   let push level = push t level
   let pop level = pop t level
 
-  let check_sat_assuming ?timeout assumptions =
+  let check_sat_assuming ?timeout ?names assumptions =
+    Option.iter (fun names ->
+        Array.iter2 (fun n a -> term_set_symbol a n) names assumptions) names;
     Array.iter (mk_assume t) assumptions;
     check_sat ?timeout ()
 

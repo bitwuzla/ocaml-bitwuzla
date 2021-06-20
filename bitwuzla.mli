@@ -2128,20 +2128,30 @@ module Once () : sig
   (** {1 Formula} *)
 
   (**
-     [assert' t]
+     [assert' ~name t]
      assert that the condition [t] is [true].
 
      [t] must be a boolean term ({!type:bv} {!type:term} of size 1).
 
+     @param name The name of the assertion, if any.
      @param t The formula term to assert.
   *)
-  val assert' : bv term -> unit
+  val assert' : ?name: string -> bv term -> unit
 
   (** A satisfiability result. *)
   type result =
     | Sat      (** sat *)
     | Unsat    (** unsat *)
     | Unknown  (** unknown *)
+
+  (**
+     [pp formatter result]
+     pretty print result.
+
+     @param formatter The output formatter.
+     @param result The result to print.
+  *)
+  val pp_result : Format.formatter -> result -> unit
 
   (**
      [check_sat ~timeout ()]
@@ -2154,7 +2164,7 @@ module Once () : sig
      when neither satistifiability nor unsatisfiability was determined,
      for instance when it was terminated by [timeout].
   *)
-  val check_sat : ?timeout:float -> unit -> result
+  val check_sat : ?timeout: float -> unit -> result
 
   (**
      [get_value t]
@@ -2204,7 +2214,7 @@ module Incremental () : sig
   val pop  : int -> unit
 
   (**
-     [check_sat_assuming ~timeout assumptions]
+     [check_sat_assuming ~timeout ~names assumptions]
      check satisfiability of current input formula, with the search for
      a solution guided by the given assumptions.
 
@@ -2213,7 +2223,7 @@ module Incremental () : sig
      Unsatifiable assumptions can be queried via {!val:get_unsat_assumptions}.
 
      @param timeout The timeout in seconds (no timeout when omitted).
-
+     @param names The assumption names, if any.
      @param assumption The set of assumptions guiding the research of solutions.
 
      @return {!constructor:Sat} if the input formula is satisfiable and
@@ -2221,7 +2231,8 @@ module Incremental () : sig
      when neither satistifiability nor unsatisfiability was determined,
      for instance when it was terminated by [timeout].
   *)
-  val check_sat_assuming : ?timeout:float -> bv term array -> result
+  val check_sat_assuming :
+    ?timeout: float -> ?names: string array -> bv term array -> result
 
   (**
      [get_unsat_assumptions ()]
