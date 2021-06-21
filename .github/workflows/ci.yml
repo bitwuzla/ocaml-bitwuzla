@@ -40,8 +40,6 @@ jobs:
       - if: matrix.depopts != ''
         run: opam install ${{ matrix.depopts }}
 
-      - run: rm vendor/cadical/src/makefile
-
       - run: opam exec -- dune build @install
 
       - if: matrix.test != ''

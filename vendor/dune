@@ -59,8 +59,7 @@
  (language cxx)
  (names :standard \ mobical cadical)
  (include_dirs src)
- (flags :standard -DNDEBUG -DNBUILD)
- (extra_deps ../.cadical_tree)))
+ (flags :standard -DNDEBUG -DNBUILD)))
 
 (rule
  (deps (source_tree symfpu) (file bitwuzla/contrib/symfpu_20201114.patch))
@@ -70,16 +69,4 @@
    (progn
     (with-stdin-from bitwuzla/contrib/symfpu_20201114.patch
      (run patch -p1 --directory symfpu))
-    (write-file %{target} "")))))
-
-(rule
- (deps
-  (file cadical/src/reap.cpp)
-  (file quickfix-size_t-doe-not-name-a-type.patch))
- (target .cadical_tree)
- (action
-  (no-infer
-   (progn
-    (with-stdin-from quickfix-size_t-doe-not-name-a-type.patch
-     (run patch -p1 --directory cadical))
     (write-file %{target} "")))))

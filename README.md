@@ -39,15 +39,6 @@ git submodule init # first time
 git submodule update
 ```
 
-:exclamation: **Temporary fix** : until the next release of
-[Cadical](https://github.com/arminbiere/cadical),
-the symlink [`vendor/cadical/src/makefile`](vendor/cadical/src/makefile)
-should be manually removed (arminbiere/cadical#36).
-```bash
-rm vendor/cadical/src/makefile
-```
-
-
 :warning: **Do not** download the source archive (`.zip`, `.tar.gz`).
 Download instead the
 [tarball](https://github.com/bitwuzla/ocaml-bitwuzla/releases/download/0.0.1/bitwuzla-0.0.1.tbz) from release panel.
