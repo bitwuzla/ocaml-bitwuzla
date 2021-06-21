@@ -1,3 +1,18 @@
+## 1.0.0 (2021-06-21)
+
+Brand new `Bitwuzla` OCaml API in addition the low level `Bitwuzla_c` C API.
+
+Online documentation is available at https://bitwuzla.github.io/docs/ocaml/.
+
+- `bitwuzla-c` package installs [C API](https://bitwuzla.github.io/docs/c/interface.html) binding;
+- `bitwuzla` package installs more OCaml-ish, type safer Bitwuzla API.
+
+Vendor submodules:
+- [Cadical](https://github.com/arminbiere/cadical) tag:rel-1.4.1
+- [SymFPU](https://github.com/martin-cs/symfpu) commit:8fbe139
+- [Btor2Tools](https://github.com/Boolector/btor2tools) commit:6ba194b
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) commit:a4867f3
+
 ## 0.0.1 (2021-05-24)
 
 - Fix compilation errors on non debian familly os:

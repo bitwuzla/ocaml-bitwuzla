@@ -1,8 +1,8 @@
-(lang dune 2.8)
+(lang dune 2.7)
 (generate_opam_files true)
 
 (name bitwuzla)
-(version 0.0.1)
+(version 1.0.0)
 (maintainers "Frédéric Recoules <frederic.recoules@cea.fr>")
 (authors "Frédéric Recoules")
 (source (github  bitwuzla/ocaml-bitwuzla))
@@ -31,7 +31,6 @@ Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fi
  (name bitwuzla-c)
  (synopsis "SMT solver for QF_AUFBVFP (C API)")
  (description "OCaml binding for the SMT solver Bitwuzla C API.")
- (documentation "https://bitwuzla.github.io/docs/ocaml/")
  (depends
   (ocaml (>= 4.08))
   (conf-git :build)
@@ -39,6 +38,8 @@ Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fi
   (conf-g++ :build)
    conf-gmp
   (ppx_expect :with-test))
+ (conflicts
+  (bitwuzla (< 1.0.0)))
  (tags
   ("SMT solver"
    "SMT-COMP 2020"
