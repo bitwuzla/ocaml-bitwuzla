@@ -7,15 +7,15 @@ jobs:
 
     strategy:
       matrix:
-        ocaml-version:
+        ocaml-compiler:
           - 4.08.1
           - 4.09.1
           - 4.10.1
           - 4.11.0
           - 4.12.0
-        depopts:
-          -
-          - zarith
+        package:
+          - bitwuzla-c
+          - bitwuzla
         test:
           -
           - --with-test
@@ -26,21 +26,19 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: avsm/setup-ocaml@v1
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-      - run: opam pin add bitwuzla.dev . --no-action
+      - run: opam pin add . --no-action
 
-      - run: opam depext bitwuzla --yes ${{ matrix.test }}
+      - run: opam depext ${{ matrix.package }} --yes ${{ matrix.test }}
 
-      - run: opam install bitwuzla --deps-only ${{ matrix.test }}
 
-      - if: matrix.depopts != ''
-        run: opam install ${{ matrix.depopts }}
+      - run: opam install ${{ matrix.package }} --deps-only ${{ matrix.test }}
 
-      - run: opam exec -- dune build @install
+      - run: opam exec -- dune build --only-packages ${{ matrix.package }} @install
 
       - if: matrix.test != ''
-        run: opam exec -- dune build @runtest
+        run: opam exec -- dune build --only-packages ${{ matrix.package }} @runtest

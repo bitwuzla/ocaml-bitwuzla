@@ -16,7 +16,7 @@ doc: "https://bitwuzla.github.io/docs/ocaml/"
 bug-reports: "https://github.com/bitwuzla/ocaml-bitwuzla/issues"
 depends: [
   "dune" {>= "2.8"}
-  "bitwuzla.c"
+  "bitwuzla-c"
   "zarith"
   "ppx_expect" {with-test}
   "odoc" {with-doc}
