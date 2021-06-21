@@ -30,7 +30,7 @@ let () =
          ((_ extract 3 0) (bvsdiv x (_ sortbv2 8)))
          ((_ extract 3 0) (bvashr y (_ sortbv1 8)))))
   *)
-  assert' @@ Term.equal sdive ashre;
+  assert' @@ Term.distinct sdive ashre;
 
   (* (check-sat) *)
   let result = check_sat () in

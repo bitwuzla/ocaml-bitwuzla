@@ -52,7 +52,7 @@ tar -xjf bitwuzla-0.0.1.tbz
   (**required**)
 - [OCaml >= 4.08](https://github.com/ocaml/ocaml) (**required**)
 - [dune >= 2.7](https://github.com/ocaml/dune) (**required**)
-- [zarith](https://github.com/ocaml/Zarith) (*optional*)
+- [zarith](https://github.com/ocaml/Zarith) (**required**)
 - [odoc](https://github.com/ocaml/odoc) (*documentation*)
 - [ppx_expect](https://github.com/janestreet/ppx_expect) (*tests*)
 
