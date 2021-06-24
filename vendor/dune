@@ -49,7 +49,8 @@
  (archive_name btor2parser)
  (language c)
  (names btor2parser)
- (include_dirs src)))
+ (include_dirs src)
+ (flags :standard -DNDEBUG)))
 
 (subdir cadical
  (include_subdirs unqualified)
