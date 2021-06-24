@@ -8,7 +8,7 @@
 arithmetic, arrays, uninterpreted functions and their combinations.
 
 This library provides an API for using Bitwuzla in OCaml code.
-Online documentation is avaialbe at
+Online documentation is available at
 https://bitwuzla.github.io/docs/ocaml.
 
 ### Quickstart
@@ -140,7 +140,7 @@ https://github.com/bitwuzla/ocaml-bitwuzla.
 In order to checkout the complete source tree,
 run the following at `clone` time:
 ```bash
-git clone --recurse-submodules git@github.com:bitwuzla/ocaml-bitwuzla.git
+git clone --recurse-submodules https://github.com/bitwuzla/ocaml-bitwuzla.git
 ```
 or at any time:
 ```bash
