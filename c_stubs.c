@@ -12,13 +12,6 @@
 static const char *formats[5] =
   { "btor", "btor2", "smt2", "aiger_ascii", "aiger_binary" };
 
-static const char *pointer_conversion_error =
-  "[Broken assumption] This ocaml binding greedily assumes the "
-  "two most significant bits of the c pointers are always equal "
-  "(and most likely cleared). Still, this error is the proof that "
-  "the assumption may not always hold in practice. Please, file "
-  "a bug to the package maintainer.";
-
 static const value *vpp_print_string = NULL;
 
 struct t { Bitwuzla *bitwuzla; value *termination_callback; };
@@ -26,6 +19,16 @@ struct t { Bitwuzla *bitwuzla; value *termination_callback; };
 #define Bitwuzla_val(v) (((struct t*)Data_custom_val(v))->bitwuzla)
 #define TerminationCallback_val(v) \
   (((struct t*)Data_custom_val(v))->termination_callback)
+
+#ifdef ARCH_SIXTYFOUR
+
+static const char *pointer_conversion_error =
+  "[Broken assumption] This ocaml binding greedily assumes the "
+  "two most significant bits of the c pointers are always equal "
+  "(and most likely cleared). Still, this error is the proof that "
+  "the assumption may not always hold in practice. Please, file "
+  "a bug to the package maintainer.";
+
 #define Sort_val(v) ((BitwuzlaSort*)Long_val(v))
 #define Term_val(v) ((BitwuzlaTerm*)Long_val(v))
 #define Val_ptr(p)							\
@@ -49,6 +52,27 @@ struct t { Bitwuzla *bitwuzla; value *termination_callback; };
       Field(__val, __i) = c(__buf[__i]);   /* assumes c do not alloc */ \
     __val;								\
   })
+
+#else
+
+#define Sort_val(v) ((BitwuzlaSort*)Nativeint_val(v))
+#define Term_val(v) ((BitwuzlaTerm*)Nativeint_val(v))
+#define Val_ptr(p) caml_copy_nativeint((intnat) p)
+#define Val_sort Val_ptr
+#define Val_term Val_ptr
+
+#define Val_array(t,c,p,s)						\
+  ({									\
+    int __len = (s);							\
+    t *__buf = (p);							\
+    CAMLlocal1(__val);							\
+    __val = caml_alloc(__len, 0);					\
+    for (int __i; __i < __len; __i += 1)				\
+      Store_field(__val, __i, c(__buf[__i]));				\
+    __val;								\
+  })
+
+#endif
 
 CAMLprim void
 ocaml_bitwuzla_init (void)
@@ -678,19 +702,21 @@ ocaml_bitwuzla_is_unsat_assumption (value vt, value va)
 CAMLprim value
 ocaml_bitwuzla_get_unsat_assumptions (value vt)
 {
+  CAMLparam0();
   Bitwuzla *t = Bitwuzla_val(vt);
   size_t size;
   BitwuzlaTerm **ptr = bitwuzla_get_unsat_assumptions(t, &size);
-  return Val_array(BitwuzlaTerm*, Val_term, ptr, size);
+  CAMLreturn(Val_array(BitwuzlaTerm*, Val_term, ptr, size));
 }
 
 CAMLprim value
 ocaml_bitwuzla_get_unsat_core (value vt)
 {
+  CAMLparam0();
   Bitwuzla *t = Bitwuzla_val(vt);
   size_t size;
   BitwuzlaTerm **ptr = bitwuzla_get_unsat_core(t, &size);
-  return Val_array(BitwuzlaTerm*, Val_term, ptr, size);
+  CAMLreturn(Val_array(BitwuzlaTerm*, Val_term, ptr, size));
 }
 
 CAMLprim void
@@ -798,7 +824,7 @@ CAMLprim value
 ocaml_bitwuzla_get_array_value (value vt, value vterm)
 {
   CAMLparam0();
-  CAMLlocal2(vassoc, vdefault);
+  CAMLlocal3(vassoc, vtuple, vdefault);
   Bitwuzla *t = Bitwuzla_val(vt);
   BitwuzlaTerm *term = Term_val(vterm);
   BitwuzlaTerm **indices, **values, *default_value;
@@ -808,17 +834,17 @@ ocaml_bitwuzla_get_array_value (value vt, value vterm)
   if (size > 0) {
     vassoc = caml_alloc(size, 0);
     for (int i = 0; i < size; i += 1) {
-      value vtuple = caml_alloc_small(2, 0);
-      Field(vtuple, 0) = Val_term(indices[i]);
-      Field(vtuple, 1) = Val_term(values[i]);
+      vtuple = caml_alloc_small(2, 0);
+      Store_field(vtuple, 0, Val_term(indices[i]));
+      Store_field(vtuple, 1, Val_term(values[i]));
       Store_field(vassoc, i, vtuple);
     }
   }
   if (default_value != NULL) {
     vdefault = caml_alloc_small(1, 0);
-    Field(vdefault, 0) = Val_term(default_value);;
+    Store_field(vdefault, 0, Val_term(default_value));;
   }
-  value vtuple = caml_alloc_small(2, 0);
+  vtuple = caml_alloc_small(2, 0);
   Field(vtuple, 0) = vassoc;
   Field(vtuple, 1) = vdefault;
   CAMLreturn(vtuple);
@@ -828,7 +854,7 @@ CAMLprim value
 ocaml_bitwuzla_get_fun_value (value vt, value vterm)
 {
   CAMLparam0();
-  CAMLlocal1(vassoc);
+  CAMLlocal2(vassoc, vtuple);
   Bitwuzla *t = Bitwuzla_val(vt);
   BitwuzlaTerm *term = Term_val(vterm);
   BitwuzlaTerm ***args, **values;
@@ -838,11 +864,11 @@ ocaml_bitwuzla_get_fun_value (value vt, value vterm)
   if (size > 0) {
     vassoc = caml_alloc(size, 0);
     for (int i = 0; i < size; i += 1) {
-      value vtuple = caml_alloc(arity + 1, 0);
+      vtuple = caml_alloc(arity + 1, 0);
       for (int j = 0; j < arity; j += 1) {
-	Field(vtuple, j) = Val_term(args[i][j]);
+	Store_field(vtuple, j, Val_term(args[i][j]));
       }
-      Field(vtuple, arity) = Val_term(values[i]);
+      Store_field(vtuple, arity, Val_term(values[i]));
       Store_field(vassoc, i, vtuple);
     }
   }
@@ -1032,10 +1058,11 @@ ocaml_bitwuzla_sort_array_get_element (value vs)
 CAMLprim value
 ocaml_bitwuzla_sort_fun_get_domain_sorts (value vs)
 {
+  CAMLparam0();
   BitwuzlaSort *sort = Sort_val(vs);
   size_t size;
   BitwuzlaSort **ptr = bitwuzla_sort_fun_get_domain_sorts(sort, &size);
-  return Val_array(BitwuzlaSort*, Val_sort, ptr, size);
+  CAMLreturn(Val_array(BitwuzlaSort*, Val_sort, ptr, size));
 }
 
 CAMLprim value
@@ -1136,21 +1163,23 @@ ocaml_bitwuzla_term_get_kind (value ve)
 CAMLprim value
 ocaml_bitwuzla_term_get_children (value ve)
 {
+  CAMLparam0();
   BitwuzlaTerm *term = Term_val(ve);
   size_t size;
   BitwuzlaTerm **ptr = bitwuzla_term_get_children(term, &size);
   if (ptr == NULL) return Atom(0);
-  return Val_array(BitwuzlaTerm*, Val_term, ptr, size);
+  CAMLreturn(Val_array(BitwuzlaTerm*, Val_term, ptr, size));
 }
 
 CAMLprim value
 ocaml_bitwuzla_term_get_indices (value ve)
 {
+  CAMLparam0();
   BitwuzlaTerm *term = Term_val(ve);
   size_t size;
   uint32_t *ptr = bitwuzla_term_get_indices(term, &size);
   if (ptr == NULL) return Atom(0);
-  return Val_array(uint32_t, Val_long, ptr, size);
+  CAMLreturn(Val_array(uint32_t, Val_long, ptr, size));
 }
 
 CAMLprim value
@@ -1184,10 +1213,11 @@ ocaml_bitwuzla_term_array_get_element_sort (value ve)
 CAMLprim value
 ocaml_bitwuzla_term_fun_get_domain_sorts (value ve)
 {
+  CAMLparam0();
   BitwuzlaTerm *term = Term_val(ve);
   size_t size;
   BitwuzlaSort **ptr = bitwuzla_term_fun_get_domain_sorts(term, &size);
-  return Val_array(BitwuzlaSort*, Val_sort, ptr, size);
+  CAMLreturn(Val_array(BitwuzlaSort*, Val_sort, ptr, size));
 }
 
 CAMLprim value

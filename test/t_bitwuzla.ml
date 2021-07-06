@@ -25,7 +25,7 @@ module Term = struct
         match Term.view e with
         | Value k -> (k :> a term)
         | Const _ -> e
-        | Var _ -> of_term @@ List.assq (to_term e) bindings
+        | Var _ -> of_term @@ List.assoc (to_term e) bindings
         | Lambda (vars, e) ->
           let vars = of_variadic vars in
           let sorts = to_variadic @@ List.map Bitwuzla_c.term_get_sort vars in
