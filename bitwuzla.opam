@@ -18,7 +18,8 @@ depends: [
   "dune" {>= "2.7"}
   "bitwuzla-c"
   "zarith"
-  "ppx_expect" {with-test}
+  "ppx_inline_test" {with-test & >= "v0.13"}
+  "ppx_expect" {with-test & >= "v0.13"}
   "odoc" {with-doc}
 ]
 build: [

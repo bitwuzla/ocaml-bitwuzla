@@ -16,7 +16,8 @@ depends: [
   "conf-gcc" {build}
   "conf-g++" {build}
   "conf-gmp"
-  "ppx_expect" {with-test}
+  "ppx_inline_test" {with-test & >= "v0.13"}
+  "ppx_expect" {with-test & >= "v0.13"}
   "odoc" {with-doc}
 ]
 conflicts: [

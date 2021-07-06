@@ -3,7 +3,8 @@
  (name t_bitwuzla)
  (modules t_bitwuzla)
  (inline_tests)
- (preprocess (pps ppx_expect ppx_inline_test))
+ (preprocess
+  (pps ppx_expect ppx_inline_test))
  (libraries bitwuzla))
 
 (library
@@ -11,5 +12,6 @@
  (optional)
  (modules t_bitwuzla_c)
  (inline_tests)
- (preprocess (pps ppx_expect ppx_inline_test))
+ (preprocess
+  (pps ppx_expect ppx_inline_test))
  (libraries bitwuzla-c))
