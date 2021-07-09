@@ -1,5 +1,8 @@
 open Bitwuzla_c
 
+external set_termination_callback : t -> ('a -> int) * 'a -> unit
+  = "ocaml_bitwuzla_set_termination_callback"
+
 module Session () = struct
 
   type nonrec 'a sort = sort
@@ -804,12 +807,20 @@ module Session () = struct
     | Unsat -> Format.pp_print_string ppf "unsat"
     | Unknown -> Format.pp_print_string ppf "unknown"
 
-  let check_sat ?timeout () =
-    let terminate = match timeout with
-      | None -> fun _ -> 0
-      | Some d -> fun t -> if Sys.time () -. t -. d > 0. then 1 else 0 in
-    ignore @@ set_termination_callback t terminate @@ Sys.time ();
-    check_sat t
+  let check_sat =
+    let no_interruption = Fun.id, 0 in
+    fun ?interrupt () ->
+      begin match interrupt with
+        | None -> ignore @@ set_termination_callback t no_interruption
+        | Some terminate -> ignore @@ set_termination_callback t terminate
+      end;
+      check_sat t
+
+  let timeout =
+    let check timestamp = Float.compare (Unix.gettimeofday ()) timestamp in
+    fun timeout (f : ?interrupt:(('a -> int) * 'a) -> 'b) ->
+      let timestamp = Unix.gettimeofday () +. timeout in
+      f ~interrupt:(check, timestamp)
 
   let get_value e = if term_is_value e then e else get_value t e
 
@@ -825,11 +836,11 @@ module Incremental () = struct
   let push level = push t level
   let pop level = pop t level
 
-  let check_sat_assuming ?timeout ?names assumptions =
+  let check_sat_assuming ?interrupt ?names assumptions =
     Option.iter (fun names ->
         Array.iter2 (fun n a -> term_set_symbol a n) names assumptions) names;
     Array.iter (mk_assume t) assumptions;
-    check_sat ?timeout ()
+    check_sat ?interrupt ()
 
   let get_unsat_assumptions () = get_unsat_assumptions t
 

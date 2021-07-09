@@ -2445,7 +2445,7 @@ let%test "check_sat" =
   assert' @@ Term.distinct a128 one128;
   assert' @@ Term.distinct b128 one128;
   assert' @@ Term.equal ab128 p;
-  check_sat ~timeout:1. () = Unknown
+  (timeout 1. check_sat) () = Unknown
 
 module Incremental = struct
 

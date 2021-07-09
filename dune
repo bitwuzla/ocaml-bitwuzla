@@ -8,7 +8,7 @@
   (include_dirs
    vendor/bitwuzla/src
    (lib zarith)))
- (libraries zarith bitwuzla-c))
+ (libraries unix zarith bitwuzla-c))
 
 (library
  (public_name bitwuzla-c)

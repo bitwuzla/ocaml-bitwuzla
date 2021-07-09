@@ -2154,17 +2154,36 @@ module Once () : sig
   val pp_result : Format.formatter -> result -> unit
 
   (**
-     [check_sat ~timeout ()]
+     [check_sat ~interrupt ()]
      check satisfiability of current input formula.
 
-     @param timeout The timeout in seconds (no timeout when omitted).
+     @param interrupt Stop the research and return {!constructor:Unknown}
+     if the callback function returns a positive value.
+     Run into completion otherwise.
 
      @return {!constructor:Sat} if the input formula is satisfiable and
      {!constructor:Unsat} if it is unsatisfiable, and {!constructor:Unknown}
      when neither satistifiability nor unsatisfiability was determined,
-     for instance when it was terminated by [timeout].
+     for instance when it was terminated by {!val:timeout}.
   *)
-  val check_sat : ?timeout: float -> unit -> result
+  val check_sat : ?interrupt:(('a -> int) * 'a) -> unit -> result
+
+  (**
+     [timeout t f]
+     configure the interruptible function [f] with a timeout of [t] seconds.
+
+     [timeout] can be used to limit the time spend on
+     {!val:check_sat} or {!val:check_sat_assuming}.
+     For instance, for a 1 second time credit, use:
+     - [(timeout 1. check_sat) ()]
+     - [(timeout 1. check_sat_assuming) assumptions]
+
+     @param t Timeout in second.
+     @param f The function to configure.
+
+     @return An interruptible function configured to stop on timeout.
+  *)
+  val timeout : float -> (?interrupt:((float -> int) * float) -> 'b) -> 'b
 
   (**
      [get_value t]
@@ -2214,7 +2233,7 @@ module Incremental () : sig
   val pop  : int -> unit
 
   (**
-     [check_sat_assuming ~timeout ~names assumptions]
+     [check_sat_assuming ~interrupt ~names assumptions]
      check satisfiability of current input formula, with the search for
      a solution guided by the given assumptions.
 
@@ -2222,17 +2241,20 @@ module Incremental () : sig
      combined with assumptions via Boolean [and].
      Unsatifiable assumptions can be queried via {!val:get_unsat_assumptions}.
 
-     @param timeout The timeout in seconds (no timeout when omitted).
+     @param interrupt Stop the research and return {!constructor:Unknown}
+     if the callback function returns a positive value.
+     Run into completion otherwise.
      @param names The assumption names, if any.
      @param assumption The set of assumptions guiding the research of solutions.
 
      @return {!constructor:Sat} if the input formula is satisfiable and
      {!constructor:Unsat} if it is unsatisfiable, and {!constructor:Unknown}
      when neither satistifiability nor unsatisfiability was determined,
-     for instance when it was terminated by [timeout].
+     for instance when it was terminated by {!val:timeout}.
   *)
   val check_sat_assuming :
-    ?timeout: float -> ?names: string array -> bv term array -> result
+    ?interrupt:(('a -> int) * 'a) -> ?names: string array -> bv term array ->
+    result
 
   (**
      [get_unsat_assumptions ()]
