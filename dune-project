@@ -12,7 +12,7 @@
 
 (package
  (name bitwuzla)
- (synopsis "SMT solver for QF_AUFBVFP")
+ (synopsis "SMT solver for AUFBVFP")
  (description "
 OCaml binding for the SMT solver Bitwuzla.
 
@@ -26,11 +26,11 @@ Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fi
  (tags
   ("SMT solver"
    "SMT-COMP 2020"
-   "QF_AUFBVFP")))
+   "AUFBVFP")))
 
 (package
  (name bitwuzla-c)
- (synopsis "SMT solver for QF_AUFBVFP (C API)")
+ (synopsis "SMT solver for AUFBVFP (C API)")
  (description "OCaml binding for the SMT solver Bitwuzla C API.")
  (depends
   (ocaml (>= 4.08))
@@ -45,4 +45,4 @@ Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fi
  (tags
   ("SMT solver"
    "SMT-COMP 2020"
-   "QF_AUFBVFP")))
+   "AUFBVFP")))

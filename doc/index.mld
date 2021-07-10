@@ -1,6 +1,8 @@
 {1 Bitwuzla Ocaml API }
 
-Bitwuzla is an SMT solver for QF_AUFBVFP problems.
+Bitwuzla is an SMT solver for the theories of fixed-size bit-vectors,
+floating-point arithmetic, arrays and uninterpreted functions and their
+combinations.
 
 {2:quickstart Quickstart }
 
