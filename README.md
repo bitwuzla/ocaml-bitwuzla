@@ -150,9 +150,9 @@ git submodule update
 
 :warning: **Do not** download the source archive (`.zip`, `.tar.gz`).
 Download instead the
-[tarball](https://github.com/bitwuzla/ocaml-bitwuzla/releases/download/1.0.0/bitwuzla-c-1.0.0.tbz) from release panel.
+[tarball](https://github.com/bitwuzla/ocaml-bitwuzla/releases/download/1.0.0/bitwuzla-1.0.0.tbz) from release panel.
 ```bash
-tar -xjf bitwuzla-c-1.0.0.tbz
+tar -xjf bitwuzla-1.0.0.tbz
 ```
 
 #### Dependencies

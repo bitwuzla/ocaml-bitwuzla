@@ -1,4 +1,4 @@
-## 1.0.0 (2021-06-21)
+## 1.0.0 (2021-07-11)
 
 Brand new `Bitwuzla` OCaml API in addition the low level `Bitwuzla_c` C API.
 
@@ -11,7 +11,7 @@ Vendor submodules:
 - [Cadical](https://github.com/arminbiere/cadical) tag:rel-1.4.1
 - [SymFPU](https://github.com/martin-cs/symfpu) commit:8fbe139
 - [Btor2Tools](https://github.com/Boolector/btor2tools) commit:6ba194b
-- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) commit:a4867f3
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) commit:58d7205
 
 ## 0.0.1 (2021-05-24)
 
