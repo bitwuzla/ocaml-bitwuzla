@@ -162,7 +162,8 @@ static int32_t ocaml_callback (void *state)
   value vtc = *termination_callback;
   value vf = Field(vtc, 0);
   value va = Field(vtc, 1);
-  return (int32_t) Long_val(caml_callback(vf, va));
+  int32_t r = Long_val(caml_callback(vf, va));
+  return r & ~(r >> (8 * sizeof(int32_t) - 1));
 }
 
 CAMLprim value
