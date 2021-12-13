@@ -21,7 +21,7 @@ module Session () = struct
     constraint 'b = [< bv ]
 
   let t = create ()
-  let () = set_option t Produce_models 2
+  let () = set_option t Produce_models 1
 
   let unsafe_close () = delete t
 
