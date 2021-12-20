@@ -1,3 +1,9 @@
+## 1.0.1 (2021-12-20)
+
+- Fix `timeout` function not working properly
+
+- Decrease default model generation level (`2` -> `1`)
+
 ## 1.0.0 (2021-07-11)
 
 Brand new `Bitwuzla` OCaml API in addition the low level `Bitwuzla_c` C API.
