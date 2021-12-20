@@ -3,9 +3,10 @@
 
 (** {1 Context} *)
 
-(** The Bitwuzla solver. *)
 type t
+(** The Bitwuzla solver. *)
 
+val create : unit -> t
 (**
    [create t]
    create a new Bitwuzla instance.
@@ -14,8 +15,8 @@ type t
 
    @return A pointer to the created Bitwuzla instance.
 *)
-val create : unit -> t
 
+val delete : t -> unit
 (**
    [delete t]
    delete a Bitwuzla instance.
@@ -24,8 +25,8 @@ val create : unit -> t
 
    @param t The Bitwuzla instance to delete.
 *)
-val delete : t -> unit
 
+val reset : t -> unit
 (**
    [reset t]
    reset a Bitwuzla instance.
@@ -38,24 +39,24 @@ val delete : t -> unit
 
    @param t The Bitwuzla instance to reset.
 *)
-val reset : t -> unit
 
+val copyright : t -> string
 (**
    [copyright t]
    get copyright information.
 
    @param t The Bitwuzla instance.
 *)
-val copyright : t -> string
 
+val version : t -> string
 (**
    [version t]
    get version information.
 
    @param t The Bitwuzla instance.
 *)
-val version : t -> string
 
+val terminate : t -> bool
 (**
    [terminate t]
    if termination callback function has been configured via
@@ -65,11 +66,11 @@ val version : t -> string
 
    @return true if [t] has been terminated.
 *)
-val terminate : t -> bool
 
-(** A termination callback cookie *)
 type 'a cookie
+(** A termination callback cookie *)
 
+val set_termination_callback : t -> ('a -> int) -> 'a -> 'a cookie
 (**
    [set_termination_callback t f a]
    configure a termination callback function.
@@ -84,8 +85,8 @@ type 'a cookie
 
    @return A cookie to retrieve the state [a].
 *)
-val set_termination_callback : t -> ('a -> int) ->  'a -> 'a cookie
 
+val get_termination_callback_state : 'a cookie -> 'a
 (**
    [get_termination_callback_state c]
    get the state of the termination callback function.
@@ -98,7 +99,6 @@ val set_termination_callback : t -> ('a -> int) ->  'a -> 'a cookie
 
    @return The object passed as argument [a] to the callback function.
 *)
-val get_termination_callback_state : 'a cookie -> 'a
 
 (** {1:option Option} *)
 
@@ -108,7 +108,7 @@ val get_termination_callback_state : 'a cookie -> 'a
 *)
 type opt =
   | Engine
-  (** Configure the solver engine.
+      (** Configure the solver engine.
 
       Values:
       - ["aigprop"]:
@@ -126,7 +126,7 @@ type opt =
        The quantifier engine.
   *)
   | Exit_codes
-  (** Use non-zero exit codes for sat and unsat results.
+      (** Use non-zero exit codes for sat and unsat results.
 
       When enabled, use Bitwuzla exit codes
       When disabled, return 0 on success (sat, unsat, unknown), and a non-zero
@@ -137,7 +137,7 @@ type opt =
       - [0]: disable
   *)
   | Input_format
-  (** Configure input file format.
+      (** Configure input file format.
 
       If unspecified, Bitwuzla will autodetect the input file format.
 
@@ -152,7 +152,7 @@ type opt =
        SMT-LIB v2 format
   *)
   | Incremental
-  (** Incremental solving.
+      (** Incremental solving.
 
       Values:
      - [1]: enable
@@ -165,13 +165,13 @@ type opt =
       [Pp_unconstrained_optimization].
   *)
   | Loglevel
-  (** Log level.
+      (** Log level.
 
       Values:
       - An unsigned integer value ({b default}: [0]).
   *)
   | Output_format
-  (** Configure output number format for bit-vector values.
+      (** Configure output number format for bit-vector values.
 
       If unspecified, Bitwuzla will use BTOR format.
 
@@ -186,7 +186,7 @@ type opt =
        SMT-LIB v2 format
   *)
   | Output_number_format
-  (** Configure output number format for bit-vector values.
+      (** Configure output number format for bit-vector values.
 
       If unspecified, Bitwuzla will use binary representation.
 
@@ -199,14 +199,14 @@ type opt =
       Decimal number format.
   *)
   | Pretty_print
-  (** Pretty printing.
+      (** Pretty printing.
 
       Values:
       - [1]: enable \[{b default}\]
       - [0]: disable
   *)
   | Print_dimacs
-  (** Print DIMACS.
+      (** Print DIMACS.
 
       Print the CNF sent to the SAT solver in DIMACS format to stdout.
 
@@ -215,7 +215,7 @@ type opt =
       - [0]: disable \[{b default}\]
   *)
   | Produce_models
-  (** Model generation.
+      (** Model generation.
 
       Values:
       - [1]: enable, generate model for assertions only
@@ -226,20 +226,20 @@ type opt =
           [Pp_unconstrained_optimization].
   *)
   | Produce_unsat_cores
-  (** Unsat core generation.
+      (** Unsat core generation.
 
       Values:
       - [1]: enable
       - [0]: disable \[{b default}\]
   *)
   | Seed
-  (** Seed for random number generator.
+      (** Seed for random number generator.
 
       Values:
       - An unsigned integer value ({b default}: [0]).
   *)
   | Verbosity
-  (** Verbosity level.
+      (** Verbosity level.
 
       Values:
       - An unsigned integer value <= 4 ({b default}: [0]).
@@ -336,6 +336,7 @@ type opt =
   | Parse_interactive
   | Sat_engine_cadical_freeze
 
+val set_option : t -> opt -> int -> unit
 (**
    [set_option t option value]
    set option.
@@ -344,8 +345,8 @@ type opt =
    @param option The option.
    @param value The option value.
 *)
-val set_option : t -> opt -> int -> unit
 
+val set_option_str : t -> opt -> string -> unit
 (**
    [set_option_str t option value]
    set option value for string options.
@@ -354,8 +355,8 @@ val set_option : t -> opt -> int -> unit
    @param option The option.
    @param value The option string value.
 *)
-val set_option_str : t -> opt -> string -> unit
 
+val get_option : t -> opt -> int
 (**
    [get_option t option]
    get the current value of an option.
@@ -365,8 +366,8 @@ val set_option_str : t -> opt -> string -> unit
 
    @return The option value.
 *)
-val get_option : t -> opt -> int
 
+val get_option_str : t -> opt -> string
 (**
    [get_option_str t option]
    get the current value of an option as a string if option can be configured
@@ -377,15 +378,15 @@ val get_option : t -> opt -> int
 
    @return The option value.
 *)
-val get_option_str : t -> opt -> string
 
 (** {1:sort Sort} *)
 
-(** A Bitwuzla sort. *)
 type sort [@@immediate]
+(** A Bitwuzla sort. *)
 
 (** {2:sort_constructor Constructor} *)
 
+val mk_array_sort : t -> sort -> sort -> sort
 (**
    [mk_array_sort t index element]
    create an array sort.
@@ -396,8 +397,8 @@ type sort [@@immediate]
 
    @return An array sort which maps sort [index] to sort [element].
 *)
-val mk_array_sort : t -> sort -> sort -> sort
 
+val mk_bool_sort : t -> sort
 (**
    [mk_bool_sort t]
    create a Boolean sort.
@@ -408,8 +409,8 @@ val mk_array_sort : t -> sort -> sort -> sort
 
    @return A Boolean sort.
 *)
-val mk_bool_sort : t -> sort
 
+val mk_bv_sort : t -> int -> sort
 (**
    [mk_bv_sort t size]
    create a bit-vector sort of given size.
@@ -419,8 +420,8 @@ val mk_bool_sort : t -> sort
 
    @return A bit-vector sort of given size.
 *)
-val mk_bv_sort : t -> int -> sort
 
+val mk_fp_sort : t -> int -> int -> sort
 (**
    [mk_fp_sort t exp_size sig_size]
    create a floating-point sort of given exponent and significand size.
@@ -431,8 +432,8 @@ val mk_bv_sort : t -> int -> sort
 
    @return A floating-point sort of given format.
 *)
-val mk_fp_sort : t -> int -> int -> sort
 
+val mk_fun_sort : t -> sort array -> sort -> sort
 (**
    [mk_fun_sort t domain codomain]
    create a function sort.
@@ -443,8 +444,8 @@ val mk_fp_sort : t -> int -> int -> sort
 
    @return A function sort of given domain and codomain sorts.
  *)
-val mk_fun_sort : t -> sort array -> sort -> sort
 
+val mk_rm_sort : t -> sort
 (**
    [mk_rm_sort t]
    create a Roundingmode sort.
@@ -453,10 +454,10 @@ val mk_fun_sort : t -> sort array -> sort -> sort
 
    @return A Roundingmode sort.
 *)
-val mk_rm_sort : t -> sort
 
 (** {2:sort_util Util} *)
 
+val sort_dump : sort -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
 (**
    [sort_dump sort format pp]
    print sort.
@@ -468,11 +469,10 @@ val mk_rm_sort : t -> sort
                 sorts are printed when printing the term via {!val:term_dump}.
    @param pp The outpout formatter.
 *)
-val sort_dump : sort -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
-
 
 (** {2:sort_query Query} *)
 
+val sort_hash : sort -> int
 (**
    [sort_hash sort]
    compute the hash value for a sort.
@@ -481,8 +481,8 @@ val sort_dump : sort -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
 
    @return The hash value of the sort.
 *)
-val sort_hash : sort -> int
 
+val sort_bv_get_size : sort -> int
 (**
    [bv_get_size sort]
    get the size of a bit-vector sort.
@@ -493,8 +493,8 @@ val sort_hash : sort -> int
 
    @return The size of the bit-vector sort.
 *)
-val sort_bv_get_size : sort -> int
 
+val sort_fp_get_exp_size : sort -> int
 (**
    [sort_fp_get_exp_size sort]
    get the exponent size of a floating-point sort.
@@ -505,8 +505,8 @@ val sort_bv_get_size : sort -> int
 
    @return The exponent size of the floating-point sort.
 *)
-val sort_fp_get_exp_size : sort -> int
 
+val sort_fp_get_sig_size : sort -> int
 (**
    [sort_fp_get_sig_size sort]
    get the significand size of a floating-point sort.
@@ -517,8 +517,8 @@ val sort_fp_get_exp_size : sort -> int
 
    @return The significand size of the floating-point sort.
 *)
-val sort_fp_get_sig_size : sort -> int
 
+val sort_array_get_index : sort -> sort
 (**
    [sort_array_get_index sort]
    get the index sort of an array sort.
@@ -529,8 +529,8 @@ val sort_fp_get_sig_size : sort -> int
 
    @return The index sort of the array sort.
 *)
-val sort_array_get_index : sort -> sort
 
+val sort_array_get_element : sort -> sort
 (**
    [sort_array_get_element sort]
    get the element sort of an array sort.
@@ -541,8 +541,8 @@ val sort_array_get_index : sort -> sort
 
    @return The element sort of the array sort.
 *)
-val sort_array_get_element : sort -> sort
 
+val sort_fun_get_domain_sorts : sort -> sort array
 (**
    [sort_fun_get_domain_sorts sort]
    get the domain sorts of a function sort.
@@ -553,8 +553,8 @@ val sort_array_get_element : sort -> sort
 
    @return The domain sorts of the function sort as an array of sort.
 *)
-val sort_fun_get_domain_sorts : sort -> sort array
 
+val sort_fun_get_codomain : sort -> sort
 (**
    [sort_fun_get_codomain sort]
    get the codomain sort of a function sort.
@@ -565,8 +565,8 @@ val sort_fun_get_domain_sorts : sort -> sort array
 
    @return The codomain sort of the function sort.
 *)
-val sort_fun_get_codomain : sort -> sort
 
+val sort_fun_get_arity : sort -> int
 (**
    [sort_fun_get_arity sort]
    get the arity of a function sort.
@@ -575,9 +575,8 @@ val sort_fun_get_codomain : sort -> sort
 
    @return The number of arguments of the function sort.
 *)
-val sort_fun_get_arity : sort -> int
 
-
+val sort_is_equal : sort -> sort -> bool
 (**
    [sort_is_equal sort0 sort1]
    determine if two sorts are equal.
@@ -587,8 +586,8 @@ val sort_fun_get_arity : sort -> int
 
    @return [true] if the given sorts are equal.
 *)
-val sort_is_equal : sort -> sort -> bool
 
+val sort_is_array : sort -> bool
 (**
    [sort_is_array sort]
    determine if a sort is an array sort.
@@ -597,8 +596,8 @@ val sort_is_equal : sort -> sort -> bool
 
    @return [true] if [sort] is an array sort.
 *)
-val sort_is_array : sort -> bool
 
+val sort_is_bv : sort -> bool
 (**
    [sort_is_bv sort]
    determine if a sort is a bit-vector sort.
@@ -607,8 +606,8 @@ val sort_is_array : sort -> bool
 
    @return [true] if [sort] is a bit-vector sort.
 *)
-val sort_is_bv : sort -> bool
 
+val sort_is_fp : sort -> bool
 (**
    [sort_is_fp sort]
    determine if a sort is a floating-point sort.
@@ -617,8 +616,8 @@ val sort_is_bv : sort -> bool
 
    @return [true] if [sort] is a floating-point sort.
 *)
-val sort_is_fp : sort -> bool
 
+val sort_is_fun : sort -> bool
 (**
    [sort_is_fun sort]
    determine if a sort is a function sort.
@@ -627,8 +626,8 @@ val sort_is_fp : sort -> bool
 
    @return [true] if [sort] is a function sort.
 *)
-val sort_is_fun : sort -> bool
 
+val sort_is_rm : sort -> bool
 (**
    [sort_is_rm sort]
    determine if a sort is a Roundingmode sort.
@@ -637,18 +636,17 @@ val sort_is_fun : sort -> bool
 
    @return [true] if [sort] is a Roundingmode sort.
 *)
-val sort_is_rm : sort -> bool
 
 (** {1:term Term} *)
 
-(** A Bitwuzla term. *)
 type term [@@immediate]
+(** A Bitwuzla term. *)
 
 (** The base for strings representing bit-vector values. *)
 type bvbase =
-  | Bin (** binary *)
-  | Dec (** decimal *)
-  | Hex (** hexadecimal *)
+  | Bin  (** binary *)
+  | Dec  (** decimal *)
+  | Hex  (** hexadecimal *)
 
 (**
    Rounding mode for floating-point operations.
@@ -664,7 +662,7 @@ type bvbase =
 *)
 type roundingmode =
   | Rne
-  (** Round to the nearest even number.
+      (** Round to the nearest even number.
       If the two nearest floating-point numbers bracketing an unrepresentable
       infinitely precise result are equally near, the one with an even least
       significant digit will be delivered.
@@ -672,7 +670,7 @@ type roundingmode =
       SMT-LIB: [RNE] roundNearestTiesToEven
   *)
   | Rna
-  (** Round to the nearest number away from zero.
+      (** Round to the nearest number away from zero.
       If the two nearest floating-point numbers bracketing an unrepresentable
       infinitely precise result are equally near, the one with larger magnitude
       will be selected.
@@ -680,21 +678,21 @@ type roundingmode =
       SMT-LIB: [RNA] roundNearestTiesToAway
   *)
   | Rtn
-  (** Round towards negative infinity (-oo).
+      (** Round towards negative infinity (-oo).
       The result shall be the format’s floating-point number (possibly -oo)
       closest to and no less than the infinitely precise result.
 
       SMT-LIB: [RTN] roundTowardNegative
   *)
   | Rtp
-  (** Round towards positive infinity (+oo).
+      (** Round towards positive infinity (+oo).
       The result shall be the format’s floating-point number (possibly +oo)
       closest to and no less than the infinitely precise result.
 
       SMT-LIB: [RTP] roundTowardPositive
   *)
   | Rtz
-  (** Round towards zero.
+      (** Round towards zero.
       The result shall be the format’s floating-point number closest to and no
       greater in magnitude than the infinitely precise result.
 
@@ -703,386 +701,328 @@ type roundingmode =
 
 (** The term kind. *)
 type kind =
-  | And
-  (** Boolean and.
+  | And  (** Boolean and.
 
       SMT-LIB: [and] *)
-  | Apply
-  (** Function application. *)
-  | Array_select
-  (** Array select.
+  | Apply  (** Function application. *)
+  | Array_select  (** Array select.
 
       SMT-LIB: [select] *)
-  | Array_store
-  (** Array store.
+  | Array_store  (** Array store.
 
       SMT-LIB: [store] *)
-  | Bv_add
-  (** Bit-vector addition.
+  | Bv_add  (** Bit-vector addition.
 
       SMT-LIB: [bvadd] *)
-  | Bv_and
-  (** Bit-vector and.
+  | Bv_and  (** Bit-vector and.
 
       SMT-LIB: [bvand] *)
-  | Bv_ashr
-  (** Bit-vector arithmetic right shift.
+  | Bv_ashr  (** Bit-vector arithmetic right shift.
 
       SMT-LIB: [bvashr] *)
-  | Bv_comp
-  (** Bit-vector comparison.
+  | Bv_comp  (** Bit-vector comparison.
 
       SMT-LIB: [bvcomp] *)
-  | Bv_concat
-  (** Bit-vector concat.
+  | Bv_concat  (** Bit-vector concat.
 
       SMT-LIB: [concat] *)
-  | Bv_dec
-  (** Bit-vector decrement.
+  | Bv_dec  (** Bit-vector decrement.
 
       Decrement by one. *)
-  | Bv_inc
-  (** Bit-vector increment.
+  | Bv_inc  (** Bit-vector increment.
 
       Increment by one. *)
-  | Bv_mul
-  (** Bit-vector multiplication.
+  | Bv_mul  (** Bit-vector multiplication.
 
       SMT-LIB: [bvmul] *)
-  | Bv_nand
-  (** Bit-vector nand.
+  | Bv_nand  (** Bit-vector nand.
 
       SMT-LIB: [bvnand] *)
   | Bv_neg
-  (** Bit-vector negation (two's complement).
+      (** Bit-vector negation (two's complement).
 
       SMT-LIB: [bvneg] *)
-  | Bv_nor
-  (** Bit-vector nor.
+  | Bv_nor  (** Bit-vector nor.
 
       SMT-LIB: [bvnor] *)
-  | Bv_not
-  (** Bit-vector not (one's complement).
+  | Bv_not  (** Bit-vector not (one's complement).
 
       SMT-LIB: [bvnot] *)
-  | Bv_or
-  (** Bit-vector or.
+  | Bv_or  (** Bit-vector or.
 
       SMT-LIB: [bvor] *)
   | Bv_redand
-  (** Bit-vector and reduction.
+      (** Bit-vector and reduction.
 
       Bit-wise {b and} reduction, all bits are {b and}'ed together into a single
       bit.
       This corresponds to bit-wise {b and} reduction as known from Verilog. *)
   | Bv_redor
-  (** Bit-vector reduce or.
+      (** Bit-vector reduce or.
 
       Bit-wise {b or} reduction, all bits are {b or}'ed together into a single
       bit.
       This corresponds to bit-wise {b or} reduction as known from Verilog. *)
   | Bv_redxor
-  (** Bit-vector reduce xor.
+      (** Bit-vector reduce xor.
 
       Bit-wise {b xor} reduction, all bits are {b xor}'ed together into a single
       bit.
       This corresponds to bit-wise {b xor} reduction as known from Verilog. *)
   | Bv_rol
-  (** Bit-vector rotate left (not indexed).
+      (** Bit-vector rotate left (not indexed).
 
       This is a non-indexed variant of SMT-LIB [rotate_left]. *)
   | Bv_ror
-  (** Bit-vector rotate right.
+      (** Bit-vector rotate right.
 
       This is a non-indexed variant of SMT-LIB [rotate_right]. *)
   | Bv_sadd_overflow
-  (** Bit-vector signed addition overflow test.
+      (** Bit-vector signed addition overflow test.
 
       Single bit to indicate if signed addition produces an overflow. *)
   | Bv_sdiv_overflow
-  (** Bit-vector signed division overflow test.
+      (** Bit-vector signed division overflow test.
 
       Single bit to indicate if signed division produces an overflow. *)
-  | Bv_sdiv
-  (** Bit-vector signed division.
+  | Bv_sdiv  (** Bit-vector signed division.
 
       SMT-LIB: [bvsdiv] *)
   | Bv_sge
-  (** Bit-vector signed greater than or equal.
+      (** Bit-vector signed greater than or equal.
 
       SMT-LIB: [bvsge] *)
-  | Bv_sgt
-  (** Bit-vector signed greater than.
+  | Bv_sgt  (** Bit-vector signed greater than.
 
       SMT-LIB: [bvsgt] *)
-  | Bv_shl
-  (** Bit-vector logical left shift.
+  | Bv_shl  (** Bit-vector logical left shift.
 
       SMT-LIB: [bvshl] *)
-  | Bv_shr
-  (** Bit-vector logical right shift.
+  | Bv_shr  (** Bit-vector logical right shift.
 
       SMT-LIB: [bvshr] *)
-  | Bv_sle
-  (** Bit-vector signed less than or equal.
+  | Bv_sle  (** Bit-vector signed less than or equal.
 
       SMT-LIB: [bvsle] *)
-  | Bv_slt
-  (** Bit-vector signed less than.
+  | Bv_slt  (** Bit-vector signed less than.
 
       SMT-LIB: [bvslt] *)
-  | Bv_smod
-  (** Bit-vector signed modulo.
+  | Bv_smod  (** Bit-vector signed modulo.
 
       SMT-LIB: [bvsmod] *)
   | Bv_smul_overflow
-  (** Bit-vector signed multiplication overflow test.
+      (** Bit-vector signed multiplication overflow test.
 
       SMT-LIB: [bvsmod] *)
-  | Bv_srem
-  (** Bit-vector signed remainder.
+  | Bv_srem  (** Bit-vector signed remainder.
 
       SMT-LIB: [bvsrem] *)
   | Bv_ssub_overflow
-  (** Bit-vector signed subtraction overflow test.
+      (** Bit-vector signed subtraction overflow test.
 
       Single bit to indicate if signed subtraction produces an overflow. *)
-  | Bv_sub
-  (** Bit-vector subtraction.
+  | Bv_sub  (** Bit-vector subtraction.
 
       SMT-LIB: [bvsub] *)
   | Bv_uadd_overflow
-  (** Bit-vector unsigned addition overflow test.
+      (** Bit-vector unsigned addition overflow test.
 
       Single bit to indicate if unsigned addition produces an overflow. *)
-  | Bv_udiv
-  (** Bit-vector unsigned division.
+  | Bv_udiv  (** Bit-vector unsigned division.
 
       SMT-LIB: [bvudiv] *)
   | Bv_uge
-  (** Bit-vector unsigned greater than or equal.
+      (** Bit-vector unsigned greater than or equal.
 
       SMT-LIB: [bvuge] *)
-  | Bv_ugt
-  (** Bit-vector unsigned greater than.
+  | Bv_ugt  (** Bit-vector unsigned greater than.
 
       SMT-LIB: [bvugt] *)
   | Bv_ule
-  (** Bit-vector unsigned less than or equal.
+      (** Bit-vector unsigned less than or equal.
 
       SMT-LIB: [bvule] *)
-  | Bv_ult
-  (** Bit-vector unsigned less than.
+  | Bv_ult  (** Bit-vector unsigned less than.
 
       SMT-LIB: [bvult] *)
   | Bv_umul_overflow
-  (** Bit-vector unsigned multiplication overflow test.
+      (** Bit-vector unsigned multiplication overflow test.
 
       Single bit to indicate if unsigned multiplication produces an overflow. *)
-  | Bv_urem
-  (** Bit-vector unsigned remainder.
+  | Bv_urem  (** Bit-vector unsigned remainder.
 
       SMT-LIB: [bvurem] *)
   | Bv_usub_overflow
-  (** Bit-vector unsigned subtraction overflow test.
+      (** Bit-vector unsigned subtraction overflow test.
 
       Single bit to indicate if unsigned subtraction produces an overflow. *)
-  | Bv_xnor
-  (** Bit-vector xnor.
+  | Bv_xnor  (** Bit-vector xnor.
 
       SMT-LIB: [bvxnor] *)
-  | Bv_xor
-  (** Bit-vector xor.
+  | Bv_xor  (** Bit-vector xor.
 
       SMT-LIB: [bvxor] *)
-  | Distinct
-  (** Disequality.
+  | Distinct  (** Disequality.
 
       SMT-LIB: [distinct] *)
-  | Equal
-  (** Equality.
+  | Equal  (** Equality.
 
       SMT-LIB: [=] *)
-  | Exists
-  (** Existential quantification.
+  | Exists  (** Existential quantification.
 
       SMT-LIB: [exists] *)
-  | Forall
-  (** Universal quantification.
+  | Forall  (** Universal quantification.
 
       SMT-LIB: [forall] *)
-  | Fp_abs
-  (** Floating-point absolute value.
+  | Fp_abs  (** Floating-point absolute value.
 
       SMT-LIB: [fp.abs] *)
-  | Fp_add
-  (** Floating-point addition.
+  | Fp_add  (** Floating-point addition.
 
       SMT-LIB: [fp.add] *)
-  | Fp_div
-  (** Floating-point division.
+  | Fp_div  (** Floating-point division.
 
       SMT-LIB: [fp.div] *)
-  | Fp_eq
-  (** Floating-point equality.
+  | Fp_eq  (** Floating-point equality.
 
       SMT-LIB: [fp.eq] *)
   | Fp_fma
-  (** Floating-point fused multiplcation and addition.
+      (** Floating-point fused multiplcation and addition.
 
       SMT-LIB: [fp.fma] *)
-  | Fp_fp
-  (** Floating-point IEEE 754 value.
+  | Fp_fp  (** Floating-point IEEE 754 value.
 
       SMT-LIB: [fp] *)
   | Fp_geq
-  (** Floating-point greater than or equal.
+      (** Floating-point greater than or equal.
 
       SMT-LIB: [fp.geq] *)
-  | Fp_gt
-  (** Floating-point greater than.
+  | Fp_gt  (** Floating-point greater than.
 
       SMT-LIB: [fp.gt] *)
   | Fp_is_inf
-  (** Floating-point is infinity tester.
+      (** Floating-point is infinity tester.
 
       SMT-LIB: [fp.isInfinite] *)
-  | Fp_is_nan
-  (** Floating-point is Nan tester.
+  | Fp_is_nan  (** Floating-point is Nan tester.
 
       SMT-LIB: [fp.isNaN] *)
   | Fp_is_neg
-  (** Floating-point is negative tester.
+      (** Floating-point is negative tester.
 
       SMT-LIB: [fp.isNegative] *)
   | Fp_is_normal
-  (** Floating-point is normal tester.
+      (** Floating-point is normal tester.
 
       SMT-LIB: [fp.isNormal] *)
   | Fp_is_pos
-  (** Floating-point is positive tester.
+      (** Floating-point is positive tester.
 
       SMT-LIB: [fp.isPositive] *)
   | Fp_is_subnormal
-  (** Floating-point is subnormal tester.
+      (** Floating-point is subnormal tester.
 
       SMT-LIB: [fp.isSubnormal] *)
   | Fp_is_zero
-  (** Floating-point is zero tester.
+      (** Floating-point is zero tester.
 
       SMT-LIB: [fp.isZero] *)
-  | Fp_leq
-  (** Floating-point less than or equal.
+  | Fp_leq  (** Floating-point less than or equal.
 
       SMT-LIB: [fp.leq] *)
-  | Fp_lt
-  (** Floating-point less than.
+  | Fp_lt  (** Floating-point less than.
 
       SMT-LIB: [fp.lt] *)
-  | Fp_max
-  (** Floating-point max.
+  | Fp_max  (** Floating-point max.
 
       SMT-LIB: [fp.max] *)
-  | Fp_min
-  (** Floating-point min.
+  | Fp_min  (** Floating-point min.
 
       SMT-LIB: [fp.min] *)
-  | Fp_mul
-  (** Floating-point multiplcation.
+  | Fp_mul  (** Floating-point multiplcation.
 
       SMT-LIB: [fp.mul] *)
-  | Fp_neg
-  (** Floating-point negation.
+  | Fp_neg  (** Floating-point negation.
 
       SMT-LIB: [fp.neg] *)
-  | Fp_rem
-  (** Floating-point remainder.
+  | Fp_rem  (** Floating-point remainder.
 
       SMT-LIB: [fp.rem] *)
   | Fp_rti
-  (** Floating-point round to integral.
+      (** Floating-point round to integral.
 
       SMT-LIB: [fp.roundToIntegral] *)
   | Fp_sqrt
-  (** Floating-point round to square root.
+      (** Floating-point round to square root.
 
       SMT-LIB: [fp.sqrt] *)
   | Fp_sub
-  (** Floating-point round to subtraction.
+      (** Floating-point round to subtraction.
 
       SMT-LIB: [fp.sqrt] *)
-  | Iff
-  (** Boolean if and only if.
+  | Iff  (** Boolean if and only if.
 
       SMT-LIB: [=] *)
-  | Implies
-  (** Boolean implies.
+  | Implies  (** Boolean implies.
 
       SMT-LIB: [=>] *)
-  | Ite
-  (** If-then-else.
+  | Ite  (** If-then-else.
 
       SMT-LIB: [ite] *)
-  | Lambda
-  (** Lambda. *)
-  | Not
-  (** Boolean not.
+  | Lambda  (** Lambda. *)
+  | Not  (** Boolean not.
 
       SMT-LIB: [not] *)
-  | Or
-  (** Boolean or.
+  | Or  (** Boolean or.
 
       SMT-LIB: [or] *)
-  | Xor
-  (** Boolean xor.
+  | Xor  (** Boolean xor.
 
       SMT-LIB: [xor] *)
-  | Bv_extract
-  (** Bit-vector extract.
+  | Bv_extract  (** Bit-vector extract.
 
       SMT-LIB: [extract] (indexed) *)
-  | Bv_repeat
-  (** Bit-vector repeat.
+  | Bv_repeat  (** Bit-vector repeat.
 
       SMT-LIB: [repeat] (indexed) *)
   | Bv_roli
-  (** Bit-vector rotate left by integer.
+      (** Bit-vector rotate left by integer.
 
       SMT-LIB: [rotate_left] (indexed) *)
   | Bv_rori
-  (** Bit-vector rotate right by integer.
+      (** Bit-vector rotate right by integer.
 
       SMT-LIB: [rotate_right] (indexed) *)
   | Bv_sign_extend
-  (** Bit-vector sign extend.
+      (** Bit-vector sign extend.
 
       SMT-LIB: [sign_extend] (indexed) *)
   | Bv_zero_extend
-  (** Bit-vector zero extend.
+      (** Bit-vector zero extend.
 
       SMT-LIB: [zero_extend] (indexed) *)
   | Fp_to_fp_from_bv
-  (** Floating-point to_fp from IEEE 754 bit-vector.
+      (** Floating-point to_fp from IEEE 754 bit-vector.
 
       SMT-LIB: [to_fp] (indexed) *)
   | Fp_to_fp_from_fp
-  (** Floating-point to_fp from floating-point.
+      (** Floating-point to_fp from floating-point.
 
       SMT-LIB: [to_fp] (indexed) *)
   | Fp_to_fp_from_sbv
-  (** Floating-point to_fp from signed bit-vector value.
+      (** Floating-point to_fp from signed bit-vector value.
 
       SMT-LIB: [to_fp] (indexed) *)
   | Fp_to_fp_from_ubv
-  (** Floating-point to_fp from unsigned bit-vector value.
+      (** Floating-point to_fp from unsigned bit-vector value.
 
       SMT-LIB: [to_fp_unsigned] (indexed) *)
   | Fp_to_sbv
-  (** Floating-point to_sbv.
+      (** Floating-point to_sbv.
 
       SMT-LIB: [fp.to_sbv] (indexed) *)
   | Fp_to_ubv
-  (** Floating-point to_ubv.
+      (** Floating-point to_ubv.
 
       SMT-LIB: [fp.to_ubv] (indexed) *)
 
@@ -1090,6 +1030,7 @@ type kind =
 
 (** {3 Value} *)
 
+val mk_true : t -> term
 (**
    [mk_true t]
    create a true value.
@@ -1100,8 +1041,8 @@ type kind =
 
    @return A term representing the bit-vector value 1 of size 1.
 *)
-val mk_true : t -> term
 
+val mk_false : t -> term
 (**
    [mk_false t]
    create a false value.
@@ -1112,8 +1053,8 @@ val mk_true : t -> term
 
    @return A term representing the bit-vector value 0 of size 1.
 *)
-val mk_false : t -> term
 
+val mk_bv_zero : t -> sort -> term
 (**
    [mk_bv_zero t sort]
    create a bit-vector value zero.
@@ -1123,8 +1064,8 @@ val mk_false : t -> term
 
    @return A term representing the bit-vector value 0 of given sort.
 *)
-val mk_bv_zero : t -> sort -> term
 
+val mk_bv_one : t -> sort -> term
 (**
    [mk_bv_one t sort]
    create a bit-vector value one.
@@ -1134,8 +1075,8 @@ val mk_bv_zero : t -> sort -> term
 
    @return A term representing the bit-vector value 1 of given sort.
 *)
-val mk_bv_one : t -> sort -> term
 
+val mk_bv_ones : t -> sort -> term
 (**
    [mk_bv_ones t sort]
    create a bit-vector value where all bits are set to 1.
@@ -1146,8 +1087,8 @@ val mk_bv_one : t -> sort -> term
    @return A term representing the bit-vector value of given sort
          where all bits are set to 1.
 *)
-val mk_bv_ones : t -> sort -> term
 
+val mk_bv_min_signed : t -> sort -> term
 (**
    [mk_bv_min_signed t sort]
    create a bit-vector minimum signed value.
@@ -1158,8 +1099,8 @@ val mk_bv_ones : t -> sort -> term
    @return A term representing the bit-vector value of given sort where the MSB
          is set to 1 and all remaining bits are set to 0.
 *)
-val mk_bv_min_signed : t -> sort -> term
 
+val mk_bv_max_signed : t -> sort -> term
 (**
    [mk_bv_max_signed t sort]
    create a bit-vector maximum signed value.
@@ -1170,8 +1111,8 @@ val mk_bv_min_signed : t -> sort -> term
    @return A term representing the bit-vector value of given sort where the MSB
          is set to 0 and all remaining bits are set to 1.
 *)
-val mk_bv_max_signed : t -> sort -> term
 
+val mk_fp_pos_zero : t -> sort -> term
 (**
    [mk_fp_pos_zero t sort]
    create a floating-point positive zero value (SMT-LIB: [+zero]).
@@ -1182,8 +1123,8 @@ val mk_bv_max_signed : t -> sort -> term
    @return A term representing the floating-point positive zero value of given
          floating-point sort.
 *)
-val mk_fp_pos_zero : t -> sort -> term
 
+val mk_fp_neg_zero : t -> sort -> term
 (**
    [mk_fp_neg_zero t sort]
    create a floating-point negative zero value (SMT-LIB: [-zero]).
@@ -1194,8 +1135,8 @@ val mk_fp_pos_zero : t -> sort -> term
    @return A term representing the floating-point negative zero value of given
          floating-point sort.
 *)
-val mk_fp_neg_zero : t -> sort -> term
 
+val mk_fp_pos_inf : t -> sort -> term
 (**
    [mk_fp_pos_inf t sort]
    create a floating-point positive infinity value (SMT-LIB: [+oo]).
@@ -1206,8 +1147,8 @@ val mk_fp_neg_zero : t -> sort -> term
    @return A term representing the floating-point positive infinity value of
          given floating-point sort.
 *)
-val mk_fp_pos_inf : t -> sort -> term
 
+val mk_fp_neg_inf : t -> sort -> term
 (**
    [mk_fp_neg_inf t sort]
    create a floating-point negative infinity value (SMT-LIB: [-oo]).
@@ -1218,8 +1159,8 @@ val mk_fp_pos_inf : t -> sort -> term
    @return A term representing the floating-point negative infinity value of
          given floating-point sort.
 *)
-val mk_fp_neg_inf : t -> sort -> term
 
+val mk_fp_nan : t -> sort -> term
 (**
    [mk_fp_nan t sort]
    create a floating-point NaN value.
@@ -1230,9 +1171,8 @@ val mk_fp_neg_inf : t -> sort -> term
    @return A term representing the floating-point NaN value of given
          floating-point sort.
 *)
-val mk_fp_nan : t -> sort -> term
 
-
+val mk_bv_value : t -> sort -> string -> bvbase -> term
 (**
    [mk_bv_value t sort value base]
    create a bit-vector value from its string representation.
@@ -1248,8 +1188,8 @@ val mk_fp_nan : t -> sort -> term
 
    @return A term representing the bit-vector value of given sort.
 *)
-val mk_bv_value : t -> sort -> string -> bvbase -> term
 
+val mk_bv_value_int : t -> sort -> int -> term
 (**
    [mk_bv_value_int t sort value]
    create a bit-vector value from its unsigned integer representation.
@@ -1263,8 +1203,8 @@ val mk_bv_value : t -> sort -> string -> bvbase -> term
 
    @return A term representing the bit-vector value of given sort.
 *)
-val mk_bv_value_int : t -> sort -> int -> term
 
+val mk_fp_value : t -> term -> term -> term -> term
 (**
    [mk_fp_value t bv_sign bv_exponent bv_significand]
    create a floating-point value from its IEEE 754 standard representation
@@ -1278,8 +1218,8 @@ val mk_bv_value_int : t -> sort -> int -> term
 
    @return A term representing the floating-point value.
 *)
-val mk_fp_value : t -> term -> term -> term -> term
 
+val mk_fp_value_from_real : t -> sort -> term -> string -> term
 (**
    [mk_fp_value_from_real t sort rm real]
    create a floating-point value from its real representation, given as a
@@ -1292,8 +1232,8 @@ val mk_fp_value : t -> term -> term -> term -> term
 
    @return A term representing the floating-point value of given sort.
 *)
-val mk_fp_value_from_real : t -> sort -> term -> string -> term
 
+val mk_fp_value_from_rational : t -> sort -> term -> string -> string -> term
 (**
    [mk_fp_value_from_rational t sort rm num den]
    create a floating-point value from its rational representation, given as a
@@ -1308,8 +1248,8 @@ val mk_fp_value_from_real : t -> sort -> term -> string -> term
 
    @return A term representing the floating-point value of given sort.
 *)
-val mk_fp_value_from_rational : t -> sort -> term -> string -> string -> term
 
+val mk_rm_value : t -> roundingmode -> term
 (**
    [mk_rm_value t rm]
    create a rounding mode value.
@@ -1319,10 +1259,10 @@ val mk_fp_value_from_rational : t -> sort -> term -> string -> string -> term
 
    @return A term representing the rounding mode value.
 *)
-val mk_rm_value : t -> roundingmode -> term
 
 (** {3 Expression} *)
 
+val mk_term1 : t -> kind -> term -> term
 (**
    [mk_term1 t kind arg]
    create a term of given kind with one argument term.
@@ -1333,8 +1273,8 @@ val mk_rm_value : t -> roundingmode -> term
 
    @return A term representing an operation of given kind.
 *)
-val mk_term1 : t -> kind -> term -> term
 
+val mk_term2 : t -> kind -> term -> term -> term
 (**
    [mk_term2 t kind arg0 arg1]
    create a term of given kind with two argument terms.
@@ -1346,8 +1286,8 @@ val mk_term1 : t -> kind -> term -> term
 
    @return A term representing an operation of given kind.
 *)
-val mk_term2 : t -> kind -> term -> term -> term
 
+val mk_term3 : t -> kind -> term -> term -> term -> term
 (**
    [mk_term3 t kind arg0 arg1 arg2]
    create a term of given kind with three argument terms.
@@ -1360,8 +1300,8 @@ val mk_term2 : t -> kind -> term -> term -> term
 
    @return A term representing an operation of given kind.
 *)
-val mk_term3 : t -> kind -> term -> term -> term -> term
 
+val mk_term : t -> kind -> term array -> term
 (**
    [mk_term t kind args]
    create a term of given kind with the given argument terms.
@@ -1372,8 +1312,8 @@ val mk_term3 : t -> kind -> term -> term -> term -> term
 
    @return A term representing an operation of given kind.
 *)
-val mk_term : t -> kind -> term array -> term
 
+val mk_term1_indexed1 : t -> kind -> term -> int -> term
 (**
    [mk_term1_indexed1 t kind arg idx]
    create an indexed term of given kind with one argument term and one index.
@@ -1385,8 +1325,8 @@ val mk_term : t -> kind -> term array -> term
 
    @return A term representing an indexed operation of given kind.
 *)
-val mk_term1_indexed1 : t -> kind -> term -> int -> term
 
+val mk_term1_indexed2 : t -> kind -> term -> int -> int -> term
 (**
    [mk_term1_indexed2 t kind arg idx0 idx1]
    create an indexed term of given kind with one argument term and two indices.
@@ -1399,9 +1339,8 @@ val mk_term1_indexed1 : t -> kind -> term -> int -> term
 
    @return A term representing an indexed operation of given kind.
 *)
-val mk_term1_indexed2 : t -> kind -> term -> int -> int -> term
 
-
+val mk_term2_indexed1 : t -> kind -> term -> term -> int -> term
 (**
    [mk_term2_indexed1 t kind arg0 arg1 idx]
    create an indexed term of given kind with two argument terms and one index.
@@ -1414,8 +1353,8 @@ val mk_term1_indexed2 : t -> kind -> term -> int -> int -> term
 
    @return A term representing an indexed operation of given kind.
 *)
-val mk_term2_indexed1 : t -> kind -> term -> term -> int -> term
 
+val mk_term2_indexed2 : t -> kind -> term -> term -> int -> int -> term
 (**
    [mk_term2_indexed2 t kind arg0 arg1 idx0 idx1]
    create an indexed term of given kind with two argument terms and two indices.
@@ -1429,8 +1368,8 @@ val mk_term2_indexed1 : t -> kind -> term -> term -> int -> term
 
    @return A term representing an indexed operation of given kind.
 *)
-val mk_term2_indexed2 : t -> kind -> term -> term -> int -> int -> term
 
+val mk_term_indexed : t -> kind -> term array -> int array -> term
 (**
    [mk_term_indexed t kind args idxs]
    create an indexed term of given kind with the given argument terms and
@@ -1443,8 +1382,8 @@ val mk_term2_indexed2 : t -> kind -> term -> term -> int -> int -> term
 
    @return A term representing an indexed operation of given kind.
 *)
-val mk_term_indexed : t -> kind -> term array -> int array -> term
 
+val mk_const : t -> sort -> string -> term
 (**
    [mk_const t sort symbol]
    create a (first-order) constant of given sort with given symbol.
@@ -1457,8 +1396,8 @@ val mk_term_indexed : t -> kind -> term array -> int array -> term
 
    @return A term representing the constant.
 *)
-val mk_const : t -> sort -> string -> term
 
+val mk_const_array : t -> sort -> term -> term
 (**
    [mk_const_array t sort value]
    create a one-dimensional constant array of given sort, initialized with
@@ -1470,8 +1409,8 @@ val mk_const : t -> sort -> string -> term
 
    @return A term representing a constant array of given sort.
 *)
-val mk_const_array : t -> sort -> term -> term
 
+val mk_var : t -> sort -> string -> term
 (**
    [mk_var t sort symbol]
    create a variable of given sort with given symbol.
@@ -1484,10 +1423,10 @@ val mk_const_array : t -> sort -> term -> term
 
    @return A term representing the variable.
 *)
-val mk_var : t -> sort -> string -> term
 
 (** {2 Util} *)
 
+val substitute_term : t -> term -> (term * term) array -> term
 (**
    [substitute t term map]
    substitute a set of keys with their corresponding values in the given term.
@@ -1498,8 +1437,8 @@ val mk_var : t -> sort -> string -> term
 
    @return The resulting term from this substitution.
 *)
-val substitute_term : t -> term -> (term * term) array -> term
 
+val substitute_terms : t -> term array -> (term * term) array -> unit
 (**
    [substitute_terms t terms map]
    substitute a set of keys with their corresponding values in the set of given
@@ -1512,8 +1451,8 @@ val substitute_term : t -> term -> (term * term) array -> term
    @param terms The terms in which the keys are to be substituted.
    @param map The key/value associations.
 *)
-val substitute_terms : t -> term array -> (term * term) array -> unit
 
+val term_dump : term -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
 (**
    [term_dump term format pp]
    print term.
@@ -1523,11 +1462,10 @@ val substitute_terms : t -> term array -> (term * term) array -> unit
                 BTOR format, or [`Smt2] for the SMT-LIB v2 format.
    @param pp The outpout formatter.
 *)
-val term_dump : term -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
-
 
 (** {2:term_query Query} *)
 
+val term_hash : term -> int
 (**
    [term_hash term]
    compute the hash value for a term.
@@ -1536,8 +1474,8 @@ val term_dump : term -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
 
    @return The hash value of the term.
 *)
-val term_hash : term -> int
 
+val term_get_kind : term -> kind
 (**
    [term_get_kind term]
    get the kind of a term.
@@ -1546,8 +1484,8 @@ val term_hash : term -> int
 
    @return The kind of the given term.
 *)
-val term_get_kind : term -> kind
 
+val term_get_children : term -> term array
 (**
    [term_get_children term]
    get the child terms of a term.
@@ -1556,8 +1494,8 @@ val term_get_kind : term -> kind
 
    @return The children of [term] as an array of terms.
 *)
-val term_get_children : term -> term array
 
+val term_get_indices : term -> int array
 (**
    [term_get_indices term]
    get the indices of an indexed term.
@@ -1568,8 +1506,8 @@ val term_get_children : term -> term array
 
    @return The children of [term] as an array of terms.
 *)
-val term_get_indices : term -> int array
 
+val term_is_indexed : term -> bool
 (**
    [term_is_indexed term]
    determine if a term is an indexed term.
@@ -1578,8 +1516,8 @@ val term_get_indices : term -> int array
 
    @return [true] if [term] is an indexed term.
 *)
-val term_is_indexed : term -> bool
 
+val term_get_sort : term -> sort
 (**
    [term_get_sort term]
    get the sort of a term.
@@ -1588,8 +1526,8 @@ val term_is_indexed : term -> bool
 
    @return The sort of the term.
 *)
-val term_get_sort :  term -> sort
 
+val term_array_get_index_sort : term -> sort
 (**
    [term_array_get_index_sort term]
    get the index sort of an array term.
@@ -1600,8 +1538,8 @@ val term_get_sort :  term -> sort
 
    @return The index sort of the array term.
 *)
-val term_array_get_index_sort : term -> sort
 
+val term_array_get_element_sort : term -> sort
 (**
    [term_array_get_element_sort term]
    get the element sort of an array term.
@@ -1612,8 +1550,8 @@ val term_array_get_index_sort : term -> sort
 
    @return The element sort of the array term.
 *)
-val term_array_get_element_sort : term -> sort
 
+val term_fun_get_domain_sorts : term -> sort array
 (**
    [term_fun_get_domain_sorts term]
    get the domain sorts of a function term.
@@ -1625,8 +1563,8 @@ val term_array_get_element_sort : term -> sort
 
    @return The domain sorts of the function term.
 *)
-val term_fun_get_domain_sorts : term -> sort array
 
+val term_fun_get_codomain_sort : term -> sort
 (**
    [term_fun_get_codomain_sort term]
    get the codomain sort of a function term.
@@ -1638,8 +1576,8 @@ val term_fun_get_domain_sorts : term -> sort array
 
    @return The codomain sort of the function term.
 *)
-val term_fun_get_codomain_sort : term -> sort
 
+val term_bv_get_size : term -> int
 (**
    [term_bv_get_size term]
    get the bit-width of a bit-vector term.
@@ -1650,8 +1588,8 @@ val term_fun_get_codomain_sort : term -> sort
 
    @return The bit-width of the bit-vector term.
 *)
-val term_bv_get_size : term -> int
 
+val term_fp_get_exp_size : term -> int
 (**
    [term_fp_get_exp_size term]
    get the bit-width of the exponent of a floating-point term.
@@ -1662,8 +1600,8 @@ val term_bv_get_size : term -> int
 
    @return The bit-width of the exponent of the floating-point term.
 *)
-val term_fp_get_exp_size : term -> int
 
+val term_fp_get_sig_size : term -> int
 (**
    [term_fp_get_sig_size term]
    get the bit-width of the significand of a floating-point term.
@@ -1674,8 +1612,8 @@ val term_fp_get_exp_size : term -> int
 
    @return The bit-width of the significand of the floating-point term.
 *)
-val term_fp_get_sig_size : term -> int
 
+val term_fun_get_arity : term -> int
 (**
    [term_fp_get_arity term]
    get the arity of a function term.
@@ -1686,8 +1624,8 @@ val term_fp_get_sig_size : term -> int
 
    @return The arity of the function term.
 *)
-val term_fun_get_arity : term -> int
 
+val term_get_symbol : term -> string
 (**
    [term_get_symbol term]
    get the symbol of a term.
@@ -1698,8 +1636,8 @@ val term_fun_get_arity : term -> int
 
    @raise Not_found if no symbol is defined.
 *)
-val term_get_symbol : term -> string
 
+val term_set_symbol : term -> string -> unit
 (**
    [term_set_symbol term symbol]
    set the symbol of a term.
@@ -1707,8 +1645,8 @@ val term_get_symbol : term -> string
    @param term The term.
    @param symbol The symbol.
 *)
-val term_set_symbol : term -> string -> unit
 
+val term_is_equal_sort : term -> term -> bool
 (**
    [term_is_equal_sort term0 term1]
    determine if the sorts of two terms are equal.
@@ -1718,8 +1656,8 @@ val term_set_symbol : term -> string -> unit
 
    @return [true] if the sorts of [term0] and [term1] are equal.
 *)
-val term_is_equal_sort : term -> term -> bool
 
+val term_is_array : term -> bool
 (**
    [term_is_array term]
    determine if a term is an array term.
@@ -1728,8 +1666,8 @@ val term_is_equal_sort : term -> term -> bool
 
    @return [true] if [term] is an array term.
 *)
-val term_is_array : term -> bool
 
+val term_is_const : term -> bool
 (**
    [term_is_const term]
    determine if a term is a constant.
@@ -1738,8 +1676,8 @@ val term_is_array : term -> bool
 
    @return [true] if [term] is a constant.
 *)
-val term_is_const : term -> bool
 
+val term_is_fun : term -> bool
 (**
    [term_is_fun term]
    determine if a term is a function.
@@ -1748,8 +1686,8 @@ val term_is_const : term -> bool
 
    @return [true] if [term] is a function.
 *)
-val term_is_fun : term -> bool
 
+val term_is_var : term -> bool
 (**
    [term_is_var term]
    determine if a term is a variable.
@@ -1758,8 +1696,8 @@ val term_is_fun : term -> bool
 
    @return [true] if [term] is a variable.
 *)
-val term_is_var : term -> bool
 
+val term_is_bound_var : term -> bool
 (**
    [term_is_bound_var term]
    determine if a term is a bound variable.
@@ -1768,8 +1706,8 @@ val term_is_var : term -> bool
 
    @return [true] if [term] is a variable and bound.
 *)
-val term_is_bound_var : term -> bool
 
+val term_is_value : term -> bool
 (**
    [term_is_value term]
    determine if a term is a value.
@@ -1778,8 +1716,8 @@ val term_is_bound_var : term -> bool
 
    @return [true] if [term] is a value.
 *)
-val term_is_value : term -> bool
 
+val term_is_bv_value : term -> bool
 (**
    [term_is_bv_value term]
    determine if a term is a bit-vector value.
@@ -1788,8 +1726,8 @@ val term_is_value : term -> bool
 
    @return [true] if [term] is a bit-vector value.
 *)
-val term_is_bv_value : term -> bool
 
+val term_is_fp_value : term -> bool
 (**
    [term_is_fp_value term]
    determine if a term is a floating-point value.
@@ -1798,8 +1736,8 @@ val term_is_bv_value : term -> bool
 
    @return [true] if [term] is a floating-point value.
 *)
-val term_is_fp_value : term -> bool
 
+val term_is_rm_value : term -> bool
 (**
    [term_is_rm_value term]
    determine if a term is a rounding mode value.
@@ -1808,8 +1746,8 @@ val term_is_fp_value : term -> bool
 
    @return [true] if [term] is a rounding mode value.
 *)
-val term_is_rm_value : term -> bool
 
+val term_is_bv : term -> bool
 (**
    [term_is_bv term]
    determine if a term is a bit-vector term.
@@ -1818,8 +1756,8 @@ val term_is_rm_value : term -> bool
 
    @return [true] if [term] is a bit-vector term.
 *)
-val term_is_bv : term -> bool
 
+val term_is_fp : term -> bool
 (**
    [term_is_fp term]
    determine if a term is a floating-point term.
@@ -1828,8 +1766,8 @@ val term_is_bv : term -> bool
 
    @return [true] if [term] is a floating-point term.
 *)
-val term_is_fp : term -> bool
 
+val term_is_rm : term -> bool
 (**
    [term_is_rm term]
    determine if a term is a rounding mode term.
@@ -1838,8 +1776,8 @@ val term_is_fp : term -> bool
 
    @return [true] if [term] is a rounding mode term.
 *)
-val term_is_rm : term -> bool
 
+val term_is_bv_value_zero : term -> bool
 (**
    [term_is_bv_value_zero term]
    determine if a term is a bit-vector value representing zero.
@@ -1848,8 +1786,8 @@ val term_is_rm : term -> bool
 
    @return [true] if [term] is a bit-vector zero value.
 *)
-val term_is_bv_value_zero : term -> bool
 
+val term_is_bv_value_one : term -> bool
 (**
    [term_is_bv_value_one term]
    determine if a term is a bit-vector value representing one.
@@ -1858,8 +1796,8 @@ val term_is_bv_value_zero : term -> bool
 
    @return [true] if [term] is a bit-vector one value.
 *)
-val term_is_bv_value_one : term -> bool
 
+val term_is_bv_value_ones : term -> bool
 (**
    [term_is_bv_value_ones term]
    determine if a term is a bit-vector value with all bits set to one.
@@ -1868,8 +1806,8 @@ val term_is_bv_value_one : term -> bool
 
    @return [true] if [term] is a bit-vector value with all bits set to one.
 *)
-val term_is_bv_value_ones : term -> bool
 
+val term_is_bv_value_min_signed : term -> bool
 (**
    [term_is_bv_value_min_signed term]
    determine if a term is a bit-vector minimum signed value.
@@ -1879,8 +1817,8 @@ val term_is_bv_value_ones : term -> bool
    @return [true] if [term] is a bit-vector value with the most significant bit
          set to 1 and all other bits set to 0.
 *)
-val term_is_bv_value_min_signed : term -> bool
 
+val term_is_bv_value_max_signed : term -> bool
 (**
    [term_is_bv_value_max_signed term]
    determine if a term is a bit-vector maximum signed value.
@@ -1890,8 +1828,8 @@ val term_is_bv_value_min_signed : term -> bool
    @return [true] if [term] is a bit-vector value with the most significant bit
          set to 0 and all other bits set to 1.
 *)
-val term_is_bv_value_max_signed : term -> bool
 
+val term_is_fp_value_pos_zero : term -> bool
 (**
    [term_is_fp_value_pos_zero term]
    determine if a term is a floating-point positive zero (+zero) value.
@@ -1900,8 +1838,8 @@ val term_is_bv_value_max_signed : term -> bool
 
    @return [true] if [term] is a floating-point +zero value.
 *)
-val term_is_fp_value_pos_zero : term -> bool
 
+val term_is_fp_value_neg_zero : term -> bool
 (**
    [term_is_fp_value_neg_zero term]
    determine if a term is a floating-point value negative zero (-zero).
@@ -1910,8 +1848,8 @@ val term_is_fp_value_pos_zero : term -> bool
 
    @return [true] if [term] is a floating-point value negative zero.
 *)
-val term_is_fp_value_neg_zero : term -> bool
 
+val term_is_fp_value_pos_inf : term -> bool
 (**
    [term_is_fp_value_pos_inf term]
    determine if a term is a floating-point positive infinity (+oo) value.
@@ -1920,8 +1858,8 @@ val term_is_fp_value_neg_zero : term -> bool
 
    @return [true] if [term] is a floating-point +oo value.
 *)
-val term_is_fp_value_pos_inf : term -> bool
 
+val term_is_fp_value_neg_inf : term -> bool
 (**
    [term_is_fp_value_neg_inf term]
    determine if a term is a floating-point negative infinity (-oo) value.
@@ -1930,8 +1868,8 @@ val term_is_fp_value_pos_inf : term -> bool
 
    @return [true] if [term] is a floating-point -oo value.
 *)
-val term_is_fp_value_neg_inf : term -> bool
 
+val term_is_fp_value_nan : term -> bool
 (**
    [term_is_fp_value_nan term]
    determine if a term is a floating-point NaN value.
@@ -1940,8 +1878,8 @@ val term_is_fp_value_neg_inf : term -> bool
 
    @return [true] if [term] is a floating-point NaN value.
 *)
-val term_is_fp_value_nan : term -> bool
 
+val term_is_const_array : term -> bool
 (**
    [term_is_const_array term]
    determine if a term is a constant array.
@@ -1950,16 +1888,13 @@ val term_is_fp_value_nan : term -> bool
 
    @return [true] if [term] is a constant array.
 *)
-val term_is_const_array : term -> bool
 
 (** {1 Solver} *)
 
 (** A satisfiability result. *)
-type result =
-  | Sat      (** sat *)
-  | Unsat    (** unsat *)
-  | Unknown  (** unknown *)
+type result = Sat  (** sat *) | Unsat  (** unsat *) | Unknown  (** unknown *)
 
+val parse : t -> string -> Format.formatter -> result
 (**
    [parse t input pp]
    parse input file.
@@ -1977,8 +1912,9 @@ type result =
 
    @raise Failure in case of parsing error.
 *)
-val parse : t -> string -> Format.formatter -> result
 
+val parse_format :
+  t -> [ `Btor | `Btor2 | `Smt2 ] -> string -> Format.formatter -> result
 (**
    [parse_format t format input pp]
    parse input file, assumed to be given in the specified format.
@@ -1998,12 +1934,10 @@ val parse : t -> string -> Format.formatter -> result
 
    @raise Failure in case of parsing error.
 *)
-val parse_format : t -> [ `Btor | `Btor2 | `Smt2 ] -> string ->
-  Format.formatter -> result
-
 
 (** {2 Formula} *)
 
+val push : t -> int -> unit
 (**
    [push t nlevels]
    push context levels.
@@ -2019,8 +1953,8 @@ val parse_format : t -> [ `Btor | `Btor2 | `Smt2 ] -> string ->
    @param t The Bitwuzla instance.
    @param nlevels The number of context levels to push.
 *)
-val push : t -> int -> unit
 
+val pop : t -> int -> unit
 (**
    [pop t nlevels]
    pop context levels.
@@ -2035,8 +1969,8 @@ val push : t -> int -> unit
    @param t The Bitwuzla instance.
    @param nlevels The number of context levels to pop.
 *)
-val pop : t -> int -> unit
 
+val mk_assert : t -> term -> unit
 (**
    [mk_assert t term]
    assert formula.
@@ -2044,8 +1978,8 @@ val pop : t -> int -> unit
    @param t The Bitwuzla instance.
    @param term The formula to assert.
 *)
-val mk_assert : t -> term -> unit
 
+val mk_assume : t -> term -> unit
 (**
    [mk_assume t term]
    assume formula.
@@ -2059,24 +1993,28 @@ val mk_assert : t -> term -> unit
    @param t The Bitwuzla instance.
    @param term The formula to assume.
 *)
-val mk_assume : t -> term -> unit
 
+val fixate_assumptions : t -> unit
 (**
    [fixate_assumptions t]
    assert all added assumptions.
 
    @param t The Bitwuzla instance.
 *)
-val fixate_assumptions : t -> unit
 
+val reset_assumptions : t -> unit
 (**
    [reset_assumptions t]
    reset all added assumptions.
 
    @param t The Bitwuzla instance.
 *)
-val reset_assumptions : t -> unit
 
+val dump_formula :
+  t ->
+  [ `Aiger_ascii | `Aiger_binary | `Btor | `Smt2 ] ->
+  Format.formatter ->
+  unit
 (**
    [dump_formula t format pp]
    print the current input formula.
@@ -2090,11 +2028,10 @@ val reset_assumptions : t -> unit
                [`Smt2] for the SMT-LIB v2 format.
    @param pp The outpout formatter.
 *)
-val dump_formula : t -> [ `Aiger_ascii | `Aiger_binary | `Btor | `Smt2 ] ->
-  Format.formatter -> unit
 
 (** {2 Check} *)
 
+val simplify : t -> result
 (**
    [simplify t]
    simplify the current input formula.
@@ -2107,8 +2044,8 @@ val dump_formula : t -> [ `Aiger_ascii | `Aiger_binary | `Btor | `Smt2 ] ->
          [Unsat] if it was simplified to false, and
          [Unknown] otherwise.
 *)
-val simplify : t -> result
 
+val check_sat : t -> result
 (**
    [check_sat t]
    check satisfiability of current input formula.
@@ -2128,10 +2065,10 @@ val simplify : t -> result
          when neither satisfiability nor unsatisfiability was determined.
          This can happen when [t] was terminated via a termination callback.
 *)
-val check_sat : t -> result
 
 (** {2 Sat} *)
 
+val get_value : t -> term -> term
 (**
    [get_value t term]
    get a term representing the model value of a given term.
@@ -2143,8 +2080,8 @@ val check_sat : t -> result
 
    @return A term representing the model value of term [term].
 *)
-val get_value : t -> term -> term
 
+val get_bv_value : t -> term -> string
 (**
    [get_bv_value t term]
    get string representation of the current model value of given bit-vector
@@ -2155,8 +2092,8 @@ val get_value : t -> term -> term
 
    @return Binary string representation of current model value of term [term].
 *)
-val get_bv_value : t -> term -> string
 
+val get_fp_value : t -> term -> string * string * string
 (**
    [get_fp_value t term]
    get string of IEEE 754 standard representation of the current model value of
@@ -2168,8 +2105,8 @@ val get_bv_value : t -> term -> string
    @return Binary string representations of the sign bit, the exponent
            bit-vector and significand bit-vector values.
 *)
-val get_fp_value : t -> term -> string * string * string
 
+val get_rm_value : t -> term -> string
 (**
    [get_rm_value t term]
    get string representation of the current model value of given rounding mode
@@ -2180,8 +2117,8 @@ val get_fp_value : t -> term -> string * string * string
 
    @return String representation of rounding mode (RNA, RNE, RTN, RTP, RTZ).
 *)
-val get_rm_value : t -> term -> string
 
+val get_array_value : t -> term -> (term * term) array * term option
 (**
    [get_array_value t term]
    get the current model value of given array term.
@@ -2196,8 +2133,8 @@ val get_rm_value : t -> term -> string
            The value of all other indices is [Some default] when
            base array is constant array, otherwise, it is [None].
 *)
-val get_array_value : t -> term -> (term * term) array * term option
 
+val get_fun_value : t -> term -> term array array
 (**
    [get_fun_value t term]
    get the current model value of given function term.
@@ -2210,8 +2147,8 @@ val get_array_value : t -> term -> (term * term) array * term option
 
    @return An array of associations between `arity` arguments and a value.
 *)
-val get_fun_value : t -> term -> term array array
 
+val print_model : t -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
 (**
    [print_model t]
    print a model for the current input formula.
@@ -2223,11 +2160,10 @@ val get_fun_value : t -> term -> term array array
                the BTOR format, or ["smt2"] for the SMT-LIB v2 format.
    @param file The file to print the model to.
 *)
-val print_model : t -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
-
 
 (** {2 Unsat} *)
 
+val is_unsat_assumption : t -> term -> bool
 (**
    [is_unsat_assumption t term]
    determine if an assumption is an unsat assumption.
@@ -2246,8 +2182,8 @@ val print_model : t -> [ `Btor | `Smt2 ] -> Format.formatter -> unit
 
    @return [true] if given assumption is an unsat assumption.
 *)
-val is_unsat_assumption : t -> term -> bool
 
+val get_unsat_assumptions : t -> term array
 (**
    [get_unsat_assumptions t]
    get the set of unsat assumptions.
@@ -2264,8 +2200,8 @@ val is_unsat_assumption : t -> term -> bool
 
    @return An array with unsat assumptions.
 *)
-val get_unsat_assumptions : t -> term array
 
+val get_unsat_core : t -> term array
 (**
    [get_unsat_core t]
    get the set unsat core (unsat assertions).
@@ -2279,4 +2215,3 @@ val get_unsat_assumptions : t -> term array
 
    @return An array with unsat assertions.
 *)
-val get_unsat_core : t -> term array

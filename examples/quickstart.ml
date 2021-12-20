@@ -1,8 +1,6 @@
 let () =
-
   (* First, create a Bitwuzla instance. *)
   let open Bitwuzla.Once () in
-
   (* Create a bit-vector sort of size 8. *)
   let bv8 = Sort.bv 8 in
 
@@ -38,14 +36,14 @@ let () =
 
   (* (get-model) *)
   let xval = get_value x and yval = get_value y in
-  Format.printf "assignment of x: %s@\n" @@ Z.format "%08b"
-  @@ Term.Bv.assignment xval;
-  Format.printf "assignment of y: %s@\n" @@ Z.format "%08b"
-  @@ Term.Bv.assignment yval;
+  Format.printf "assignment of x: %s@\n"
+  @@ Z.format "%08b" @@ Term.Bv.assignment xval;
+  Format.printf "assignment of y: %s@\n"
+  @@ Z.format "%08b" @@ Term.Bv.assignment yval;
   let x2 = Term.Bv.mul x x in
   let x2val = get_value x2 in
-  Format.printf "assignment of x * x: %s@\n" @@ Z.format "%08b"
-  @@ Term.Bv.assignment x2val;
+  Format.printf "assignment of x * x: %s@\n"
+  @@ Z.format "%08b" @@ Term.Bv.assignment x2val;
 
   (* Finally, delete the Bitwuzla instance. *)
   unsafe_close ()

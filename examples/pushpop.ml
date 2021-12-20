@@ -1,8 +1,6 @@
 let () =
-
   (* First, create a Bitwuzla instance enabling incremental solving. *)
   let open Bitwuzla.Incremental () in
-
   (* Create a bit-vector sort of size 1 and another of size 2. *)
   let bv1 = Sort.bv 1 and bv2 = Sort.bv 2 in
 
@@ -17,11 +15,10 @@ let () =
   (* (declare-const s2 (_ BitVec 2)) *)
   and s2 = Term.const bv2 "s2"
   (* (declare-const goal (_ BitVec 2)) *)
-  and goal  = Term.const bv2 "goal"
-
+  and goal = Term.const bv2 "goal"
   (* Create bit-vector values zero, one, three. *)
-  and zero  = Term.Bv.zero bv2
-  and one2  = Term.Bv.one bv2
+  and zero = Term.Bv.zero bv2
+  and one2 = Term.Bv.one bv2
   and three = Term.Bv.of_int bv2 3 in
 
   (* Add some assertions. *)

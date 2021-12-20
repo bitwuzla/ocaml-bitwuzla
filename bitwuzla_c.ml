@@ -1,12 +1,6 @@
-type bvbase =
-  | Bin
-  | Dec
-  | Hex
+type bvbase = Bin | Dec | Hex
 
-let bvbase_to_c = function
-  | Hex -> 2
-  | Dec -> 1
-  | Bin -> 0
+let bvbase_to_c = function Hex -> 2 | Dec -> 1 | Bin -> 0
 
 type opt =
   | Engine
@@ -220,10 +214,7 @@ let opt_to_c = function
   | Exit_codes -> 1
   | Engine -> 0
 
-type result =
-  | Sat
-  | Unsat
-  | Unknown
+type result = Sat | Unsat | Unknown
 
 let result_from_c = function
   | 0 -> Unknown
@@ -231,12 +222,7 @@ let result_from_c = function
   | 10 -> Sat
   | _ -> assert false
 
-type roundingmode =
-  | Rne
-  | Rna
-  | Rtn
-  | Rtp
-  | Rtz
+type roundingmode = Rne | Rna | Rtn | Rtp | Rtz
 
 let roundingmode_to_c = function
   | Rtz -> 4
@@ -538,319 +524,399 @@ let kind_from_c = function
   | _ -> assert false
 
 let format_to_c = function
-  | `Btor         -> 0
-  | `Btor2        -> 1
-  | `Smt2         -> 2
-  | `Aiger_ascii  -> 3
+  | `Btor -> 0
+  | `Btor2 -> 1
+  | `Smt2 -> 2
+  | `Aiger_ascii -> 3
   | `Aiger_binary -> 4
 
 type t
+
 type sort [@@immediate]
+
 type term [@@immediate]
+
 type 'a cookie = unit
 
-external init : unit -> unit
-  = "ocaml_bitwuzla_init"
+external init : unit -> unit = "ocaml_bitwuzla_init"
 
-external create : unit -> t
-  = "ocaml_bitwuzla_new"
-external delete : t -> unit
-  = "ocaml_bitwuzla_delete"
-external reset : t -> unit
-  = "ocaml_bitwuzla_reset"
+external create : unit -> t = "ocaml_bitwuzla_new"
 
-external copyright : t -> string
-  = "ocaml_bitwuzla_copyright"
-external version : t -> string
-  = "ocaml_bitwuzla_version"
+external delete : t -> unit = "ocaml_bitwuzla_delete"
 
-external terminate : t -> bool
-  = "ocaml_bitwuzla_terminate"
+external reset : t -> unit = "ocaml_bitwuzla_reset"
+
+external copyright : t -> string = "ocaml_bitwuzla_copyright"
+
+external version : t -> string = "ocaml_bitwuzla_version"
+
+external terminate : t -> bool = "ocaml_bitwuzla_terminate"
+
 external set_termination_callback : t -> ('a -> int) * 'a -> unit
   = "ocaml_bitwuzla_set_termination_callback"
+
 let set_termination_callback t f a = set_termination_callback t (f, a)
+
 external get_termination_callback_state : unit -> 'a
   = "ocaml_bitwuzla_get_termination_callback_state"
 
-external set_option : t -> (int [@untagged]) -> int -> unit
+external set_option : t -> (int[@untagged]) -> int -> unit
   = "ocaml_bitwuzla_set_option" "native_bitwuzla_set_option"
+
 let set_option t o v = set_option t (opt_to_c o) v
-external set_option_str : t -> (int [@untagged]) -> string -> unit
+
+external set_option_str : t -> (int[@untagged]) -> string -> unit
   = "ocaml_bitwuzla_set_option_str" "native_bitwuzla_set_option_str"
+
 let set_option_str t o v = set_option_str t (opt_to_c o) v
-external get_option : t -> (int [@untagged]) -> int
+
+external get_option : t -> (int[@untagged]) -> int
   = "ocaml_bitwuzla_get_option" "native_bitwuzla_get_option"
+
 let get_option t o = get_option t (opt_to_c o)
-external get_option_str : t -> (int [@untagged]) -> string
+
+external get_option_str : t -> (int[@untagged]) -> string
   = "ocaml_bitwuzla_get_option_str" "native_bitwuzla_get_option_str"
+
 let get_option_str t o = get_option_str t (opt_to_c o)
 
-external mk_array_sort : t  -> sort -> sort -> sort
+external mk_array_sort : t -> sort -> sort -> sort
   = "ocaml_bitwuzla_mk_array_sort"
-external mk_bool_sort : t -> sort
-  = "ocaml_bitwuzla_mk_bool_sort"
-external mk_bv_sort : t -> int -> sort
-  = "ocaml_bitwuzla_mk_bv_sort"
-external mk_fp_sort : t -> int -> int -> sort
-  = "ocaml_bitwuzla_mk_fp_sort"
+
+external mk_bool_sort : t -> sort = "ocaml_bitwuzla_mk_bool_sort"
+
+external mk_bv_sort : t -> int -> sort = "ocaml_bitwuzla_mk_bv_sort"
+
+external mk_fp_sort : t -> int -> int -> sort = "ocaml_bitwuzla_mk_fp_sort"
+
 external mk_fun_sort : t -> sort array -> sort -> sort
   = "ocaml_bitwuzla_mk_fun_sort"
-external mk_rm_sort : t -> sort
-  = "ocaml_bitwuzla_mk_rm_sort"
 
-external mk_true : t -> term
-  = "ocaml_bitwuzla_mk_true"
-external mk_false : t -> term
-  = "ocaml_bitwuzla_mk_false"
+external mk_rm_sort : t -> sort = "ocaml_bitwuzla_mk_rm_sort"
 
-external mk_bv_zero : t -> sort -> term
-  = "ocaml_bitwuzla_mk_bv_zero"
-external mk_bv_one : t -> sort -> term
-  = "ocaml_bitwuzla_mk_bv_one"
-external mk_bv_ones : t -> sort -> term
-  = "ocaml_bitwuzla_mk_bv_ones"
+external mk_true : t -> term = "ocaml_bitwuzla_mk_true"
+
+external mk_false : t -> term = "ocaml_bitwuzla_mk_false"
+
+external mk_bv_zero : t -> sort -> term = "ocaml_bitwuzla_mk_bv_zero"
+
+external mk_bv_one : t -> sort -> term = "ocaml_bitwuzla_mk_bv_one"
+
+external mk_bv_ones : t -> sort -> term = "ocaml_bitwuzla_mk_bv_ones"
+
 external mk_bv_min_signed : t -> sort -> term
   = "ocaml_bitwuzla_mk_bv_min_signed"
+
 external mk_bv_max_signed : t -> sort -> term
   = "ocaml_bitwuzla_mk_bv_max_signed"
 
-external mk_fp_pos_zero : t -> sort -> term
-  = "ocaml_bitwuzla_mk_fp_pos_zero"
-external mk_fp_neg_zero : t -> sort -> term
-  = "ocaml_bitwuzla_mk_fp_neg_zero"
-external mk_fp_pos_inf : t -> sort -> term
-  = "ocaml_bitwuzla_mk_fp_pos_inf"
-external mk_fp_neg_inf : t -> sort -> term
-  = "ocaml_bitwuzla_mk_fp_neg_inf"
-external mk_fp_nan : t -> sort -> term
-  = "ocaml_bitwuzla_mk_fp_nan"
-external mk_bv_value : t -> sort -> string -> (int [@untagged]) -> term
+external mk_fp_pos_zero : t -> sort -> term = "ocaml_bitwuzla_mk_fp_pos_zero"
+
+external mk_fp_neg_zero : t -> sort -> term = "ocaml_bitwuzla_mk_fp_neg_zero"
+
+external mk_fp_pos_inf : t -> sort -> term = "ocaml_bitwuzla_mk_fp_pos_inf"
+
+external mk_fp_neg_inf : t -> sort -> term = "ocaml_bitwuzla_mk_fp_neg_inf"
+
+external mk_fp_nan : t -> sort -> term = "ocaml_bitwuzla_mk_fp_nan"
+
+external mk_bv_value : t -> sort -> string -> (int[@untagged]) -> term
   = "ocaml_bitwuzla_mk_bv_value" "native_bitwuzla_mk_bv_value"
+
 let mk_bv_value t s v b = mk_bv_value t s v @@ bvbase_to_c b
+
 external mk_bv_value_int : t -> sort -> int -> term
   = "ocaml_bitwuzla_mk_bv_value_int"
+
 external mk_fp_value : t -> term -> term -> term -> term
   = "ocaml_bitwuzla_mk_fp_value"
+
 external mk_fp_value_from_real : t -> sort -> term -> string -> term
   = "ocaml_bitwuzla_mk_fp_value_from_real"
-external mk_fp_value_from_rational : t -> sort -> term -> string -> string ->
-  term
+
+external mk_fp_value_from_rational :
+  t -> sort -> term -> string -> string -> term
   = "ocaml_bitwuzla_mk_fp_value_from_rational"
-external mk_rm_value : t -> (int [@untagged]) -> term
+
+external mk_rm_value : t -> (int[@untagged]) -> term
   = "ocaml_bitwuzla_mk_rm_value" "native_bitwuzla_mk_rm_value"
+
 let mk_rm_value t m = mk_rm_value t @@ roundingmode_to_c m
 
-external mk_term1 : t -> (int [@untagged]) -> term -> term
+external mk_term1 : t -> (int[@untagged]) -> term -> term
   = "ocaml_bitwuzla_mk_term1" "native_bitwuzla_mk_term1"
+
 let mk_term1 t k e = mk_term1 t (kind_to_c k) e
-external mk_term2 : t -> (int [@untagged]) -> term -> term -> term
+
+external mk_term2 : t -> (int[@untagged]) -> term -> term -> term
   = "ocaml_bitwuzla_mk_term2" "native_bitwuzla_mk_term2"
+
 let mk_term2 t k e1 e2 = mk_term2 t (kind_to_c k) e1 e2
-external mk_term3 : t -> (int [@untagged]) -> term -> term -> term -> term
+
+external mk_term3 : t -> (int[@untagged]) -> term -> term -> term -> term
   = "ocaml_bitwuzla_mk_term3" "native_bitwuzla_mk_term3"
+
 let mk_term3 t k e1 e2 e3 = mk_term3 t (kind_to_c k) e1 e2 e3
-external mk_term : t -> (int [@untagged]) -> term array ->
-  term
+
+external mk_term : t -> (int[@untagged]) -> term array -> term
   = "ocaml_bitwuzla_mk_term" "native_bitwuzla_mk_term"
+
 let mk_term t k a = mk_term t (kind_to_c k) a
-external mk_term1_indexed1 : t -> (int [@untagged]) -> term -> int -> term
+
+external mk_term1_indexed1 : t -> (int[@untagged]) -> term -> int -> term
   = "ocaml_bitwuzla_mk_term1_indexed1" "native_bitwuzla_mk_term1_indexed1"
+
 let mk_term1_indexed1 t k e i = mk_term1_indexed1 t (kind_to_c k) e i
-external mk_term1_indexed2 : t -> (int [@untagged]) -> term -> int -> int ->
-  term
+
+external mk_term1_indexed2 : t -> (int[@untagged]) -> term -> int -> int -> term
   = "ocaml_bitwuzla_mk_term1_indexed2" "native_bitwuzla_mk_term1_indexed2"
+
 let mk_term1_indexed2 t k e i1 i2 = mk_term1_indexed2 t (kind_to_c k) e i1 i2
-external mk_term2_indexed1 : t -> (int [@untagged]) -> term -> term -> int ->
-  term
+
+external mk_term2_indexed1 :
+  t -> (int[@untagged]) -> term -> term -> int -> term
   = "ocaml_bitwuzla_mk_term2_indexed1" "native_bitwuzla_mk_term2_indexed1"
+
 let mk_term2_indexed1 t k e1 e2 i = mk_term2_indexed1 t (kind_to_c k) e1 e2 i
+
 external mk_term2_indexed2 : t -> kind -> term -> term -> int -> int -> term
   = "ocaml_bitwuzla_mk_term2_indexed2_byte6" "ocaml_bitwuzla_mk_term2_indexed2"
-external mk_term_indexed : t -> (int [@untagged]) ->
-  term array -> int array -> term
+
+external mk_term_indexed :
+  t -> (int[@untagged]) -> term array -> int array -> term
   = "ocaml_bitwuzla_mk_term_indexed" "native_bitwuzla_mk_term_indexed"
+
 let mk_term_indexed t k e i = mk_term_indexed t (kind_to_c k) e i
-external mk_const : t -> sort -> string -> term
-  = "ocaml_bitwuzla_mk_const"
+
+external mk_const : t -> sort -> string -> term = "ocaml_bitwuzla_mk_const"
+
 external mk_const_array : t -> sort -> term -> term
   = "ocaml_bitwuzla_mk_const_array"
-external mk_var : t -> sort -> string -> term
-  = "ocaml_bitwuzla_mk_var"
 
-external push : t -> int -> unit
-  = "ocaml_bitwuzla_push"
-external pop : t -> int -> unit
-  = "ocaml_bitwuzla_pop"
-external mk_assert : t -> term -> unit
-  = "ocaml_bitwuzla_assert"
-external mk_assume : t -> term -> unit
-  = "ocaml_bitwuzla_assume"
+external mk_var : t -> sort -> string -> term = "ocaml_bitwuzla_mk_var"
+
+external push : t -> int -> unit = "ocaml_bitwuzla_push"
+
+external pop : t -> int -> unit = "ocaml_bitwuzla_pop"
+
+external mk_assert : t -> term -> unit = "ocaml_bitwuzla_assert"
+
+external mk_assume : t -> term -> unit = "ocaml_bitwuzla_assume"
+
 external is_unsat_assumption : t -> term -> bool
   = "ocaml_bitwuzla_is_unsat_assumption"
+
 external get_unsat_assumptions : t -> term array
   = "ocaml_bitwuzla_get_unsat_assumptions"
 
-external get_unsat_core : t -> term array
-  = "ocaml_bitwuzla_get_unsat_core"
-external fixate_assumptions : t -> unit
-  = "ocaml_bitwuzla_fixate_assumptions"
-external reset_assumptions : t -> unit
-  = "ocaml_bitwuzla_reset_assumptions"
-external simplify : t -> (int [@untagged])
+external get_unsat_core : t -> term array = "ocaml_bitwuzla_get_unsat_core"
+
+external fixate_assumptions : t -> unit = "ocaml_bitwuzla_fixate_assumptions"
+
+external reset_assumptions : t -> unit = "ocaml_bitwuzla_reset_assumptions"
+
+external simplify : t -> (int[@untagged])
   = "ocaml_bitwuzla_simplify" "native_bitwuzla_simplify"
+
 let simplify t = result_from_c @@ simplify t
-external check_sat : t -> (int [@untagged])
+
+external check_sat : t -> (int[@untagged])
   = "ocaml_bitwuzla_check_sat" "native_bitwuzla_check_sat"
+
 let check_sat t = result_from_c @@ check_sat t
 
-external get_value : t -> term -> term
-  = "ocaml_bitwuzla_get_value"
-external get_bv_value : t -> term -> string
-  = "ocaml_bitwuzla_get_bv_value"
+external get_value : t -> term -> term = "ocaml_bitwuzla_get_value"
+
+external get_bv_value : t -> term -> string = "ocaml_bitwuzla_get_bv_value"
+
 external get_fp_value : t -> term -> string * string * string
   = "ocaml_bitwuzla_get_fp_value"
-external get_rm_value : t -> term -> string
-  = "ocaml_bitwuzla_get_rm_value"
+
+external get_rm_value : t -> term -> string = "ocaml_bitwuzla_get_rm_value"
+
 external get_array_value : t -> term -> (term * term) array * term option
   = "ocaml_bitwuzla_get_array_value"
+
 external get_fun_value : t -> term -> term array array
   = "ocaml_bitwuzla_get_fun_value"
-external print_model : t -> (int [@untagged]) -> Format.formatter -> unit
+
+external print_model : t -> (int[@untagged]) -> Format.formatter -> unit
   = "ocaml_bitwuzla_print_model" "native_bitwuzla_print_model"
+
 let print_model t (f : [ `Btor | `Smt2 ]) k = print_model t (format_to_c f) k
 
-external dump_formula : t -> (int [@untagged]) -> Format.formatter -> unit
+external dump_formula : t -> (int[@untagged]) -> Format.formatter -> unit
   = "ocaml_bitwuzla_dump_formula" "native_bitwuzla_dump_formula"
-let dump_formula t (f : [ `Aiger_ascii | `Aiger_binary | `Btor | `Smt2 ]) k
-  = dump_formula t (format_to_c f) k
-external parse : t -> string -> Format.formatter -> (int [@untagged])
+
+let dump_formula t (f : [ `Aiger_ascii | `Aiger_binary | `Btor | `Smt2 ]) k =
+  dump_formula t (format_to_c f) k
+
+external parse : t -> string -> Format.formatter -> (int[@untagged])
   = "ocaml_bitwuzla_parse" "native_bitwuzla_parse"
+
 let parse t p k = result_from_c @@ parse t p k
-external parse_format : t -> (int [@untagged]) -> string -> Format.formatter ->
-  (int [@untagged])
+
+external parse_format :
+  t -> (int[@untagged]) -> string -> Format.formatter -> (int[@untagged])
   = "ocaml_bitwuzla_parse_format" "native_bitwuzla_parse_format"
-let parse_format t (f : [ `Btor | `Btor2 | `Smt2 ]) p k
-  = result_from_c @@ parse_format t (format_to_c f) p k
+
+let parse_format t (f : [ `Btor | `Btor2 | `Smt2 ]) p k =
+  result_from_c @@ parse_format t (format_to_c f) p k
 
 external substitute_term : t -> term -> (term * term) array -> term
   = "ocaml_bitwuzla_substitute_term"
+
 external substitute_terms : t -> term array -> (term * term) array -> unit
   = "ocaml_bitwuzla_substitute_terms"
 
-external sort_hash : sort -> int
-  = "ocaml_bitwuzla_sort_hash"
-external sort_bv_get_size : sort -> int
-  = "ocaml_bitwuzla_sort_bv_get_size"
+external sort_hash : sort -> int = "ocaml_bitwuzla_sort_hash"
+
+external sort_bv_get_size : sort -> int = "ocaml_bitwuzla_sort_bv_get_size"
+
 external sort_fp_get_exp_size : sort -> int
   = "ocaml_bitwuzla_sort_fp_get_exp_size"
+
 external sort_fp_get_sig_size : sort -> int
   = "ocaml_bitwuzla_sort_fp_get_sig_size"
+
 external sort_array_get_index : sort -> sort
   = "ocaml_bitwuzla_sort_array_get_index"
+
 external sort_array_get_element : sort -> sort
   = "ocaml_bitwuzla_sort_array_get_element"
+
 external sort_fun_get_domain_sorts : sort -> sort array
   = "ocaml_bitwuzla_sort_fun_get_domain_sorts"
+
 external sort_fun_get_codomain : sort -> sort
   = "ocaml_bitwuzla_sort_fun_get_codomain"
-external sort_fun_get_arity : sort -> int
-  = "ocaml_bitwuzla_sort_fun_get_arity"
-external sort_is_equal : sort -> sort -> bool
-  = "ocaml_bitwuzla_sort_is_equal"
-external sort_is_array : sort -> bool
-  = "ocaml_bitwuzla_sort_is_array"
-external sort_is_bv : sort -> bool
-  = "ocaml_bitwuzla_sort_is_bv"
-external sort_is_fp : sort -> bool
-  = "ocaml_bitwuzla_sort_is_fp"
-external sort_is_fun : sort -> bool
-  = "ocaml_bitwuzla_sort_is_fun"
-external sort_is_rm : sort -> bool
-  = "ocaml_bitwuzla_sort_is_rm"
-external sort_dump : sort -> (int [@untagged]) -> Format.formatter -> unit
+
+external sort_fun_get_arity : sort -> int = "ocaml_bitwuzla_sort_fun_get_arity"
+
+external sort_is_equal : sort -> sort -> bool = "ocaml_bitwuzla_sort_is_equal"
+
+external sort_is_array : sort -> bool = "ocaml_bitwuzla_sort_is_array"
+
+external sort_is_bv : sort -> bool = "ocaml_bitwuzla_sort_is_bv"
+
+external sort_is_fp : sort -> bool = "ocaml_bitwuzla_sort_is_fp"
+
+external sort_is_fun : sort -> bool = "ocaml_bitwuzla_sort_is_fun"
+
+external sort_is_rm : sort -> bool = "ocaml_bitwuzla_sort_is_rm"
+
+external sort_dump : sort -> (int[@untagged]) -> Format.formatter -> unit
   = "ocaml_bitwuzla_sort_dump" "native_bitwuzla_sort_dump"
+
 let sort_dump t (f : [ `Btor | `Smt2 ]) k = sort_dump t (format_to_c f) k
 
-external term_hash : term -> int
-  = "ocaml_bitwuzla_term_hash"
-external term_get_kind : term -> (int [@untagged])
+external term_hash : term -> int = "ocaml_bitwuzla_term_hash"
+
+external term_get_kind : term -> (int[@untagged])
   = "ocaml_bitwuzla_term_get_kind" "native_bitwuzla_term_get_kind"
+
 let term_get_kind t = kind_from_c @@ term_get_kind t
+
 external term_get_children : term -> term array
   = "ocaml_bitwuzla_term_get_children"
+
 external term_get_indices : term -> int array
   = "ocaml_bitwuzla_term_get_indices"
-external term_is_indexed : term -> bool
-  = "ocaml_bitwuzla_term_is_indexed"
-external term_get_sort :  term -> sort
-  = "ocaml_bitwuzla_term_get_sort"
+
+external term_is_indexed : term -> bool = "ocaml_bitwuzla_term_is_indexed"
+
+external term_get_sort : term -> sort = "ocaml_bitwuzla_term_get_sort"
+
 external term_array_get_index_sort : term -> sort
   = "ocaml_bitwuzla_term_array_get_index_sort"
+
 external term_array_get_element_sort : term -> sort
   = "ocaml_bitwuzla_term_array_get_element_sort"
+
 external term_fun_get_domain_sorts : term -> sort array
   = "ocaml_bitwuzla_term_fun_get_domain_sorts"
+
 external term_fun_get_codomain_sort : term -> sort
   = "ocaml_bitwuzla_term_fun_get_codomain_sort"
+
 external term_bv_get_size : term -> int = "ocaml_bitwuzla_term_bv_get_size"
+
 external term_fp_get_exp_size : term -> int
   = "ocaml_bitwuzla_term_fp_get_exp_size"
+
 external term_fp_get_sig_size : term -> int
   = "ocaml_bitwuzla_term_fp_get_sig_size"
+
 external term_fun_get_arity : term -> int = "ocaml_bitwuzla_term_fun_get_arity"
+
 external term_get_symbol : term -> string = "ocaml_bitwuzla_term_get_symbol"
+
 external term_set_symbol : term -> string -> unit
   = "ocaml_bitwuzla_term_set_symbol"
+
 external term_is_equal_sort : term -> term -> bool
   = "ocaml_bitwuzla_term_is_equal_sort"
-external term_is_array : term -> bool
-  = "ocaml_bitwuzla_term_is_array"
-external term_is_const : term -> bool
-  = "ocaml_bitwuzla_term_is_const"
-external term_is_fun : term -> bool
-  = "ocaml_bitwuzla_term_is_fun"
-external term_is_var : term -> bool
-  = "ocaml_bitwuzla_term_is_var"
-external term_is_bound_var : term -> bool
-  = "ocaml_bitwuzla_term_is_bound_var"
-external term_is_value : term -> bool
-  = "ocaml_bitwuzla_term_is_value"
-external term_is_bv_value : term -> bool
-  = "ocaml_bitwuzla_term_is_bv_value"
-external term_is_fp_value : term -> bool
-  = "ocaml_bitwuzla_term_is_fp_value"
-external term_is_rm_value : term -> bool
-  = "ocaml_bitwuzla_term_is_rm_value"
-external term_is_bv : term -> bool
-  = "ocaml_bitwuzla_term_is_bv"
-external term_is_fp : term -> bool
-  = "ocaml_bitwuzla_term_is_fp"
-external term_is_rm : term -> bool
-  = "ocaml_bitwuzla_term_is_rm"
+
+external term_is_array : term -> bool = "ocaml_bitwuzla_term_is_array"
+
+external term_is_const : term -> bool = "ocaml_bitwuzla_term_is_const"
+
+external term_is_fun : term -> bool = "ocaml_bitwuzla_term_is_fun"
+
+external term_is_var : term -> bool = "ocaml_bitwuzla_term_is_var"
+
+external term_is_bound_var : term -> bool = "ocaml_bitwuzla_term_is_bound_var"
+
+external term_is_value : term -> bool = "ocaml_bitwuzla_term_is_value"
+
+external term_is_bv_value : term -> bool = "ocaml_bitwuzla_term_is_bv_value"
+
+external term_is_fp_value : term -> bool = "ocaml_bitwuzla_term_is_fp_value"
+
+external term_is_rm_value : term -> bool = "ocaml_bitwuzla_term_is_rm_value"
+
+external term_is_bv : term -> bool = "ocaml_bitwuzla_term_is_bv"
+
+external term_is_fp : term -> bool = "ocaml_bitwuzla_term_is_fp"
+
+external term_is_rm : term -> bool = "ocaml_bitwuzla_term_is_rm"
+
 external term_is_bv_value_zero : term -> bool
   = "ocaml_bitwuzla_term_is_bv_value_zero"
+
 external term_is_bv_value_one : term -> bool
   = "ocaml_bitwuzla_term_is_bv_value_one"
+
 external term_is_bv_value_ones : term -> bool
   = "ocaml_bitwuzla_term_is_bv_value_ones"
+
 external term_is_bv_value_min_signed : term -> bool
   = "ocaml_bitwuzla_term_is_bv_value_min_signed"
+
 external term_is_bv_value_max_signed : term -> bool
   = "ocaml_bitwuzla_term_is_bv_value_max_signed"
+
 external term_is_fp_value_pos_zero : term -> bool
   = "ocaml_bitwuzla_term_is_fp_value_pos_zero"
+
 external term_is_fp_value_neg_zero : term -> bool
   = "ocaml_bitwuzla_term_is_fp_value_neg_zero"
+
 external term_is_fp_value_pos_inf : term -> bool
   = "ocaml_bitwuzla_term_is_fp_value_pos_inf"
+
 external term_is_fp_value_neg_inf : term -> bool
   = "ocaml_bitwuzla_term_is_fp_value_neg_inf"
+
 external term_is_fp_value_nan : term -> bool
   = "ocaml_bitwuzla_term_is_fp_value_nan"
+
 external term_is_const_array : term -> bool
   = "ocaml_bitwuzla_term_is_const_array"
-external term_dump : term -> (int [@untagged]) -> Format.formatter -> unit
+
+external term_dump : term -> (int[@untagged]) -> Format.formatter -> unit
   = "ocaml_bitwuzla_term_dump" "native_bitwuzla_term_dump"
+
 let term_dump t (f : [ `Btor | `Smt2 ]) k = term_dump t (format_to_c f) k
 
 let () =

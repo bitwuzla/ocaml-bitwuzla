@@ -3,55 +3,53 @@
 (** Create a new Bitwuzla session
     ({!val:check_sat} can only be called once). *)
 module Once () : sig
-
   (** {1 Phantom type} *)
+
   (** Phantom types are annotations that allow the compiler to statically
       catch some sort mismatch errors. Size mismatch errors will still be
       caught at runtime. *)
 
-  (** The bit-vector kind. *)
   type bv = [ `Bv ]
+  (** The bit-vector kind. *)
 
-  (** The rounding-mode kind. *)
   type rm = [ `Rm ]
+  (** The rounding-mode kind. *)
 
-  (** The floating-point kind. *)
   type fp = [ `Fp ]
+  (** The floating-point kind. *)
 
   (** The array kind with ['a] index and ['b] element. *)
-  type ('a, 'b) ar = [ `Ar of ('a -> 'b) ]
-    constraint 'a = [< bv | rm | fp ]
-    constraint 'b = [< bv | rm | fp ]
+  type ('a, 'b) ar = [ `Ar of 'a -> 'b ]
+    constraint 'a = [< bv | rm | fp ] constraint 'b = [< bv | rm | fp ]
   (** Both index and element should be of bit-vector, rounding-mode
       or floating-point kind *)
 
   (** The function kind taking ['a] argument and
       returning {!type:'b} element. *)
-  type ('a, 'b) fn = [ `Fn of ('a -> 'b) ]
-    constraint 'b = [< bv ]
+  type ('a, 'b) fn = [ `Fn of 'a -> 'b ] constraint 'b = [< bv ]
   (** Functions accept only bit-vector, rounding-mode or floating-point as
       argument and return only bit-vector. *)
 
   (** {1 Core types } *)
 
-  (** A sort of ['a] kind. *)
   type 'a sort
+  (** A sort of ['a] kind. *)
 
-  (** A term of ['a] kind. *)
   type 'a term
+  (** A term of ['a] kind. *)
 
   (** A value of ['a] kind. *)
   type 'a value = private 'a term
   (** Values are subtype of terms and can be downcasted using [:>] operator. *)
 
   module Sort : sig
-
-    (** A sort of ['a] kind. *)
     type 'a t = 'a sort
+    (** A sort of ['a] kind. *)
 
-    (** A Boolean sort is a bit-vector sort of size 1. *)
     val bool : bv t
+    (** A Boolean sort is a bit-vector sort of size 1. *)
 
+    val bv : int -> bv t
     (**
        [bv size]
        create a bit-vector sort of given size.
@@ -60,8 +58,8 @@ module Once () : sig
 
        @return A bit-vector sort of given size.
     *)
-    val bv   : int -> bv t
 
+    val size : bv t -> int
     (**
        [size sort]
        get the size of a bit-vector sort.
@@ -70,8 +68,8 @@ module Once () : sig
 
        @return The size of the bit-vector sort.
     *)
-    val size : bv t -> int
 
+    val fp : exponent:int -> int -> fp t
     (**
        [fp exp_size size]
        create a floating-point sort of given size with [exp_size] exponent bits.
@@ -81,8 +79,8 @@ module Once () : sig
 
        @return A floating-point sort of given format.
     *)
-    val fp          : exponent:int -> int -> fp t
 
+    val exponent : fp t -> int
     (**
        [exponent sort]
        get the exponent size of a floating-point sort.
@@ -91,8 +89,8 @@ module Once () : sig
 
        @return The exponent size of the floating-point sort.
     *)
-    val exponent    : fp t -> int
 
+    val significand : fp t -> int
     (**
        [significand sort]
        get the significand size of a floating-point sort.
@@ -101,11 +99,11 @@ module Once () : sig
 
        @return The significand size of the floating-point sort.
     *)
-    val significand : fp t -> int
 
-    (** A Roundingmode sort. *)
     val rm : rm t
+    (** A Roundingmode sort. *)
 
+    val ar : 'a t -> 'b t -> ('a, 'b) ar t
     (**
        [ar index element]
        create an array sort.
@@ -115,8 +113,8 @@ module Once () : sig
 
        @return An array sort which maps sort [index] to sort [element].
     *)
-    val ar      : 'a t -> 'b t -> ('a, 'b) ar t
 
+    val index : ('a, 'b) ar t -> 'a t
     (**
        [index sort]
        get the index sort of an array sort.
@@ -125,8 +123,8 @@ module Once () : sig
 
        @return The index sort of the array sort.
     *)
-    val index   : ('a, 'b) ar t -> 'a t
 
+    val element : ('a, 'b) ar t -> 'b t
     (**
        [element sort]
        get the element sort of an array sort.
@@ -135,16 +133,17 @@ module Once () : sig
 
        @return The element sort of the array sort.
     *)
-    val element : ('a, 'b) ar t -> 'b t
 
     (** Statically typed list of function argument sorts. *)
     type 'a variadic =
-      |  []  : unit variadic
-      | (::) : ([< bv | rm | fp ] as 'a) sort * 'b variadic ->
-          ('a -> 'b) variadic
-      (** Functions accept only bit-vector, rounding-mode or floating-point
+      | [] : unit variadic
+      | ( :: ) :
+          ([< bv | rm | fp ] as 'a) sort * 'b variadic
+          -> ('a -> 'b) variadic
+          (** Functions accept only bit-vector, rounding-mode or floating-point
           as argument *)
 
+    val fn : 'a variadic -> 'b t -> ('a, 'b) fn t
     (**
        [fn domain codomain]
        create a function sort.
@@ -154,8 +153,8 @@ module Once () : sig
 
        @return A function sort of given domain and codomain sorts.
     *)
-    val fn       : 'a variadic -> 'b t -> ('a, 'b) fn t
 
+    val arity : ('a, 'b) fn t -> int
     (**
        [arity sort]
        get the arity of a function sort.
@@ -164,8 +163,8 @@ module Once () : sig
 
        @return The number of arguments of the function sort.
     *)
-    val arity    : ('a, 'b) fn t -> int
 
+    val domain : ('a, 'b) fn t -> 'a variadic
     (**
        [domain sort]
        get the domain sorts of a function sort.
@@ -174,8 +173,8 @@ module Once () : sig
 
        @return The domain sorts of the function sort as an array of sort.
     *)
-    val domain   : ('a, 'b) fn t -> 'a variadic
 
+    val codomain : ('a, 'b) fn t -> 'b t
     (**
        [codomain sort]
        get the codomain sort of a function sort.
@@ -184,8 +183,8 @@ module Once () : sig
 
        @return The codomain sort of the function sort.
     *)
-    val codomain : ('a, 'b) fn t -> 'b t
 
+    val hash : 'a t -> int
     (**
        [hash sort]
        compute the hash value for a sort.
@@ -194,8 +193,8 @@ module Once () : sig
 
        @return The hash value of the sort.
     *)
-    val hash : 'a t -> int
 
+    val equal : 'a t -> 'a t -> bool
     (**
        [equal sort0 sort1]
        determine if two sorts are equal.
@@ -205,8 +204,8 @@ module Once () : sig
 
        @return [true] if the given sorts are equal.
     *)
-    val equal : 'a t -> 'a t -> bool
 
+    val pp : Format.formatter -> 'a t -> unit
     (**
        [pp formatter sort]
        pretty print sort.
@@ -214,22 +213,19 @@ module Once () : sig
        @param formatter The outpout formatter
        @param sort The sort.
     *)
-    val pp : Format.formatter -> 'a t -> unit
-
   end
 
   module Term : sig
-
+    type 'a t = 'a term constraint 'a = [< bv | rm | fp | ('b, 'c) ar ]
     (** A term of ['a] kind. *)
-    type 'a t = 'a term
-      constraint 'a = [< bv | rm | fp | ('b, 'c) ar ]
 
     (** Statically typed list of function argument terms. *)
     type 'a variadic =
-      |  []  : unit variadic
-      | (::) : ([< bv | rm | fp ] as 'a) term * 'b variadic ->
-          ('a -> 'b) variadic
-      (** Functions accept only bit-vector, rounding-mode or floating-point
+      | [] : unit variadic
+      | ( :: ) :
+          ([< bv | rm | fp ] as 'a) term * 'b variadic
+          -> ('a -> 'b) variadic
+          (** Functions accept only bit-vector, rounding-mode or floating-point
           as argument *)
 
     (** {1 Constructor} *)
@@ -238,15 +234,16 @@ module Once () : sig
     module Bl : sig
       (** Operation over bit-vectors of size 1. *)
 
-      (** A boolean term. *)
       type t = bv term
+      (** A boolean term. *)
 
-      (** A bit-vector value 0 of size 1. *)
       val false' : t
+      (** A bit-vector value 0 of size 1. *)
 
+      val true' : t
       (** A bit-vector value 1 of size 1. *)
-      val true'  : t
 
+      val of_bool : bool -> t
       (**
          [of_bool b]
          create a bit-vector value of size 1 from a [bool].
@@ -255,8 +252,8 @@ module Once () : sig
 
          @return Either {!val:true'} or {!val:false'}.
       *)
-      val of_bool : bool -> t
 
+      val of_bv : bv term -> t
       (**
          [of_bv t]
          create a bit-wise {b or} reduction of all bits.
@@ -265,8 +262,8 @@ module Once () : sig
 
          @return A term equal to [t <> 0].
       *)
-      val of_bv   : bv term -> t
 
+      val logand : t -> t -> t
       (**
          [logand t0 t1]
          create a boolean {b and}.
@@ -276,8 +273,8 @@ module Once () : sig
 
          @return SMT-LIB: [and]
       *)
-      val logand  : t -> t -> t
 
+      val lognand : t -> t -> t
       (**
          [lognand t0 t1]
          create a boolean {b nand}.
@@ -287,8 +284,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvnand]
       *)
-      val lognand : t -> t -> t
 
+      val redand : t array -> t
       (**
          [redand ts]
          create a {i n}ary boolean {b and}.
@@ -297,8 +294,8 @@ module Once () : sig
 
          @return SMT-LIB: [and]
       *)
-      val redand  : t array -> t
 
+      val logor : t -> t -> t
       (**
          [logor t0 t1]
          create a boolean {b or}.
@@ -308,8 +305,8 @@ module Once () : sig
 
          @return SMT-LIB: [or]
       *)
-      val logor   : t -> t -> t
 
+      val lognor : t -> t -> t
       (**
          [lognor t0 t1]
          create a boolean {b nor}.
@@ -319,8 +316,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvnor]
       *)
-      val lognor  : t -> t -> t
 
+      val redor : t array -> t
       (**
          [redor ts]
          create a {i n}ary boolean {b or}.
@@ -329,8 +326,8 @@ module Once () : sig
 
          @return SMT-LIB: [or]
       *)
-      val redor   : t array -> t
 
+      val logxor : t -> t -> t
       (**
          [logxor t0 t1]
          create a boolean {b xor}.
@@ -340,8 +337,8 @@ module Once () : sig
 
          @return SMT-LIB: [xor]
       *)
-      val logxor  : t -> t -> t
 
+      val logxnor : t -> t -> t
       (**
          [logxnor t0 t1]
          create a boolean {b xnor}.
@@ -351,8 +348,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvxnor]
       *)
-      val logxnor : t -> t -> t
 
+      val redxor : t array -> t
       (**
          [redxor ts]
          create a {i n}ary boolean {b xor}.
@@ -361,8 +358,8 @@ module Once () : sig
 
          @return SMT-LIB: [xor]
       *)
-      val redxor  : t array -> t
 
+      val lognot : t -> t
       (**
          [lognot t]
          create a boolean {b not}.
@@ -371,8 +368,8 @@ module Once () : sig
 
          @return SMT-LIB: [not]
       *)
-      val lognot  : t -> t
 
+      val iff : t -> t -> t
       (**
          [iff t0 t1]
          create a boolean {b if and only if}.
@@ -382,8 +379,8 @@ module Once () : sig
 
          @return SMT-LIB: [=]
       *)
-      val iff     : t -> t -> t
 
+      val implies : t -> t -> t
       (**
          [implies t0 t1]
          create a boolean {b implies}.
@@ -393,8 +390,8 @@ module Once () : sig
 
          @return SMT-LIB: [=>]
       *)
-      val implies : t -> t -> t
 
+      val assignment : bv value -> bool
       (**
          [assignment t]
          get boolean representation of the current model value of given
@@ -404,16 +401,14 @@ module Once () : sig
 
          @return boolean representation of current model value of term [t].
       *)
-      val assignment : bv value -> bool
-
     end
 
     (** Bit-vector *)
     module Bv : sig
-
-      (** A bit-vector term. *)
       type t = bv term
+      (** A bit-vector term. *)
 
+      val zero : bv sort -> t
       (**
          [zero sort]
          create a bit-vector value zero.
@@ -422,8 +417,8 @@ module Once () : sig
 
          @return A term representing the bit-vector value 0 of given sort.
       *)
-      val zero : bv sort -> t
 
+      val one : bv sort -> t
       (**
          [one sort]
          create a bit-vector value one.
@@ -432,8 +427,8 @@ module Once () : sig
 
          @return A term representing the bit-vector value 1 of given sort.
       *)
-      val one  : bv sort -> t
 
+      val ones : bv sort -> t
       (**
          [ones sort]
          create a bit-vector value where all bits are set to 1.
@@ -443,8 +438,8 @@ module Once () : sig
          @return A term representing the bit-vector value of given sort
          where all bits are set to 1.
       *)
-      val ones : bv sort -> t
 
+      val min_signed : bv sort -> t
       (**
          [min_signed sort]
          create a bit-vector minimum signed value.
@@ -454,8 +449,8 @@ module Once () : sig
          @return A term representing the bit-vector value of given sort
          where the MSB is set to 1 and all remaining bits are set to 0.
       *)
-      val min_signed : bv sort -> t
 
+      val max_signed : bv sort -> t
       (**
          [max_signed sort]
          create a bit-vector maximum signed value.
@@ -465,8 +460,8 @@ module Once () : sig
          @return A term representing the bit-vector value of given sort
          where the MSB is set to 0 and all remaining bits are set to 1.
       *)
-      val max_signed : bv sort -> t
 
+      val of_int : bv sort -> int -> t
       (**
          [of_int sort value]
          create a bit-vector value from its unsigned integer representation.
@@ -480,8 +475,8 @@ module Once () : sig
 
          @return A term representing the bit-vector value of given sort.
       *)
-      val of_int    : bv sort -> int -> t
 
+      val of_z : bv sort -> Z.t -> t
       (**
          [of_z sort value]
          create a bit-vector value from its unsigned integer representation.
@@ -495,8 +490,8 @@ module Once () : sig
 
          @return A term representing the bit-vector value of given sort.
       *)
-      val of_z      : bv sort -> Z.t -> t
 
+      val of_string : bv sort -> string -> t
       (**
          [of_string sort value]
          create a bit-vector value from its string representation.
@@ -513,124 +508,123 @@ module Once () : sig
 
          @return A term representing the bit-vector value of given sort.
       *)
-      val of_string : bv sort -> string -> t
 
       (** The term operator. *)
       type ('a, 'b) operator =
-        | Add             : (t -> t -> t, t * t) operator
-        (** Bit-vector addition.
+        | Add : (t -> t -> t, t * t) operator
+            (** Bit-vector addition.
 
             SMT-LIB: [bvadd] *)
-        | And             : (t -> t -> t, t * t) operator
-        (** Bit-vector and.
+        | And : (t -> t -> t, t * t) operator
+            (** Bit-vector and.
 
             SMT-LIB: [bvand] *)
-        | Ashr            : (t -> t -> t, t * t) operator
-        (** Bit-vector arithmetic right shift.
+        | Ashr : (t -> t -> t, t * t) operator
+            (** Bit-vector arithmetic right shift.
 
             SMT-LIB: [bvashr] *)
-        | Concat          : (t -> t -> t, t * t) operator
-        (** Bit-vector concat.
+        | Concat : (t -> t -> t, t * t) operator
+            (** Bit-vector concat.
 
             SMT-LIB: [concat] *)
-        | Extract         :
-            (hi:int -> lo:int -> t -> t, int * int * t) operator
-        (** Bit-vector extract.
+        | Extract : (hi:int -> lo:int -> t -> t, int * int * t) operator
+            (** Bit-vector extract.
 
             SMT-LIB: [extract] (indexed) *)
-        | Mul             : (t -> t -> t, t * t) operator
-        (** Bit-vector multiplication.
+        | Mul : (t -> t -> t, t * t) operator
+            (** Bit-vector multiplication.
 
             SMT-LIB: [bvmul] *)
-        | Neg             : (t -> t, t) operator
-        (** Bit-vector negation (two's complement).
+        | Neg : (t -> t, t) operator
+            (** Bit-vector negation (two's complement).
 
             SMT-LIB: [bvneg] *)
-        | Not             : (t -> t, t) operator
-        (** Bit-vector not (one's complement).
+        | Not : (t -> t, t) operator
+            (** Bit-vector not (one's complement).
 
             SMT-LIB: [bvnot] *)
-        | Or              : (t -> t -> t, t * t) operator
-        (** Bit-vector or.
+        | Or : (t -> t -> t, t * t) operator
+            (** Bit-vector or.
 
             SMT-LIB: [bvor] *)
-        | Rol             : (t -> t -> t, t * t) operator
-        (** Bit-vector rotate left (not indexed).
+        | Rol : (t -> t -> t, t * t) operator
+            (** Bit-vector rotate left (not indexed).
 
             This is a non-indexed variant of SMT-LIB [rotate_left]. *)
-        | Ror             : (t -> t -> t, t * t) operator
-        (** Bit-vector rotate right.
+        | Ror : (t -> t -> t, t * t) operator
+            (** Bit-vector rotate right.
 
             This is a non-indexed variant of SMT-LIB [rotate_right]. *)
-        | Sdiv            : (t -> t -> t, t * t) operator
-        (** Bit-vector signed division.
+        | Sdiv : (t -> t -> t, t * t) operator
+            (** Bit-vector signed division.
 
             SMT-LIB: [bvsdiv] *)
-        | Sge             : (t -> t -> t, t * t) operator
-        (** Bit-vector signed greater than or equal.
+        | Sge : (t -> t -> t, t * t) operator
+            (** Bit-vector signed greater than or equal.
 
             SMT-LIB: [bvsge] *)
-        | Sgt             : (t -> t -> t, t * t) operator
-        (** Bit-vector signed greater than.
+        | Sgt : (t -> t -> t, t * t) operator
+            (** Bit-vector signed greater than.
 
             SMT-LIB: [bvsgt] *)
-        | Shl             : (t -> t -> t, t * t) operator
-        (** Bit-vector signed less than.
+        | Shl : (t -> t -> t, t * t) operator
+            (** Bit-vector signed less than.
 
             SMT-LIB: [bvslt] *)
-        | Shr             : (t -> t -> t, t * t) operator
-        (** Bit-vector logical right shift.
+        | Shr : (t -> t -> t, t * t) operator
+            (** Bit-vector logical right shift.
 
             SMT-LIB: [bvshr] *)
-        | Sle             : (t -> t -> t, t * t) operator
-        (** Bit-vector signed less than or equal.
+        | Sle : (t -> t -> t, t * t) operator
+            (** Bit-vector signed less than or equal.
 
             SMT-LIB: [bvsle] *)
-        | Slt             : (t -> t -> t, t * t) operator
-        (** Bit-vector signed less than.
+        | Slt : (t -> t -> t, t * t) operator
+            (** Bit-vector signed less than.
 
             SMT-LIB: [bvslt] *)
-        | Smod            : (t -> t -> t, t * t) operator
-        (** Bit-vector signed modulo.
+        | Smod : (t -> t -> t, t * t) operator
+            (** Bit-vector signed modulo.
 
             SMT-LIB: [bvsmod] *)
-        | Srem            : (t -> t -> t, t * t) operator
-        (** Bit-vector signed remainder.
+        | Srem : (t -> t -> t, t * t) operator
+            (** Bit-vector signed remainder.
 
             SMT-LIB: [bvsrem] *)
-        | Sub             : (t -> t -> t, t * t) operator
-        (** Bit-vector subtraction.
+        | Sub : (t -> t -> t, t * t) operator
+            (** Bit-vector subtraction.
 
             SMT-LIB: [bvsub] *)
-        | Udiv            : (t -> t -> t, t * t) operator
-        (** Bit-vector unsigned division.
+        | Udiv : (t -> t -> t, t * t) operator
+            (** Bit-vector unsigned division.
 
             SMT-LIB: [bvudiv] *)
-        | Uge             : (t -> t -> t, t * t) operator
-        (** Bit-vector unsigned greater than or equal.
+        | Uge : (t -> t -> t, t * t) operator
+            (** Bit-vector unsigned greater than or equal.
 
             SMT-LIB: [bvuge] *)
-        | Ugt             : (t -> t -> t, t * t) operator
-        (** Bit-vector unsigned greater than.
+        | Ugt : (t -> t -> t, t * t) operator
+            (** Bit-vector unsigned greater than.
 
             SMT-LIB: [bvugt] *)
-        | Ule             : (t -> t -> t, t * t) operator
-        (** Bit-vector unsigned less than or equal.
+        | Ule : (t -> t -> t, t * t) operator
+            (** Bit-vector unsigned less than or equal.
 
             SMT-LIB: [bvule] *)
-        | Ult             : (t -> t -> t, t * t) operator
-        (** Bit-vector unsigned less than.
+        | Ult : (t -> t -> t, t * t) operator
+            (** Bit-vector unsigned less than.
 
             SMT-LIB: [bvult] *)
-        | Urem            : (t -> t -> t, t * t) operator
-        (** Bit-vector unsigned remainder.
+        | Urem : (t -> t -> t, t * t) operator
+            (** Bit-vector unsigned remainder.
 
             SMT-LIB: [bvurem] *)
-        | Xor             : (t -> t -> t, t * t) operator
-        (** Bit-vector xor.
+        | Xor : (t -> t -> t, t * t) operator
+            (** Bit-vector xor.
 
             SMT-LIB: [bvxor] *)
 
+      val term : ('a, 'b) operator -> 'a
       (**
          [term op ..]
          create a bit-vector term constructor of given kind.
@@ -640,8 +634,8 @@ module Once () : sig
          @return A function to build a term representing an operation
                  of given kind.
       *)
-      val term : ('a, 'b) operator -> 'a
 
+      val pred : t -> t
       (**
          [pred t]
          create a bit-vector decrement.
@@ -650,8 +644,8 @@ module Once () : sig
 
          @return Decrement by one.
       *)
-      val pred          : t -> t
 
+      val succ : t -> t
       (**
          [succ t]
          create a bit-vector increment.
@@ -660,8 +654,8 @@ module Once () : sig
 
          @return Increment by one.
       *)
-      val succ          : t -> t
 
+      val neg : t -> t
       (**
          [neg t]
          create a bit-vector negation.
@@ -670,8 +664,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvneg].
       *)
-      val neg           : t -> t
 
+      val add : t -> t -> t
       (**
          [add t0 t1]
          create a bit-vector addition.
@@ -681,8 +675,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvadd]
       *)
-      val add           : t -> t -> t
 
+      val sadd_overflow : t -> t -> t
       (**
          [sadd_overflow t0 t1]
          create a bit-vector signed addition overflow test.
@@ -693,8 +687,8 @@ module Once () : sig
          @return Single bit to indicate if signed addition
          produces an overflow
       *)
-      val sadd_overflow : t -> t -> t
 
+      val uadd_overflow : t -> t -> t
       (**
          [uadd_overflow t0 t1]
          create a bit-vector unsigned addition overflow test.
@@ -705,8 +699,8 @@ module Once () : sig
          @return Single bit to indicate if unsigned addition
          produces an overflow
       *)
-      val uadd_overflow : t -> t -> t
 
+      val sub : t -> t -> t
       (**
          [sub t0 t1]
          create a bit-vector substraction.
@@ -716,8 +710,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvsub]
       *)
-      val sub           : t -> t -> t
 
+      val ssub_overflow : t -> t -> t
       (**
          [ssub_overflow t0 t1]
          create a bit-vector signed substraction overflow test.
@@ -728,8 +722,8 @@ module Once () : sig
          @return Single bit to indicate if signed substraction
          produces an overflow
       *)
-      val ssub_overflow : t -> t -> t
 
+      val usub_overflow : t -> t -> t
       (**
          [usub_overflow t0 t1]
          create a bit-vector ubsigned substraction overflow test.
@@ -740,8 +734,8 @@ module Once () : sig
          @return Single bit to indicate if unsigned substraction
          produces an overflow
       *)
-      val usub_overflow : t -> t -> t
 
+      val mul : t -> t -> t
       (**
          [mul t0 t1]
          create a bit-vector multiplication.
@@ -751,8 +745,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvmul]
       *)
-      val mul           : t -> t -> t
 
+      val smul_overflow : t -> t -> t
       (**
          [smul_overflow t0 t1]
          create a bit-vector signed multiplication overflow test.
@@ -763,8 +757,8 @@ module Once () : sig
          @return Single bit to indicate if signed multiplication
          produces an overflow
       *)
-      val smul_overflow : t -> t -> t
 
+      val umul_overflow : t -> t -> t
       (**
          [umul_overflow t0 t1]
          create a bit-vector unsigned multiplication overflow test.
@@ -775,8 +769,8 @@ module Once () : sig
          @return Single bit to indicate if unsigned multiplication
          produces an overflow
       *)
-      val umul_overflow : t -> t -> t
 
+      val sdiv : t -> t -> t
       (**
          [sdiv t0 t1]
          create a bit-vector signed division.
@@ -786,8 +780,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvsdiv]
       *)
-      val sdiv          : t -> t -> t
 
+      val sdiv_overflow : t -> t -> t
       (**
          [sdiv_overflow t0 t1]
          create a bit-vector signed division overflow test.
@@ -798,8 +792,8 @@ module Once () : sig
          @return Single bit to indicate if signed division
          produces an overflow
       *)
-      val sdiv_overflow : t -> t -> t
 
+      val udiv : t -> t -> t
       (**
          [udiv t0 t1]
          create a bit-vector unsigned division.
@@ -809,8 +803,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvudiv]
       *)
-      val udiv          : t -> t -> t
 
+      val smod : t -> t -> t
       (**
          [smod t0 t1]
          create a bit-vector signed modulo.
@@ -820,8 +814,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvsmod]
       *)
-      val smod          : t -> t -> t
 
+      val srem : t -> t -> t
       (**
          [srem t0 t1]
          create a bit-vector signed reminder.
@@ -831,8 +825,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvsrem]
       *)
-      val srem          : t -> t -> t
 
+      val urem : t -> t -> t
       (**
          [urem t0 t1]
          create a bit-vector unsigned reminder.
@@ -842,8 +836,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvurem]
       *)
-      val urem          : t -> t -> t
 
+      val logand : t -> t -> t
       (**
          [logand t0 t1]
          create a bit-vector and.
@@ -853,8 +847,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvand]
       *)
-      val logand  : t -> t -> t
 
+      val lognand : t -> t -> t
       (**
          [lognand t0 t1]
          create a bit-vector nand.
@@ -864,8 +858,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvnand]
       *)
-      val lognand : t -> t -> t
 
+      val redand : t -> t
       (**
          [redand t]
          create a bit-vector and reduction.
@@ -875,8 +869,8 @@ module Once () : sig
          @return Bit-wise {b and} reduction, all bits are {b and}'ed
          together into a single bit.
       *)
-      val redand  : t -> t
 
+      val logor : t -> t -> t
       (**
          [logor t0 t1]
          create a bit-vector or.
@@ -886,8 +880,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvor]
       *)
-      val logor   : t -> t -> t
 
+      val lognor : t -> t -> t
       (**
          [lognor t0 t1]
          create a bit-vector nor.
@@ -897,8 +891,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvnor]
       *)
-      val lognor  : t -> t -> t
 
+      val redor : t -> t
       (**
          [redor t]
          create a bit-vector or reduction.
@@ -908,8 +902,8 @@ module Once () : sig
          @return Bit-wise {b or} reduction, all bits are {b or}'ed
          together into a single bit.
       *)
-      val redor   : t -> t
 
+      val logxor : t -> t -> t
       (**
          [logxor t0 t1]
          create a bit-vector xor.
@@ -919,8 +913,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvxor]
       *)
-      val logxor  : t -> t -> t
 
+      val logxnor : t -> t -> t
       (**
          [logxnor t0 t1]
          create a bit-vector xnor.
@@ -930,8 +924,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvxnor]
       *)
-      val logxnor : t -> t -> t
 
+      val redxor : t -> t
       (**
          [redxor t]
          create a bit-vector xor reduction.
@@ -941,8 +935,8 @@ module Once () : sig
          @return Bit-wise {b xor} reduction, all bits are {b xor}'ed
          together into a single bit.
       *)
-      val redxor  : t -> t
 
+      val lognot : t -> t
       (**
          [lognot t]
          create a bit-vector not (one's complement).
@@ -951,8 +945,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvnot]
       *)
-      val lognot  : t -> t
 
+      val shift_left : t -> t -> t
       (**
          [shift_left t0 t1]
          create a bit-vector logical left shift.
@@ -962,8 +956,8 @@ module Once () : sig
 
          @return SMT-LIB [bvshl]
       *)
-      val shift_left          : t -> t -> t
 
+      val shift_right : t -> t -> t
       (**
          [shift_right t0 t1]
          create a bit-vector arithmetic right shift.
@@ -973,8 +967,8 @@ module Once () : sig
 
          @return SMT-LIB [bvashr]
       *)
-      val shift_right         : t -> t -> t
 
+      val shift_right_logical : t -> t -> t
       (**
          [shift_right_logical t0 t1]
          create a bit-vector logical right shift.
@@ -984,8 +978,8 @@ module Once () : sig
 
          @return SMT-LIB [bvshr]
       *)
-      val shift_right_logical : t -> t -> t
 
+      val rotate_left : t -> t -> t
       (**
          [rotate_left t0 t1]
          create a bit-vector left rotation.
@@ -995,8 +989,8 @@ module Once () : sig
 
          @return non indexed variant of SMT-LIB [rotate_left]
       *)
-      val rotate_left         : t -> t -> t
 
+      val rotate_lefti : t -> int -> t
       (**
          [rotate_lefti t n]
          create a bit-vector left rotation.
@@ -1006,8 +1000,8 @@ module Once () : sig
 
          @return SMT-LIB: [rotate_left] (indexed)
       *)
-      val rotate_lefti        : t -> int -> t
 
+      val rotate_right : t -> t -> t
       (**
          [rotate_right t0 t1]
          create a bit-vector right rotation.
@@ -1017,8 +1011,8 @@ module Once () : sig
 
          @return non indexed variant of SMT-LIB [rotate_right]
       *)
-      val rotate_right        : t -> t -> t
 
+      val rotate_righti : t -> int -> t
       (**
          [rotate_righti t n]
          create a bit-vector right rotation.
@@ -1028,8 +1022,8 @@ module Once () : sig
 
          @return SMT-LIB: [rotate_right] (indexed)
       *)
-      val rotate_righti       : t -> int -> t
 
+      val zero_extend : int -> t -> t
       (**
          [zero_extend n t]
          create a bit-vector unsigned extension.
@@ -1039,8 +1033,8 @@ module Once () : sig
 
          @return SMT-LIB: [zero_extend] (indexed)
       *)
-      val zero_extend : int -> t -> t
 
+      val sign_extend : int -> t -> t
       (**
          [sign_extend n t]
          create a bit-vector signed extension.
@@ -1050,8 +1044,8 @@ module Once () : sig
 
          @return SMT-LIB: [sign_extend] (indexed)
       *)
-      val sign_extend : int -> t -> t
 
+      val append : t -> t -> t
       (**
          [append t0 t1]
          create a bit-vector concat.
@@ -1061,8 +1055,8 @@ module Once () : sig
 
          @return SMT-LIB: [concat]
       *)
-      val append      : t -> t -> t
 
+      val concat : t array -> t
       (**
          [concat ts]
          create a bit-vector {i n}ary concat.
@@ -1071,8 +1065,8 @@ module Once () : sig
 
          @return SMT-LIB: [concat]
       *)
-      val concat      : t array -> t
 
+      val repeat : int -> t -> t
       (**
          [repeat n t]
          create a bit-vector repetition.
@@ -1082,8 +1076,8 @@ module Once () : sig
 
          @return SMT-LIB: [repeat] (indexed)
       *)
-      val repeat      : int -> t -> t
 
+      val extract : hi:int -> lo:int -> t -> t
       (**
          [extract hi lo t]
          create a bit-vector extract.
@@ -1094,8 +1088,8 @@ module Once () : sig
 
          @return SMT-LIB: [extract] (indexed)
       *)
-      val extract : hi:int -> lo:int -> t -> t
 
+      val sge : t -> t -> t
       (**
          [sge t0 t1]
          create a bit-vector signed greater than or equal.
@@ -1105,8 +1099,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvsge]
       *)
-      val sge      : t -> t -> t
 
+      val uge : t -> t -> t
       (**
          [uge t0 t1]
          create a bit-vector unsigned greater than or equal.
@@ -1116,8 +1110,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvuge]
       *)
-      val uge      : t -> t -> t
 
+      val sgt : t -> t -> t
       (**
          [sgt t0 t1]
          create a bit-vector signed greater than.
@@ -1127,8 +1121,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvsgt]
       *)
-      val sgt      : t -> t -> t
 
+      val ugt : t -> t -> t
       (**
          [ugt t0 t1]
          create a bit-vector unsigned greater than.
@@ -1138,8 +1132,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvugt]
       *)
-      val ugt      : t -> t -> t
 
+      val sle : t -> t -> t
       (**
          [sle t0 t1]
          create a bit-vector signed lower than or equal.
@@ -1149,8 +1143,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvsle]
       *)
-      val sle      : t -> t -> t
 
+      val ule : t -> t -> t
       (**
          [ule t0 t1]
          create a bit-vector unsigned lower than or equal.
@@ -1160,8 +1154,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvadd]
       *)
-      val ule      : t -> t -> t
 
+      val slt : t -> t -> t
       (**
          [slt t0 t1]
          create a bit-vector signed lower than.
@@ -1171,8 +1165,8 @@ module Once () : sig
 
          @return SMT-LIB: [bvslt]
       *)
-      val slt      : t -> t -> t
 
+      val ult : t -> t -> t
       (**
          [ult t0 t1]
          create a bit-vector unsigned lower than.
@@ -1182,11 +1176,11 @@ module Once () : sig
 
          @return SMT-LIB: [bvult]
       *)
-      val ult      : t -> t -> t
 
-      (** Same as {!val:Bl.of_bv}. *)
       val to_bl : t -> t
+      (** Same as {!val:Bl.of_bv}. *)
 
+      val assignment : bv value -> Z.t
       (**
          [assignment t]
          get bit-vector representation of the current model value of given term.
@@ -1195,15 +1189,12 @@ module Once () : sig
 
          @return bit-vector representation of current model value of term [t].
       *)
-      val assignment : bv value -> Z.t
-
     end
 
     (** Rounding-mode *)
     module Rm : sig
-
-      (** A rounding-mode term. *)
       type t = rm term
+      (** A rounding-mode term. *)
 
       (**
          Rounding mode for floating-point operations.
@@ -1221,7 +1212,7 @@ module Once () : sig
       *)
       type 'a operator =
         | Rne : rm term operator
-        (** Round to the nearest even number.
+            (** Round to the nearest even number.
             If the two nearest floating-point numbers bracketing an
             unrepresentable infinitely precise result are equally near,
             the one with an even least significant digit will be delivered.
@@ -1229,7 +1220,7 @@ module Once () : sig
             SMT-LIB: [RNE] roundNearestTiesToEven
         *)
         | Rna : rm term operator
-        (** Round to the nearest number away from zero.
+            (** Round to the nearest number away from zero.
             If the two nearest floating-point numbers bracketing an
             unrepresentable infinitely precise result are equally near,
             the one with larger magnitude will be selected.
@@ -1237,7 +1228,7 @@ module Once () : sig
             SMT-LIB: [RNA] roundNearestTiesToAway
         *)
         | Rtn : rm term operator
-        (** Round towards negative infinity (-oo).
+            (** Round towards negative infinity (-oo).
             The result shall be the format’s floating-point number
             (possibly -oo) closest to and no less than the infinitely
             precise result.
@@ -1245,7 +1236,7 @@ module Once () : sig
             SMT-LIB: [RTN] roundTowardNegative
         *)
         | Rtp : rm term operator
-        (** Round towards positive infinity (+oo).
+            (** Round towards positive infinity (+oo).
             The result shall be the format’s floating-point number
             (possibly +oo) closest to and no less than the infinitely
             precise result.
@@ -1253,7 +1244,7 @@ module Once () : sig
             SMT-LIB: [RTP] roundTowardPositive
         *)
         | Rtz : rm term operator
-        (** Round towards zero.
+            (** Round towards zero.
             The result shall be the format’s floating-point number
             closest to and no greater in magnitude than the infinitely
             precise result.
@@ -1261,6 +1252,7 @@ module Once () : sig
             SMT-LIB: [RTZ] roundTowardZero
         *)
 
+      val term : 'a operator -> 'a
       (**
          [term op]
          create a rounding-mode term of given kind.
@@ -1269,31 +1261,29 @@ module Once () : sig
 
          @return A term representing an operation of given kind.
       *)
-      val term : 'a operator -> 'a
 
-      (** Same as {!val:term} {!constructor:Rne} *)
       val rne : t
+      (** Same as {!val:term} {!constructor:Rne} *)
 
-      (** Same as {!val:term} {!constructor:Rna} *)
       val rna : t
+      (** Same as {!val:term} {!constructor:Rna} *)
 
-      (** Same as {!val:term} {!constructor:Rtn} *)
       val rtn : t
+      (** Same as {!val:term} {!constructor:Rtn} *)
 
-      (** Same as {!val:term} {!constructor:Rtp} *)
       val rtp : t
+      (** Same as {!val:term} {!constructor:Rtp} *)
 
-      (** Same as {!val:term} {!constructor:Rtz} *)
       val rtz : t
-
+      (** Same as {!val:term} {!constructor:Rtz} *)
     end
 
     (** Floating-point *)
     module Fp : sig
-
-      (** A floating-point term. *)
       type t = fp term
+      (** A floating-point term. *)
 
+      val pos_zero : fp sort -> t
       (**
          [pos_zero sort]
          create a floating-point positive zero value (SMT-LIB: [+zero]).
@@ -1303,8 +1293,8 @@ module Once () : sig
          @return A term representing the floating-point positive zero value
          of given floating-point sort.
       *)
-      val pos_zero : fp sort -> t
 
+      val neg_zero : fp sort -> t
       (**
          [neg_zero sort]
          create a floating-point negative zero value (SMT-LIB: [-zero]).
@@ -1314,8 +1304,8 @@ module Once () : sig
          @return A term representing the floating-point negative zero value
          of given floating-point sort.
       *)
-      val neg_zero : fp sort -> t
 
+      val pos_inf : fp sort -> t
       (**
          [pos_inf sort]
          create a floating-point positive infinity value (SMT-LIB: [+oo]).
@@ -1325,8 +1315,8 @@ module Once () : sig
          @return A term representing the floating-point positive infinity value
          of given floating-point sort.
       *)
-      val pos_inf  : fp sort -> t
 
+      val neg_inf : fp sort -> t
       (**
          [neg_inf sort]
          create a floating-point negative infinity value (SMT-LIB: [-oo]).
@@ -1336,8 +1326,8 @@ module Once () : sig
          @return A term representing the floating-point negative infinity value
          of given floating-point sort.
       *)
-      val neg_inf  : fp sort -> t
 
+      val nan : fp sort -> t
       (**
          [nan sort]
          create a floating-point NaN value.
@@ -1347,8 +1337,8 @@ module Once () : sig
          @return A term representing the floating-point NaN value of given
          floating-point sort.
       *)
-      val nan      : fp sort -> t
 
+      val of_float : fp sort -> rm term Rm.operator -> float -> t
       (**
          [of_float sort rm value]
          create a floating-point value from its float representation,
@@ -1360,8 +1350,8 @@ module Once () : sig
 
          @return A term representing the floating-point value of given sort.
       *)
-      val of_float    : fp sort -> rm term Rm.operator -> float -> t
 
+      val of_real : fp sort -> rm term Rm.operator -> string -> t
       (**
          [of_real sort rm real]
          create a floating-point value from its real representation, given as a
@@ -1373,8 +1363,9 @@ module Once () : sig
 
          @return A term representing the floating-point value of given sort.
       *)
-      val of_real     : fp sort -> rm term Rm.operator -> string -> t
 
+      val of_rational :
+        fp sort -> rm term Rm.operator -> num:string -> den:string -> t
       (**
          [from_rational sort rm num den]
          create a floating-point value from its rational representation,
@@ -1388,152 +1379,164 @@ module Once () : sig
 
          @return A term representing the floating-point value of given sort.
       *)
-      val of_rational : fp sort -> rm term Rm.operator ->
-        num:string -> den:string -> t
 
+      type ieee_754 = private {
+        sign : bv term;
+        exponent : bv term;
+        significand : bv term;
+      }
       (** Floating-point IEEE 754 representation. *)
-      type ieee_754 = private
-        { sign: bv term; exponent: bv term; significand: bv term }
 
       (** The term operator. *)
       type ('a, 'b, 'c) operator =
-        | Abs          : (t -> t, t, fp) operator
-        (** Floating-point absolute value.
+        | Abs : (t -> t, t, fp) operator
+            (** Floating-point absolute value.
 
             SMT-LIB: [fp.abs] *)
-        | Add          : (rm term -> t -> t -> t, rm term * t * t, fp) operator
-        (** Floating-point addition.
+        | Add : (rm term -> t -> t -> t, rm term * t * t, fp) operator
+            (** Floating-point addition.
 
             SMT-LIB: [fp.add] *)
-        | Div          : (rm term -> t -> t -> t, rm term * t * t, fp) operator
-        (** Floating-point division.
+        | Div : (rm term -> t -> t -> t, rm term * t * t, fp) operator
+            (** Floating-point division.
 
             SMT-LIB: [fp.div] *)
-        | Eq           : (t -> t -> bv term, t * t, bv) operator
-        (** Floating-point equality.
+        | Eq : (t -> t -> bv term, t * t, bv) operator
+            (** Floating-point equality.
 
             SMT-LIB: [fp.eq] *)
-        | Fma          :
-            (rm term -> t -> t -> t -> t, rm term * t * t * t, fp) operator
-        (** Floating-point fused multiplcation and addition.
+        | Fma : (rm term -> t -> t -> t -> t, rm term * t * t * t, fp) operator
+            (** Floating-point fused multiplcation and addition.
 
             SMT-LIB: [fp.fma] *)
-        | Fp           :
-            (sign:bv term -> exponent:bv term -> bv term -> t,
-             ieee_754, fp) operator
-        (** Floating-point IEEE 754 value.
+        | Fp
+            : ( sign:bv term -> exponent:bv term -> bv term -> t,
+                ieee_754,
+                fp )
+              operator
+            (** Floating-point IEEE 754 value.
 
             SMT-LIB: [fp] *)
-        | Geq          : (t -> t -> bv term, t * t, bv) operator
-        (** Floating-point greater than or equal.
+        | Geq : (t -> t -> bv term, t * t, bv) operator
+            (** Floating-point greater than or equal.
 
             SMT-LIB: [fp.geq] *)
-        | Gt           : (t -> t -> bv term, t * t, bv) operator
-        (** Floating-point greater than.
+        | Gt : (t -> t -> bv term, t * t, bv) operator
+            (** Floating-point greater than.
 
             SMT-LIB: [fp.gt] *)
-        | Is_inf       : (t -> bv term, t, bv) operator
-        (** Floating-point is infinity tester.
+        | Is_inf : (t -> bv term, t, bv) operator
+            (** Floating-point is infinity tester.
 
             SMT-LIB: [fp.isInfinite] *)
-        | Is_nan       : (t -> bv term, t, bv) operator
-        (** Floating-point is Nan tester.
+        | Is_nan : (t -> bv term, t, bv) operator
+            (** Floating-point is Nan tester.
 
             SMT-LIB: [fp.isNaN] *)
-        | Is_neg       : (t -> bv term, t, bv) operator
-        (** Floating-point is negative tester.
+        | Is_neg : (t -> bv term, t, bv) operator
+            (** Floating-point is negative tester.
 
             SMT-LIB: [fp.isNegative] *)
-        | Is_normal    : (t -> bv term, t, bv) operator
-        (** Floating-point is normal tester.
+        | Is_normal : (t -> bv term, t, bv) operator
+            (** Floating-point is normal tester.
 
             SMT-LIB: [fp.isNormal] *)
-        | Is_pos       : (t -> bv term, t, bv) operator
-        (** Floating-point is positive tester.
+        | Is_pos : (t -> bv term, t, bv) operator
+            (** Floating-point is positive tester.
 
             SMT-LIB: [fp.isPositive] *)
         | Is_subnormal : (t -> bv term, t, bv) operator
-        (** Floating-point is subnormal tester.
+            (** Floating-point is subnormal tester.
 
             SMT-LIB: [fp.isSubnormal] *)
-        | Is_zero      : (t -> bv term, t, bv) operator
-        (** Floating-point is zero tester.
+        | Is_zero : (t -> bv term, t, bv) operator
+            (** Floating-point is zero tester.
 
             SMT-LIB: [fp.isZero] *)
-        | Leq          : (t -> t -> bv term, t * t, bv) operator
-        (** Floating-point less than or equal.
+        | Leq : (t -> t -> bv term, t * t, bv) operator
+            (** Floating-point less than or equal.
 
             SMT-LIB: [fp.leq] *)
-        | Lt           : (t -> t -> bv term, t * t, bv) operator
-        (** Floating-point less than.
+        | Lt : (t -> t -> bv term, t * t, bv) operator
+            (** Floating-point less than.
 
             SMT-LIB: [fp.lt] *)
-        | Max          : (t -> t -> t, t * t, fp) operator
-        (** Floating-point max.
+        | Max : (t -> t -> t, t * t, fp) operator
+            (** Floating-point max.
 
             SMT-LIB: [fp.max] *)
-        | Min          : (t -> t -> t, t * t, fp) operator
-        (** Floating-point min.
+        | Min : (t -> t -> t, t * t, fp) operator
+            (** Floating-point min.
 
             SMT-LIB: [fp.min] *)
-        | Mul          : (rm term -> t -> t -> t, rm term * t * t, fp) operator
-        (** Floating-point multiplcation.
+        | Mul : (rm term -> t -> t -> t, rm term * t * t, fp) operator
+            (** Floating-point multiplcation.
 
             SMT-LIB: [fp.mul] *)
-        | Neg          : (t -> t, t, fp) operator
-        (** Floating-point negation.
+        | Neg : (t -> t, t, fp) operator
+            (** Floating-point negation.
 
             SMT-LIB: [fp.neg] *)
-        | Rem          : (t -> t -> t, t * t, fp) operator
-        (** Floating-point remainder.
+        | Rem : (t -> t -> t, t * t, fp) operator
+            (** Floating-point remainder.
 
             SMT-LIB: [fp.rem] *)
-        | Rti          : (rm term -> t -> t, rm term * t, fp) operator
-        (** Floating-point round to integral.
+        | Rti : (rm term -> t -> t, rm term * t, fp) operator
+            (** Floating-point round to integral.
 
             SMT-LIB: [fp.roundToIntegral] *)
-        | Sqrt         : (rm term -> t -> t, rm term * t, fp) operator
-        (** Floating-point round to square root.
+        | Sqrt : (rm term -> t -> t, rm term * t, fp) operator
+            (** Floating-point round to square root.
 
             SMT-LIB: [fp.sqrt] *)
-        | Sub          : (rm term -> t -> t -> t, rm term * t * t, fp) operator
-        (** Floating-point round to subtraction.
+        | Sub : (rm term -> t -> t -> t, rm term * t * t, fp) operator
+            (** Floating-point round to subtraction.
 
             SMT-LIB: [fp.sqrt] *)
-        | From_bv      : (exponent:int -> int -> bv term -> t,
-                          int * int * bv term, fp) operator
-        (** Floating-point to_fp from IEEE 754 bit-vector.
+        | From_bv
+            : ( exponent:int -> int -> bv term -> t,
+                int * int * bv term,
+                fp )
+              operator
+            (** Floating-point to_fp from IEEE 754 bit-vector.
 
             SMT-LIB: [to_fp] (indexed) *)
-        | From_fp      :
-            (exponent:int -> int -> rm term -> t -> t,
-             int * int * rm term * t, fp) operator
-        (** Floating-point to_fp from floating-point.
+        | From_fp
+            : ( exponent:int -> int -> rm term -> t -> t,
+                int * int * rm term * t,
+                fp )
+              operator
+            (** Floating-point to_fp from floating-point.
 
             SMT-LIB: [to_fp] (indexed) *)
-        | From_sbv     :
-            (exponent:int -> int -> rm term -> bv term -> t,
-             int * int * rm term * bv term, fp) operator
-        (** Floating-point to_fp from signed bit-vector value.
+        | From_sbv
+            : ( exponent:int -> int -> rm term -> bv term -> t,
+                int * int * rm term * bv term,
+                fp )
+              operator
+            (** Floating-point to_fp from signed bit-vector value.
 
             SMT-LIB: [to_fp] (indexed) *)
-        | From_ubv     :
-            (exponent:int -> int -> rm term -> bv term -> t,
-             int * int * rm term * bv term, fp) operator
-        (** Floating-point to_fp from unsigned bit-vector value.
+        | From_ubv
+            : ( exponent:int -> int -> rm term -> bv term -> t,
+                int * int * rm term * bv term,
+                fp )
+              operator
+            (** Floating-point to_fp from unsigned bit-vector value.
 
             SMT-LIB: [to_fp_unsigned] (indexed) *)
-        | To_sbv       : (int -> rm term -> t -> bv term,
-                          int * rm term * t, bv) operator
-        (** Floating-point to_sbv.
+        | To_sbv
+            : (int -> rm term -> t -> bv term, int * rm term * t, bv) operator
+            (** Floating-point to_sbv.
 
             SMT-LIB: [fp.to_sbv] (indexed) *)
-        | To_ubv       : (int -> rm term -> t -> bv term,
-                          int * rm term * t, bv) operator
-        (** Floating-point to_ubv.
+        | To_ubv
+            : (int -> rm term -> t -> bv term, int * rm term * t, bv) operator
+            (** Floating-point to_ubv.
 
             SMT-LIB: [fp.to_ubv] (indexed) *)
 
+      val term : ('a, 'b, 'c) operator -> 'a
       (**
          [term op ..]
          create a floating-point term constructor of given kind.
@@ -1543,8 +1546,8 @@ module Once () : sig
          @return A function to build a term representing an operation
                  of given kind.
       *)
-      val term : ('a, 'b, 'c) operator -> 'a
 
+      val make : sign:bv term -> exponent:bv term -> bv term -> t
       (**
          [make ~sign ~exponent significand]
          create a floating-point value from its IEEE 754 standard
@@ -1557,8 +1560,8 @@ module Once () : sig
 
          @return A term representing the floating-point value.
       *)
-      val make   : sign:bv term -> exponent:bv term -> bv term -> t
 
+      val of_sbv : exponent:int -> int -> rm term -> bv term -> t
       (**
          [of_sbv ~exponent size rm t]
          create a floatingt-point to_fp from signed bit-vector value.
@@ -1570,8 +1573,8 @@ module Once () : sig
 
          @return SMT-LIB: [to_fp] (indexed)
       *)
-      val of_sbv : exponent:int -> int -> rm term -> bv term -> t
 
+      val of_ubv : exponent:int -> int -> rm term -> bv term -> t
       (**
          [of_ubv ~exponent size rm t]
          create a floatingt-point to_fp from unsigned bit-vector value.
@@ -1583,8 +1586,8 @@ module Once () : sig
 
          @return SMT-LIB: [to_fp] (indexed)
       *)
-      val of_ubv : exponent:int -> int -> rm term -> bv term -> t
 
+      val of_bv : exponent:int -> int -> bv term -> t
       (**
          [of_bv ~exponent size rm t]
          create a floatingt-point to_fp from IEEE 754 bit-vector.
@@ -1596,8 +1599,8 @@ module Once () : sig
 
          @return SMT-LIB: [to_fp] (indexed)
       *)
-      val of_bv  : exponent:int -> int -> bv term -> t
 
+      val of_fp : exponent:int -> int -> rm term -> fp term -> t
       (**
          [of_fp ~exponent size rm t]
          create a floatingt-point to_fp from floating-point.
@@ -1609,8 +1612,8 @@ module Once () : sig
 
          @return SMT-LIB: [to_fp] (indexed)
       *)
-      val of_fp  : exponent:int -> int -> rm term -> fp term -> t
 
+      val abs : t -> t
       (**
          [abs t]
          create a floatingt-point absolute value.
@@ -1619,8 +1622,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.abs]
       *)
-      val abs  : t -> t
 
+      val neg : t -> t
       (**
          [neg t]
          create a floatingt-point negation.
@@ -1629,8 +1632,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.neg]
       *)
-      val neg  : t -> t
 
+      val add : rm term -> t -> t -> t
       (**
          [add rm t0 t1]
          create a floating-point addition.
@@ -1641,8 +1644,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.add]
       *)
-      val add  : rm term -> t -> t -> t
 
+      val sub : rm term -> t -> t -> t
       (**
          [sub rm t0 t1]
          create a floating-point substraction.
@@ -1653,8 +1656,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.sub]
       *)
-      val sub  : rm term -> t -> t -> t
 
+      val mul : rm term -> t -> t -> t
       (**
          [mul rm t0 t1]
          create a floating-point multiplication.
@@ -1665,8 +1668,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.mul]
       *)
-      val mul  : rm term -> t -> t -> t
 
+      val div : rm term -> t -> t -> t
       (**
          [div rm t0 t1]
          create a floating-point division.
@@ -1677,8 +1680,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.div]
       *)
-      val div  : rm term -> t -> t -> t
 
+      val fma : rm term -> t -> t -> t -> t
       (**
          [fma rm t0 t1 t2]
          create a floating-point fused multiplication and addition.
@@ -1690,9 +1693,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.fma]
       *)
-      val fma  : rm term -> t -> t -> t -> t
 
-
+      val sqrt : rm term -> t -> t
       (**
          [sqrt rm t]
          create a floating-point round to square root.
@@ -1702,8 +1704,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.sqrt]
       *)
-      val sqrt : rm term -> t -> t
 
+      val rem : t -> t -> t
       (**
          [rem t0 t1]
          create a floating-point remainder.
@@ -1713,8 +1715,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.rem]
       *)
-      val rem  : t -> t -> t
 
+      val rti : rm term -> t -> t
       (**
          [rti rm t]
          create a floating-point round to integral.
@@ -1724,9 +1726,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.roundToIntegral]
       *)
-      val rti  : rm term -> t -> t
 
-
+      val min : t -> t -> t
       (**
          [min t0 t1]
          create a floating-point min.
@@ -1736,8 +1737,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.min]
       *)
-      val min  : t -> t -> t
 
+      val max : t -> t -> t
       (**
          [max t0 t1]
          create a floating-point max.
@@ -1747,8 +1748,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.max]
       *)
-      val max  : t -> t -> t
 
+      val leq : t -> t -> bv term
       (**
          [leq t0 t1]
          create a floating-point less than or equal.
@@ -1758,8 +1759,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.leq]
       *)
-      val leq  : t -> t -> bv term
 
+      val lt : t -> t -> bv term
       (**
          [lt t0 t1]
          create a floating-point less than.
@@ -1769,8 +1770,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.lt]
       *)
-      val lt   : t -> t -> bv term
 
+      val geq : t -> t -> bv term
       (**
          [geq t0 t1]
          create a floating-point greater than or equal.
@@ -1780,8 +1781,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.geq]
       *)
-      val geq  : t -> t -> bv term
 
+      val gt : t -> t -> bv term
       (**
          [gt t0 t1]
          create a floating-point greater than.
@@ -1791,8 +1792,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.gt]
       *)
-      val gt   : t -> t -> bv term
 
+      val eq : t -> t -> bv term
       (**
          [eq t0 t1]
          create a floating-point equality.
@@ -1802,8 +1803,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.eq]
       *)
-      val eq   : t -> t -> bv term
 
+      val is_normal : t -> bv term
       (**
          [is_normal t]
          create a floatingt-point is normal tester.
@@ -1812,8 +1813,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.isNormal]
       *)
-      val is_normal    : t -> bv term
 
+      val is_subnormal : t -> bv term
       (**
          [is_subnormal t]
          create a floatingt-point is subnormal tester.
@@ -1822,8 +1823,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.isSubnormal]
       *)
-      val is_subnormal : t -> bv term
 
+      val is_zero : t -> bv term
       (**
          [is_zero t]
          create a floatingt-point is zero tester.
@@ -1832,8 +1833,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.isZero]
       *)
-      val is_zero      : t -> bv term
 
+      val is_infinite : t -> bv term
       (**
          [is_infinite t]
          create a floatingt-point is infinite tester.
@@ -1842,8 +1843,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.isInfinite]
       *)
-      val is_infinite  : t -> bv term
 
+      val is_nan : t -> bv term
       (**
          [is_nan t]
          create a floatingt-point is Nan tester.
@@ -1852,8 +1853,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.isNan]
       *)
-      val is_nan       : t -> bv term
 
+      val is_negative : t -> bv term
       (**
          [is_negative t]
          create a floatingt-point is negative tester.
@@ -1862,8 +1863,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.isNegative]
       *)
-      val is_negative  : t -> bv term
 
+      val is_positive : t -> bv term
       (**
          [is_positive t]
          create a floatingt-point is positive tester.
@@ -1872,8 +1873,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.isPositive]
       *)
-      val is_positive  : t -> bv term
 
+      val to_sbv : int -> rm term -> t -> bv term
       (**
          [to_sbv t]
          create a floatingt-point is to_sbv term.
@@ -1882,8 +1883,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.to_sbv] (indexed)
       *)
-      val to_sbv : int -> rm term -> t -> bv term
 
+      val to_ubv : int -> rm term -> t -> bv term
       (**
          [to_ubv t]
          create a floatingt-point is to_ubv term.
@@ -1892,8 +1893,8 @@ module Once () : sig
 
          @return SMT-LIB: [fp.to_ubv] (indexed)
       *)
-      val to_ubv : int -> rm term -> t -> bv term
 
+      val assignment : rm term Rm.operator -> fp value -> float
       (**
          [assignement t ]
          get floatint-point representation of the current model value of
@@ -1903,16 +1904,14 @@ module Once () : sig
 
          @return Floating-point representations of the given term.
       *)
-      val assignment : rm term Rm.operator -> fp value -> float
-
     end
 
     (** Array *)
     module Ar : sig
-
-      (** An array term which maps ['a] to ['b]. *)
       type ('a, 'b) t = ('a, 'b) ar term
+      (** An array term which maps ['a] to ['b]. *)
 
+      val make : ('a, 'b) ar sort -> 'b term -> ('a, 'b) t
       (**
          [make sort value]
          create a one-dimensional constant array of given sort,
@@ -1923,8 +1922,8 @@ module Once () : sig
 
          @return A term representing a constant array of given sort.
       *)
-      val make : ('a, 'b) ar sort -> 'b term -> ('a, 'b) t
 
+      val select : ('a, 'b) t -> 'a term -> 'b term
       (**
          [select t i]
          create an array access.
@@ -1934,8 +1933,8 @@ module Once () : sig
 
          @return SMT-LIB: [select]
       *)
-      val select : ('a, 'b) t -> 'a term -> 'b term
 
+      val store : ('a, 'b) t -> 'a term -> 'b term -> ('a, 'b) t
       (**
          [store t i e]
          create an array write.
@@ -1946,8 +1945,9 @@ module Once () : sig
 
          @return SMT-LIB: [store]
       *)
-      val store  : ('a, 'b) t -> 'a term -> 'b term -> ('a, 'b) t
 
+      val assignment :
+        ('a, 'b) ar value -> ('a value * 'b value) array * 'b value option
       (**
          [assignment t]
          get the current model value of given array term.
@@ -1961,17 +1961,14 @@ module Once () : sig
            The value of all other indices is [Some default] when
            base array is constant array, otherwise, it is [None].
       *)
-      val assignment : ('a, 'b) ar value ->
-        ('a value * 'b value) array * 'b value option
-
     end
 
     (** Uninterpreted function *)
     module Uf : sig
-
-      (** A function term which maps ['a] to ['b]. *)
       type ('a, 'b) t = ('a, 'b) fn term
+      (** A function term which maps ['a] to ['b]. *)
 
+      val lambda : 'a Sort.variadic -> ('a variadic -> 'b term) -> ('a, 'b) t
       (**
          [lambda sorts f]
          create a function definition.
@@ -1982,8 +1979,8 @@ module Once () : sig
 
          @return a function definition
       *)
-      val lambda : 'a Sort.variadic -> ('a variadic -> 'b term) -> ('a, 'b) t
 
+      val apply : ('a, 'b) t -> 'a variadic -> 'b term
       (**
          [apply t args]
          create a function application.
@@ -1993,14 +1990,15 @@ module Once () : sig
 
          @return a function application
       *)
-      val apply  : ('a, 'b) t -> 'a variadic -> 'b term
 
       (** Statically typed list of function argument values. *)
       type 'a variadic =
-      |  []  : unit variadic
-      | (::) : ([< bv | rm | fp ] as 'a) value * 'b variadic ->
-          ('a -> 'b) variadic
+        | [] : unit variadic
+        | ( :: ) :
+            ([< bv | rm | fp ] as 'a) value * 'b variadic
+            -> ('a -> 'b) variadic
 
+      val assignment : ('a, 'b) fn value -> ('a variadic * 'b value) array
       (**
          [assignment t]
          get the current model value of given function term.
@@ -2012,10 +2010,9 @@ module Once () : sig
 
          @return An array of associations between `arity` arguments and a value.
       *)
-      val assignment : ('a, 'b) fn value -> ('a variadic * 'b value) array
-
     end
 
+    val const : 'a sort -> string -> 'a term
     (**
        [const sort symbol]
        create a (first-order) constant of given sort with given symbol.
@@ -2027,8 +2024,8 @@ module Once () : sig
 
        @return A term representing the constant.
     *)
-    val const      : 'a sort -> string -> 'a term
 
+    val equal : 'a t -> 'a t -> bv t
     (**
        [equal t0 t1]
        create an equality term.
@@ -2038,8 +2035,8 @@ module Once () : sig
 
        @return SMT-LIB: [=]
     *)
-    val equal    : 'a t -> 'a t -> bv t
 
+    val distinct : 'a t -> 'a t -> bv t
     (**
        [distinct t0 t1]
        create an disequality term.
@@ -2049,8 +2046,8 @@ module Once () : sig
 
        @return SMT-LIB: [not (= t0 t1)]
     *)
-    val distinct : 'a t -> 'a t -> bv t
 
+    val ite : bv t -> 'a t -> 'a t -> 'a t
     (**
        [ite t0 t1 t2]
        create an if-then-else term.
@@ -2061,8 +2058,8 @@ module Once () : sig
 
        @return SMT-LIB: [ite]
     *)
-    val ite : bv t -> 'a t -> 'a t -> 'a t
 
+    val hash : 'a t -> int
     (**
        [hash t]
        compute the hash value for a term.
@@ -2071,8 +2068,8 @@ module Once () : sig
 
        @return The hash value of the term.
     *)
-    val hash : 'a t -> int
 
+    val sort : 'a t -> 'a sort
     (**
        [sort t]
        get the sort of a term.
@@ -2081,8 +2078,8 @@ module Once () : sig
 
        @return The sort of the term.
     *)
-    val sort : 'a t -> 'a sort
 
+    val pp : Format.formatter -> 'a term -> unit
     (**
        [pp formatter t]
        pretty print term.
@@ -2090,29 +2087,31 @@ module Once () : sig
        @param formatter The outpout formatter
        @param t The term.
     *)
-    val pp : Format.formatter -> 'a term -> unit
 
     (** {1 View} *)
 
     (** Algebraic view of formula terms. *)
     type 'a view =
-      | Value    : 'a value -> 'a view
-      | Const    : 'a sort * string -> 'a view
-      | Var      :  ([< bv | rm | fp ] as 'a) sort -> 'a view
-      | Lambda   : 'a variadic * 'b term -> ('a, 'b) fn view
-      | Equal    :
-          ([< bv | rm | fp | ('b, 'c) ar ] as 'a) term * 'a term -> bv view
+      | Value : 'a value -> 'a view
+      | Const : 'a sort * string -> 'a view
+      | Var : ([< bv | rm | fp ] as 'a) sort -> 'a view
+      | Lambda : 'a variadic * 'b term -> ('a, 'b) fn view
+      | Equal :
+          ([< bv | rm | fp | ('b, 'c) ar ] as 'a) term * 'a term
+          -> bv view
       | Distinct :
-          ([< bv | rm | fp | ('b, 'c) ar ] as 'a) term * 'a term -> bv view
-      | Ite      :
+          ([< bv | rm | fp | ('b, 'c) ar ] as 'a) term * 'a term
+          -> bv view
+      | Ite :
           bv term * ([< bv | rm | fp | ('b, 'c) ar ] as 'a) term * 'a term
           -> 'a view
-      | Bv       : ('a, 'b) Bv.operator * 'b -> bv view
-      | Fp       : ('a, 'b, 'c) Fp.operator * 'b -> 'c view
-      | Select   : ('a, 'b) ar term * 'a term -> 'b view
-      | Store    : ('a, 'b) ar term * 'a term * 'b term -> ('a, 'b) ar view
-      | Apply    : ('a, 'b) fn term * 'a variadic -> 'b view
+      | Bv : ('a, 'b) Bv.operator * 'b -> bv view
+      | Fp : ('a, 'b, 'c) Fp.operator * 'b -> 'c view
+      | Select : ('a, 'b) ar term * 'a term -> 'b view
+      | Store : ('a, 'b) ar term * 'a term * 'b term -> ('a, 'b) ar view
+      | Apply : ('a, 'b) fn term * 'a variadic -> 'b view
 
+    val view : 'a term -> 'a view
     (**
        [view t]
        destructurate a term.
@@ -2121,12 +2120,11 @@ module Once () : sig
 
        @return The view of the term and its children.
     *)
-    val view : 'a term -> 'a view
-
   end
 
   (** {1 Formula} *)
 
+  val assert' : ?name:string -> bv term -> unit
   (**
      [assert' ~name t]
      assert that the condition [t] is [true].
@@ -2136,14 +2134,14 @@ module Once () : sig
      @param name The name of the assertion, if any.
      @param t The formula term to assert.
   *)
-  val assert' : ?name: string -> bv term -> unit
 
   (** A satisfiability result. *)
   type result =
-    | Sat      (** sat *)
-    | Unsat    (** unsat *)
+    | Sat  (** sat *)
+    | Unsat  (** unsat *)
     | Unknown  (** unknown *)
 
+  val pp_result : Format.formatter -> result -> unit
   (**
      [pp formatter result]
      pretty print result.
@@ -2151,8 +2149,8 @@ module Once () : sig
      @param formatter The output formatter.
      @param result The result to print.
   *)
-  val pp_result : Format.formatter -> result -> unit
 
+  val check_sat : ?interrupt:('a -> int) * 'a -> unit -> result
   (**
      [check_sat ~interrupt ()]
      check satisfiability of current input formula.
@@ -2166,8 +2164,8 @@ module Once () : sig
      when neither satistifiability nor unsatisfiability was determined,
      for instance when it was terminated by {!val:timeout}.
   *)
-  val check_sat : ?interrupt:(('a -> int) * 'a) -> unit -> result
 
+  val timeout : float -> (?interrupt:(float -> int) * float -> 'b) -> 'b
   (**
      [timeout t f]
      configure the interruptible function [f] with a timeout of [t] seconds.
@@ -2183,8 +2181,8 @@ module Once () : sig
 
      @return An interruptible function configured to stop on timeout.
   *)
-  val timeout : float -> (?interrupt:((float -> int) * float) -> 'b) -> 'b
 
+  val get_value : 'a term -> 'a value
   (**
      [get_value t]
      get a term representing the model value of a given term.
@@ -2195,8 +2193,8 @@ module Once () : sig
 
      @return A term representing the model value of term [t].
   *)
-  val get_value : 'a term -> 'a value
 
+  val unsafe_close : unit -> unit
   (**
      [unafe_close ()]
      close the session.
@@ -2204,34 +2202,35 @@ module Once () : sig
      UNSAFE: call this ONLY to release the resources earlier
      if the session is about to be garbage collected.
   *)
-  val unsafe_close : unit -> unit
-
 end
 
 (** Create a new Bitwuzla session in incremental mode. *)
 module Incremental () : sig
-
   include module type of Once ()
 
   (** {1 Formula} *)
 
+  val push : int -> unit
   (**
      [push nlevels]
      push context levels.
 
      @param nlevels The number of context levels to push.
   *)
-  val push : int -> unit
 
-
+  val pop : int -> unit
   (**
      [pop nlevels]
      pop context levels.
 
      @param nlevels The number of context levels to pop.
   *)
-  val pop  : int -> unit
 
+  val check_sat_assuming :
+    ?interrupt:('a -> int) * 'a ->
+    ?names:string array ->
+    bv term array ->
+    result
   (**
      [check_sat_assuming ~interrupt ~names assumptions]
      check satisfiability of current input formula, with the search for
@@ -2252,10 +2251,8 @@ module Incremental () : sig
      when neither satistifiability nor unsatisfiability was determined,
      for instance when it was terminated by {!val:timeout}.
   *)
-  val check_sat_assuming :
-    ?interrupt:(('a -> int) * 'a) -> ?names: string array -> bv term array ->
-    result
 
+  val get_unsat_assumptions : unit -> bv term array
   (**
      [get_unsat_assumptions ()]
      get the set of unsat assumptions.
@@ -2269,16 +2266,14 @@ module Incremental () : sig
 
      @return An array with unsat assumptions.
   *)
-  val get_unsat_assumptions : unit -> bv term array
-
 end
 
 (** Create a new Bitwuzla session in incremental mode while enabling
     unsatifiable core generation. *)
 module Unsat_core () : sig
-
   include module type of Incremental ()
 
+  val get_unsat_core : unit -> bv term array
   (**
      [get_unsat_core ()]
      get the set unsat core (unsat assertions).
@@ -2291,6 +2286,4 @@ module Unsat_core () : sig
 
      @return An array with unsat assertions.
   *)
-  val get_unsat_core : unit -> bv term array
-
 end

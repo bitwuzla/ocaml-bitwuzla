@@ -1,10 +1,9 @@
 let () =
-
   (* First, create a Bitwuzla instance enabling unsat core extraction. *)
   let open Bitwuzla.Unsat_core () in
-
   (* Create a bit-vector sort of size 2 and another of size 4. *)
-  let bv2 = Sort.bv 2 and bv4 = Sort.bv 4
+  let bv2 = Sort.bv 2
+  and bv4 = Sort.bv 4
   (* Create Float16 floatinf-point sort. *)
   and fp16 = Sort.fp ~exponent:5 16 in
 
@@ -29,16 +28,19 @@ let () =
   let f0 = Term.Uf.lambda [ fp16 ] (fun [ a ] -> Term.Fp.gt a fpzero) in
 
   (* (define-fun f1 ((a Float16)) (_ BitVec 4) (ite (f0 a) x0 #b0000)) *)
-  let f1 = Term.Uf.lambda [ fp16 ] (fun [ a ] ->
-      Term.ite (Term.Uf.apply f0 [ a ]) x0 bvzero) in
+  let f1 =
+    Term.Uf.lambda [ fp16 ] (fun [ a ] ->
+        Term.ite (Term.Uf.apply f0 [ a ]) x0 bvzero)
+  in
 
   (* (define-fun f2 ((a Float16)) (_ BitVec 2) ((_ extract 1 0) (f1 a))) *)
-  let f2 = Term.Uf.lambda [ fp16 ] (fun [ a ] ->
-      Term.Bv.extract ~hi:1 ~lo:0 (Term.Uf.apply f1 [ a ])) in
+  let f2 =
+    Term.Uf.lambda [ fp16 ] (fun [ a ] ->
+        Term.Bv.extract ~hi:1 ~lo:0 (Term.Uf.apply f1 [ a ]))
+  in
 
   (* (assert (! (bvult x2 (f2 (_ +zero 5 11))) :named assertion0)) *)
-  assert' ~name:"assertion0"
-  @@ Term.Bv.ult x2 (Term.Uf.apply f2 [ fpzero ]);
+  assert' ~name:"assertion0" @@ Term.Bv.ult x2 (Term.Uf.apply f2 [ fpzero ]);
 
   (* (assert (! (= x1 x2 x3) :named assertion1)) *)
   assert' ~name:"assertion1"
