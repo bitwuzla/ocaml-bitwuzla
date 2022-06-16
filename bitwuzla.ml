@@ -629,285 +629,289 @@ module Session () = struct
 
     let view : type a. a term -> a view =
      fun e ->
-      if term_is_value e || term_is_const_array e then Value e
-      else if term_is_const e then Const (term_get_sort e, term_get_symbol e)
-      else if term_is_var e then unsafe_view @@ Var (term_get_sort e)
-      else
-        let args = term_get_children e in
-        let arity = Array.length args in
-        match term_get_kind e with
-        | And ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.And, (args.(0), args.(1)))
-        | Apply ->
-            let f = args.(0) in
-            let args = List.tl @@ Array.to_list args in
-            unsafe_view @@ Apply (f, to_variadic args)
-        | Array_select ->
-            assert (arity = 2);
-            unsafe_view @@ Select (args.(0), args.(1))
-        | Array_store ->
-            assert (arity = 3);
-            unsafe_view @@ Store (args.(0), args.(1), args.(2))
-        | Bv_add ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Add, (args.(0), args.(1)))
-        | Bv_and ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.And, (args.(0), args.(1)))
-        | Bv_ashr ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Ashr, (args.(0), args.(1)))
-        | Bv_comp -> assert false
-        | Bv_concat ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Concat, (args.(0), args.(1)))
-        | Bv_dec -> assert false
-        | Bv_inc -> assert false
-        | Bv_mul ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Mul, (args.(0), args.(1)))
-        | Bv_nand -> assert false
-        | Bv_neg ->
-            assert (arity = 1);
-            unsafe_view @@ Bv (Bv.Neg, args.(0))
-        | Bv_nor -> assert false
-        | Bv_not ->
-            assert (arity = 1);
-            unsafe_view @@ Bv (Bv.Not, args.(0))
-        | Bv_or ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Or, (args.(0), args.(1)))
-        | Bv_redand -> assert false
-        | Bv_redor -> assert false
-        | Bv_redxor -> assert false
-        | Bv_rol ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Rol, (args.(0), args.(1)))
-        | Bv_ror ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Ror, (args.(0), args.(1)))
-        | Bv_sadd_overflow -> assert false
-        | Bv_sdiv_overflow -> assert false
-        | Bv_sdiv ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Sdiv, (args.(0), args.(1)))
-        | Bv_sge ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Sge, (args.(0), args.(1)))
-        | Bv_sgt ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Sgt, (args.(0), args.(1)))
-        | Bv_shl ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Shl, (args.(0), args.(1)))
-        | Bv_shr ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Shr, (args.(0), args.(1)))
-        | Bv_sle ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Sle, (args.(0), args.(1)))
-        | Bv_slt ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Slt, (args.(0), args.(1)))
-        | Bv_smod ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Smod, (args.(0), args.(1)))
-        | Bv_smul_overflow -> assert false
-        | Bv_srem ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Srem, (args.(0), args.(1)))
-        | Bv_ssub_overflow -> assert false
-        | Bv_sub ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Sub, (args.(0), args.(1)))
-        | Bv_uadd_overflow -> assert false
-        | Bv_udiv ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Udiv, (args.(0), args.(1)))
-        | Bv_uge ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Uge, (args.(0), args.(1)))
-        | Bv_ugt ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Ugt, (args.(0), args.(1)))
-        | Bv_ule ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Ule, (args.(0), args.(1)))
-        | Bv_ult ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Ult, (args.(0), args.(1)))
-        | Bv_umul_overflow -> assert false
-        | Bv_urem ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Urem, (args.(0), args.(1)))
-        | Bv_usub_overflow -> assert false
-        | Bv_xnor -> assert false
-        | Bv_xor ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Xor, (args.(0), args.(1)))
-        | Distinct ->
-            assert (arity = 2);
-            unsafe_view @@ Distinct (args.(0), args.(1))
-        | Equal ->
-            assert (arity = 2);
-            unsafe_view @@ Equal (args.(0), args.(1))
-        | Exists -> assert false
-        | Forall -> assert false
-        | Fp_abs ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Abs, args.(0))
-        | Fp_add ->
-            assert (arity = 3);
-            unsafe_view @@ Fp (Fp.Add, (args.(0), args.(1), args.(2)))
-        | Fp_div ->
-            assert (arity = 3);
-            unsafe_view @@ Fp (Fp.Div, (args.(0), args.(1), args.(2)))
-        | Fp_eq ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Eq, (args.(0), args.(1)))
-        | Fp_fma ->
-            assert (arity = 4);
-            unsafe_view @@ Fp (Fp.Fma, (args.(0), args.(1), args.(2), args.(3)))
-        | Fp_fp ->
-            assert (arity = 3);
-            unsafe_view
-            @@ Fp
-                 ( Fp.Fp,
-                   {
-                     sign = args.(0);
-                     exponent = args.(1);
-                     significand = args.(2);
-                   } )
-        | Fp_geq ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Geq, (args.(0), args.(1)))
-        | Fp_gt ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Gt, (args.(0), args.(1)))
-        | Fp_is_inf ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Is_inf, args.(0))
-        | Fp_is_nan ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Is_nan, args.(0))
-        | Fp_is_neg ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Is_neg, args.(0))
-        | Fp_is_normal ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Is_normal, args.(0))
-        | Fp_is_pos ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Is_pos, args.(0))
-        | Fp_is_subnormal ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Is_subnormal, args.(0))
-        | Fp_is_zero ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Is_zero, args.(0))
-        | Fp_leq ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Leq, (args.(0), args.(1)))
-        | Fp_lt ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Lt, (args.(0), args.(1)))
-        | Fp_max ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Max, (args.(0), args.(1)))
-        | Fp_min ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Min, (args.(0), args.(1)))
-        | Fp_mul ->
-            assert (arity = 3);
-            unsafe_view @@ Fp (Fp.Mul, (args.(0), args.(1), args.(2)))
-        | Fp_neg ->
-            assert (arity = 1);
-            unsafe_view @@ Fp (Fp.Neg, args.(0))
-        | Fp_rem ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Rem, (args.(0), args.(1)))
-        | Fp_rti ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Rti, (args.(0), args.(1)))
-        | Fp_sqrt ->
-            assert (arity = 2);
-            unsafe_view @@ Fp (Fp.Sqrt, (args.(0), args.(1)))
-        | Fp_sub ->
-            assert (arity = 3);
-            unsafe_view @@ Fp (Fp.Sub, (args.(0), args.(1), args.(2)))
-        | Iff -> assert false
-        | Implies -> assert false
-        | Ite ->
-            assert (arity = 3);
-            unsafe_view @@ Ite (args.(0), args.(1), args.(2))
-        | Lambda ->
-            let e = args.(arity - 1) in
-            let vars = Array.to_list @@ Array.sub args 0 (arity - 1) in
-            unsafe_view @@ Lambda (to_variadic vars, e)
-        | Not ->
-            assert (arity = 1);
-            unsafe_view @@ Bv (Bv.Not, args.(0))
-        | Or ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Or, (args.(0), args.(1)))
-        | Xor ->
-            assert (arity = 2);
-            unsafe_view @@ Bv (Bv.Xor, (args.(0), args.(1)))
-        | Bv_extract ->
-            assert (arity = 1);
-            let indices = term_get_indices e in
-            assert (Array.length indices = 2);
-            unsafe_view @@ Bv (Bv.Extract, (indices.(0), indices.(1), args.(0)))
-        | Bv_repeat -> assert false
-        | Bv_roli -> assert false
-        | Bv_rori -> assert false
-        | Bv_sign_extend -> assert false
-        | Bv_zero_extend -> assert false
-        | Fp_to_fp_from_bv ->
-            assert (arity = 1);
-            let indices = term_get_indices e in
-            assert (Array.length indices = 2);
-            unsafe_view
-            @@ Fp
-                 (Fp.From_bv, (indices.(0), indices.(0) + indices.(1), args.(0)))
-        | Fp_to_fp_from_fp ->
-            assert (arity = 2);
-            let indices = term_get_indices e in
-            assert (Array.length indices = 2);
-            unsafe_view
-            @@ Fp
-                 ( Fp.From_fp,
-                   (indices.(0), indices.(0) + indices.(1), args.(0), args.(1))
-                 )
-        | Fp_to_fp_from_sbv ->
-            assert (arity = 2);
-            let indices = term_get_indices e in
-            assert (Array.length indices = 2);
-            unsafe_view
-            @@ Fp
-                 ( Fp.From_sbv,
-                   (indices.(0), indices.(0) + indices.(1), args.(0), args.(1))
-                 )
-        | Fp_to_fp_from_ubv ->
-            assert (arity = 2);
-            let indices = term_get_indices e in
-            assert (Array.length indices = 2);
-            unsafe_view
-            @@ Fp
-                 ( Fp.From_ubv,
-                   (indices.(0), indices.(0) + indices.(1), args.(0), args.(1))
-                 )
-        | Fp_to_sbv ->
-            assert (arity = 2);
-            let indices = term_get_indices e in
-            assert (Array.length indices = 1);
-            unsafe_view @@ Fp (Fp.To_sbv, (indices.(0), args.(0), args.(1)))
-        | Fp_to_ubv ->
-            assert (arity = 2);
-            let indices = term_get_indices e in
-            assert (Array.length indices = 1);
-            unsafe_view @@ Fp (Fp.To_ubv, (indices.(0), args.(0), args.(1)))
+      let args = term_get_children e in
+      let arity = Array.length args in
+      match term_get_kind e with
+      | Const ->
+          assert (arity = 0);
+          Const (term_get_sort e, term_get_symbol e)
+      | Const_Array ->
+          assert (arity = 1);
+          Value e
+      | Val ->
+          assert (arity = 0);
+          Value e
+      | Var ->
+          assert (arity = 0);
+          unsafe_view @@ Var (term_get_sort e)
+      | And ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.And, (args.(0), args.(1)))
+      | Apply ->
+          let f = args.(0) in
+          let args = List.tl @@ Array.to_list args in
+          unsafe_view @@ Apply (f, to_variadic args)
+      | Array_select ->
+          assert (arity = 2);
+          unsafe_view @@ Select (args.(0), args.(1))
+      | Array_store ->
+          assert (arity = 3);
+          unsafe_view @@ Store (args.(0), args.(1), args.(2))
+      | Bv_add ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Add, (args.(0), args.(1)))
+      | Bv_and ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.And, (args.(0), args.(1)))
+      | Bv_ashr ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Ashr, (args.(0), args.(1)))
+      | Bv_comp -> assert false
+      | Bv_concat ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Concat, (args.(0), args.(1)))
+      | Bv_dec -> assert false
+      | Bv_inc -> assert false
+      | Bv_mul ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Mul, (args.(0), args.(1)))
+      | Bv_nand -> assert false
+      | Bv_neg ->
+          assert (arity = 1);
+          unsafe_view @@ Bv (Bv.Neg, args.(0))
+      | Bv_nor -> assert false
+      | Bv_not ->
+          assert (arity = 1);
+          unsafe_view @@ Bv (Bv.Not, args.(0))
+      | Bv_or ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Or, (args.(0), args.(1)))
+      | Bv_redand -> assert false
+      | Bv_redor -> assert false
+      | Bv_redxor -> assert false
+      | Bv_rol ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Rol, (args.(0), args.(1)))
+      | Bv_ror ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Ror, (args.(0), args.(1)))
+      | Bv_sadd_overflow -> assert false
+      | Bv_sdiv_overflow -> assert false
+      | Bv_sdiv ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Sdiv, (args.(0), args.(1)))
+      | Bv_sge ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Sge, (args.(0), args.(1)))
+      | Bv_sgt ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Sgt, (args.(0), args.(1)))
+      | Bv_shl ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Shl, (args.(0), args.(1)))
+      | Bv_shr ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Shr, (args.(0), args.(1)))
+      | Bv_sle ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Sle, (args.(0), args.(1)))
+      | Bv_slt ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Slt, (args.(0), args.(1)))
+      | Bv_smod ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Smod, (args.(0), args.(1)))
+      | Bv_smul_overflow -> assert false
+      | Bv_srem ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Srem, (args.(0), args.(1)))
+      | Bv_ssub_overflow -> assert false
+      | Bv_sub ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Sub, (args.(0), args.(1)))
+      | Bv_uadd_overflow -> assert false
+      | Bv_udiv ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Udiv, (args.(0), args.(1)))
+      | Bv_uge ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Uge, (args.(0), args.(1)))
+      | Bv_ugt ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Ugt, (args.(0), args.(1)))
+      | Bv_ule ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Ule, (args.(0), args.(1)))
+      | Bv_ult ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Ult, (args.(0), args.(1)))
+      | Bv_umul_overflow -> assert false
+      | Bv_urem ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Urem, (args.(0), args.(1)))
+      | Bv_usub_overflow -> assert false
+      | Bv_xnor -> assert false
+      | Bv_xor ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Xor, (args.(0), args.(1)))
+      | Distinct ->
+          assert (arity = 2);
+          unsafe_view @@ Distinct (args.(0), args.(1))
+      | Equal ->
+          assert (arity = 2);
+          unsafe_view @@ Equal (args.(0), args.(1))
+      | Exists -> assert false
+      | Forall -> assert false
+      | Fp_abs ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Abs, args.(0))
+      | Fp_add ->
+          assert (arity = 3);
+          unsafe_view @@ Fp (Fp.Add, (args.(0), args.(1), args.(2)))
+      | Fp_div ->
+          assert (arity = 3);
+          unsafe_view @@ Fp (Fp.Div, (args.(0), args.(1), args.(2)))
+      | Fp_eq ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Eq, (args.(0), args.(1)))
+      | Fp_fma ->
+          assert (arity = 4);
+          unsafe_view @@ Fp (Fp.Fma, (args.(0), args.(1), args.(2), args.(3)))
+      | Fp_fp ->
+          assert (arity = 3);
+          unsafe_view
+          @@ Fp
+               ( Fp.Fp,
+                 {
+                   sign = args.(0);
+                   exponent = args.(1);
+                   significand = args.(2);
+                 } )
+      | Fp_geq ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Geq, (args.(0), args.(1)))
+      | Fp_gt ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Gt, (args.(0), args.(1)))
+      | Fp_is_inf ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Is_inf, args.(0))
+      | Fp_is_nan ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Is_nan, args.(0))
+      | Fp_is_neg ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Is_neg, args.(0))
+      | Fp_is_normal ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Is_normal, args.(0))
+      | Fp_is_pos ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Is_pos, args.(0))
+      | Fp_is_subnormal ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Is_subnormal, args.(0))
+      | Fp_is_zero ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Is_zero, args.(0))
+      | Fp_leq ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Leq, (args.(0), args.(1)))
+      | Fp_lt ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Lt, (args.(0), args.(1)))
+      | Fp_max ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Max, (args.(0), args.(1)))
+      | Fp_min ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Min, (args.(0), args.(1)))
+      | Fp_mul ->
+          assert (arity = 3);
+          unsafe_view @@ Fp (Fp.Mul, (args.(0), args.(1), args.(2)))
+      | Fp_neg ->
+          assert (arity = 1);
+          unsafe_view @@ Fp (Fp.Neg, args.(0))
+      | Fp_rem ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Rem, (args.(0), args.(1)))
+      | Fp_rti ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Rti, (args.(0), args.(1)))
+      | Fp_sqrt ->
+          assert (arity = 2);
+          unsafe_view @@ Fp (Fp.Sqrt, (args.(0), args.(1)))
+      | Fp_sub ->
+          assert (arity = 3);
+          unsafe_view @@ Fp (Fp.Sub, (args.(0), args.(1), args.(2)))
+      | Iff -> assert false
+      | Implies -> assert false
+      | Ite ->
+          assert (arity = 3);
+          unsafe_view @@ Ite (args.(0), args.(1), args.(2))
+      | Lambda ->
+          let e = args.(arity - 1) in
+          let vars = Array.to_list @@ Array.sub args 0 (arity - 1) in
+          unsafe_view @@ Lambda (to_variadic vars, e)
+      | Not ->
+          assert (arity = 1);
+          unsafe_view @@ Bv (Bv.Not, args.(0))
+      | Or ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Or, (args.(0), args.(1)))
+      | Xor ->
+          assert (arity = 2);
+          unsafe_view @@ Bv (Bv.Xor, (args.(0), args.(1)))
+      | Bv_extract ->
+          assert (arity = 1);
+          let indices = term_get_indices e in
+          assert (Array.length indices = 2);
+          unsafe_view @@ Bv (Bv.Extract, (indices.(0), indices.(1), args.(0)))
+      | Bv_repeat -> assert false
+      | Bv_roli -> assert false
+      | Bv_rori -> assert false
+      | Bv_sign_extend -> assert false
+      | Bv_zero_extend -> assert false
+      | Fp_to_fp_from_bv ->
+          assert (arity = 1);
+          let indices = term_get_indices e in
+          assert (Array.length indices = 2);
+          unsafe_view
+          @@ Fp (Fp.From_bv, (indices.(0), indices.(0) + indices.(1), args.(0)))
+      | Fp_to_fp_from_fp ->
+          assert (arity = 2);
+          let indices = term_get_indices e in
+          assert (Array.length indices = 2);
+          unsafe_view
+          @@ Fp
+               ( Fp.From_fp,
+                 (indices.(0), indices.(0) + indices.(1), args.(0), args.(1)) )
+      | Fp_to_fp_from_sbv ->
+          assert (arity = 2);
+          let indices = term_get_indices e in
+          assert (Array.length indices = 2);
+          unsafe_view
+          @@ Fp
+               ( Fp.From_sbv,
+                 (indices.(0), indices.(0) + indices.(1), args.(0), args.(1)) )
+      | Fp_to_fp_from_ubv ->
+          assert (arity = 2);
+          let indices = term_get_indices e in
+          assert (Array.length indices = 2);
+          unsafe_view
+          @@ Fp
+               ( Fp.From_ubv,
+                 (indices.(0), indices.(0) + indices.(1), args.(0), args.(1)) )
+      | Fp_to_sbv ->
+          assert (arity = 2);
+          let indices = term_get_indices e in
+          assert (Array.length indices = 1);
+          unsafe_view @@ Fp (Fp.To_sbv, (indices.(0), args.(0), args.(1)))
+      | Fp_to_ubv ->
+          assert (arity = 2);
+          let indices = term_get_indices e in
+          assert (Array.length indices = 1);
+          unsafe_view @@ Fp (Fp.To_ubv, (indices.(0), args.(0), args.(1)))
   end
 
   let assert' ?name b =

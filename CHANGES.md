@@ -1,3 +1,13 @@
+## 1.0.2 (2022-06-16)
+
+Update [Bitwuzla](https://bitwuzla.github.io/) and its dependencies
+to more recent versions.
+
+Vendor submodules:
+- [Cadical](https://github.com/arminbiere/cadical) tag:rel-1.5.2
+- [Btor2Tools](https://github.com/Boolector/btor2tools) commit:db46e96
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) commit:19dd987
+
 ## 1.0.1 (2021-12-20)
 
 - Fix `timeout` function not working properly

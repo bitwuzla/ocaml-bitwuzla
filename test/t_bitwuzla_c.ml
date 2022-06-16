@@ -433,7 +433,7 @@ let%expect_test "mk_const" =
 let%expect_test "mk_const_array" =
   dump term_dump with_ar32_8_sort (fun (t, ar32_8, _, bv8) ->
       mk_const_array t ar32_8 @@ mk_bv_one t bv8);
-  [%expect {| ((as const ((_ BitVec 32)) (_ BitVec 8)) #b00000001) |}]
+  [%expect {| ((as const (Array (_ BitVec 32) (_ BitVec 8))) #b00000001) |}]
 
 let%expect_test "mk_var" =
   dump term_dump with_bv8_sort (fun (t, s) -> mk_var t s "a");

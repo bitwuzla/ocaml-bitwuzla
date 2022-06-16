@@ -126,7 +126,7 @@ with [*opam*](https://opam.ocaml.org/).
 ### From Opam
 
 ```bash
-opam depext -i bitwuzla
+opam install bitwuzla
 ```
 
 ### From source
@@ -150,9 +150,9 @@ git submodule update
 
 :warning: **Do not** download the source archive (`.zip`, `.tar.gz`).
 Download instead the
-[tarball](https://github.com/bitwuzla/ocaml-bitwuzla/releases/download/1.0.0/bitwuzla-1.0.0.tbz) from release panel.
+[tarball](https://github.com/bitwuzla/ocaml-bitwuzla/releases/download/1.0.2/bitwuzla-1.0.2.tbz) from release panel.
 ```bash
-tar -xjf bitwuzla-1.0.0.tbz
+tar -xjf bitwuzla-1.0.2.tbz
 ```
 
 #### Dependencies
@@ -173,7 +173,6 @@ Dependencies can be automatically installed via
 
 ```bash
 opam pin add -n .                             # read the package definition
-opam depext bitwuzla                          # install system dependencies
 opam install --deps-only bitwuzla             # install OCaml dependencies
 opam install --deps-only --with-doc bitwuzla  # optional, for documentation
 opam install --deps-only --with-test bitwuzla # optional, for tests

@@ -284,7 +284,7 @@ ocaml_bitwuzla_mk_fun_sort (value vt, value vd, value vc)
 {
   Bitwuzla *t = Bitwuzla_val(vt);
   uint32_t arity = Wosize_val(vd);
-  BitwuzlaSort **domain = alloca(sizeof(BitwuzlaSort*) * arity);
+  const BitwuzlaSort **domain = alloca(sizeof(BitwuzlaSort*) * arity);
   for (int i = 0; i < arity; i += 1)
     domain[i] = Sort_val(Field(vd, i));
   BitwuzlaSort *codomain = Sort_val(vc);
@@ -517,7 +517,7 @@ native_bitwuzla_mk_term (value vt, intnat k, value va)
   Bitwuzla *t = Bitwuzla_val(vt);
   BitwuzlaKind kind = k;
   uint32_t argc = Wosize_val(va);
-  BitwuzlaTerm **args = alloca(sizeof(BitwuzlaTerm*) * argc);
+  const BitwuzlaTerm **args = alloca(sizeof(BitwuzlaTerm*) * argc);
   for (int i = 0; i < argc; i += 1)
     args[i] = Term_val(Field(va, i));
   return Val_term(bitwuzla_mk_term(t, kind, argc, args));
@@ -617,7 +617,7 @@ native_bitwuzla_mk_term_indexed (value vt, intnat k, value va, value vi)
   Bitwuzla *t = Bitwuzla_val(vt);
   BitwuzlaKind kind = k;
   uint32_t argc = Wosize_val(va);
-  BitwuzlaTerm **args = alloca(sizeof(BitwuzlaTerm*) * argc);
+  const BitwuzlaTerm **args = alloca(sizeof(BitwuzlaTerm*) * argc);
   for (int i = 0; i < argc; i += 1)
     args[i] = Term_val(Field(va, i));
   uint32_t idxc = Wosize_val(vi);
@@ -706,8 +706,8 @@ ocaml_bitwuzla_get_unsat_assumptions (value vt)
   CAMLparam0();
   Bitwuzla *t = Bitwuzla_val(vt);
   size_t size;
-  BitwuzlaTerm **ptr = bitwuzla_get_unsat_assumptions(t, &size);
-  CAMLreturn(Val_array(BitwuzlaTerm*, Val_term, ptr, size));
+  const BitwuzlaTerm **ptr = bitwuzla_get_unsat_assumptions(t, &size);
+  CAMLreturn(Val_array(const BitwuzlaTerm*, Val_term, ptr, size));
 }
 
 CAMLprim value
@@ -716,8 +716,8 @@ ocaml_bitwuzla_get_unsat_core (value vt)
   CAMLparam0();
   Bitwuzla *t = Bitwuzla_val(vt);
   size_t size;
-  BitwuzlaTerm **ptr = bitwuzla_get_unsat_core(t, &size);
-  CAMLreturn(Val_array(BitwuzlaTerm*, Val_term, ptr, size));
+  const BitwuzlaTerm **ptr = bitwuzla_get_unsat_core(t, &size);
+  CAMLreturn(Val_array(const BitwuzlaTerm*, Val_term, ptr, size));
 }
 
 CAMLprim void
@@ -828,7 +828,7 @@ ocaml_bitwuzla_get_array_value (value vt, value vterm)
   CAMLlocal3(vassoc, vtuple, vdefault);
   Bitwuzla *t = Bitwuzla_val(vt);
   BitwuzlaTerm *term = Term_val(vterm);
-  BitwuzlaTerm **indices, **values, *default_value;
+  const BitwuzlaTerm **indices, **values, *default_value;
   size_t size;
   bitwuzla_get_array_value(t, term, &indices, &values, &size, &default_value);
   vassoc = Atom(0);
@@ -858,7 +858,7 @@ ocaml_bitwuzla_get_fun_value (value vt, value vterm)
   CAMLlocal2(vassoc, vtuple);
   Bitwuzla *t = Bitwuzla_val(vt);
   BitwuzlaTerm *term = Term_val(vterm);
-  BitwuzlaTerm ***args, **values;
+  const BitwuzlaTerm ***args, **values;
   size_t arity, size;
   bitwuzla_get_fun_value(t, term, &args, &arity, &values, &size);
   vassoc = Atom(0);
@@ -982,8 +982,8 @@ ocaml_bitwuzla_substitute_term (value vt, value va, value vb)
   Bitwuzla *t = Bitwuzla_val(vt);
   const BitwuzlaTerm *term = Term_val(va);
   size_t size = Wosize_val(vb);
-  BitwuzlaTerm **keys = alloca(sizeof(BitwuzlaTerm*) * size);
-  BitwuzlaTerm **values = alloca(sizeof(BitwuzlaTerm*) * size);
+  const BitwuzlaTerm **keys = alloca(sizeof(BitwuzlaTerm*) * size);
+  const BitwuzlaTerm **values = alloca(sizeof(BitwuzlaTerm*) * size);
   for (int i = 0; i < size; i += 1) {
     value vbind = Field(vb, i);
     keys[i] = Term_val(Field(vbind, 0));
@@ -997,12 +997,12 @@ ocaml_bitwuzla_substitute_terms (value vt, value va, value vb)
 {
   Bitwuzla *t = Bitwuzla_val(vt);
   size_t argc = Wosize_val(va);
-  BitwuzlaTerm **argv = alloca(sizeof(BitwuzlaTerm*) * argc);
+  const BitwuzlaTerm **argv = alloca(sizeof(BitwuzlaTerm*) * argc);
   for (int i = 0; i < argc; i += 1)
     argv[i] = Term_val(Field(va, i));
   size_t size = Wosize_val(vb);
-  BitwuzlaTerm **keys = alloca(sizeof(BitwuzlaTerm*) * size);
-  BitwuzlaTerm **values = alloca(sizeof(BitwuzlaTerm*) * size);
+  const BitwuzlaTerm **keys = alloca(sizeof(BitwuzlaTerm*) * size);
+  const BitwuzlaTerm **values = alloca(sizeof(BitwuzlaTerm*) * size);
   for (int i = 0; i < size; i += 1) {
     value vbind = Field(vb, i);
     keys[i] = Term_val(Field(vbind, 0));
@@ -1062,8 +1062,8 @@ ocaml_bitwuzla_sort_fun_get_domain_sorts (value vs)
   CAMLparam0();
   BitwuzlaSort *sort = Sort_val(vs);
   size_t size;
-  BitwuzlaSort **ptr = bitwuzla_sort_fun_get_domain_sorts(sort, &size);
-  CAMLreturn(Val_array(BitwuzlaSort*, Val_sort, ptr, size));
+  const BitwuzlaSort **ptr = bitwuzla_sort_fun_get_domain_sorts(sort, &size);
+  CAMLreturn(Val_array(const BitwuzlaSort*, Val_sort, ptr, size));
 }
 
 CAMLprim value
@@ -1167,9 +1167,9 @@ ocaml_bitwuzla_term_get_children (value ve)
   CAMLparam0();
   BitwuzlaTerm *term = Term_val(ve);
   size_t size;
-  BitwuzlaTerm **ptr = bitwuzla_term_get_children(term, &size);
+  const BitwuzlaTerm **ptr = bitwuzla_term_get_children(term, &size);
   if (ptr == NULL) return Atom(0);
-  CAMLreturn(Val_array(BitwuzlaTerm*, Val_term, ptr, size));
+  CAMLreturn(Val_array(const BitwuzlaTerm*, Val_term, ptr, size));
 }
 
 CAMLprim value
@@ -1217,8 +1217,8 @@ ocaml_bitwuzla_term_fun_get_domain_sorts (value ve)
   CAMLparam0();
   BitwuzlaTerm *term = Term_val(ve);
   size_t size;
-  BitwuzlaSort **ptr = bitwuzla_term_fun_get_domain_sorts(term, &size);
-  CAMLreturn(Val_array(BitwuzlaSort*, Val_sort, ptr, size));
+  const BitwuzlaSort **ptr = bitwuzla_term_fun_get_domain_sorts(term, &size);
+  CAMLreturn(Val_array(const BitwuzlaSort*, Val_sort, ptr, size));
 }
 
 CAMLprim value

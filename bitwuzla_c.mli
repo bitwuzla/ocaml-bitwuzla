@@ -701,6 +701,10 @@ type roundingmode =
 
 (** The term kind. *)
 type kind =
+  | Const  (** First order constant. *)
+  | Const_Array  (** Constant array. *)
+  | Val  (** Value. *)
+  | Var  (** Bound variable. *)
   | And  (** Boolean and.
 
       SMT-LIB: [and] *)

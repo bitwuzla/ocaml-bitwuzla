@@ -1555,7 +1555,7 @@ module Term = struct
     let bv8 = Sort.bv 8 and bv32 = Sort.bv 32 in
     let ar32_8 = Sort.ar bv32 bv8 in
     Term.pp std_formatter @@ Term.Ar.make ar32_8 @@ Term.Bv.zero bv8;
-    [%expect {| ((as const ((_ BitVec 32)) (_ BitVec 8)) #b00000000) |}]
+    [%expect {| ((as const (Array (_ BitVec 32) (_ BitVec 8))) #b00000000) |}]
 
   let%expect_test "Ar.select" =
     let open Once () in
