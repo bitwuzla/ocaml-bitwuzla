@@ -25,7 +25,7 @@
  (foreign_library
   (archive_name bitwuzla)
   (language c)
-  (names :standard \ bzlamain bitwuzlamain pybitwuzla_utils)
+  (names :standard \ bzlamain bitwuzlamain pybitwuzla_utils bzlapartgen)
   (include_dirs src)
   (extra_deps src/bzlaconfig.h ../cadical/src/ccadical.h
     ../btor2tools/src/btor2parser/btor2parser.h)
@@ -35,11 +35,17 @@
  (foreign_library
   (archive_name bitwuzlaxx)
   (language cxx)
-  (names bzlafp)
+  (names bzlafp bzlaslvquant bzlasynthterm)
   (include_dirs src)
   (extra_deps ../.symfpu_tree)
   (flags :standard -I.. -DBZLA_HAVE_PTHREADS -DBZLA_HAVE_SIGNALS
-    -DBZLA_USE_CADICAL -DBZLA_USE_SYMFPU -DNBZLALOG -DNDEBUG)))
+    -DBZLA_USE_CADICAL -DBZLA_USE_SYMFPU -DNBZLALOG -DNDEBUG))
+ (foreign_library
+  (archive_name utils)
+  (language c)
+  (names bzlapartgen)
+  (include_dirs src)
+  (flags :standard -DNBZLALOG -DNDEBUG)))
 
 (subdir
  btor2tools

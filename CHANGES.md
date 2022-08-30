@@ -1,3 +1,10 @@
+## 1.0.3 (2022-08-30)
+
+Update [Bitwuzla](https://bitwuzla.github.io/) sources.
+
+Vendor submodules:
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) commit:a2c3cc2
+
 ## 1.0.2 (2022-06-16)
 
 Update [Bitwuzla](https://bitwuzla.github.io/) and its dependencies

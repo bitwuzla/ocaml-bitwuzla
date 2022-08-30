@@ -1594,8 +1594,7 @@ module Term = struct
     Term.ite sign (Term.Fp.to_sbv 8 rm fp) (Term.Fp.to_ubv 8 rm fp));
     [%expect
       {|
-      (define-fun f1 ((p2 (_ BitVec 1)) (p3 (_ FloatingPoint 5 11)) (p4 RoundingMode)) (_ BitVec 8)
-      (ite (= #b1 p2) ((_ fp.to_sbv 8) p4 p3) ((_ fp.to_ubv 8) p4 p3))) |}]
+      (lambda ((x1 (_ BitVec 1)) (x2 (_ FloatingPoint 5 11)) (x3 RoundingMode)) (ite (= #b1 x1) ((_ fp.to_sbv 8) x3 x2) ((_ fp.to_ubv 8) x3 x2))) |}]
 
   let%expect_test "Uf.apply" =
     let open Once () in

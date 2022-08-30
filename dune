@@ -15,7 +15,7 @@
  (name bitwuzla_c)
  (modules bitwuzla_c)
  (foreign_archives vendor/bitwuzla/bitwuzla vendor/bitwuzla/bitwuzlaxx
-   vendor/btor2tools/btor2parser vendor/cadical/cadical)
+   vendor/bitwuzla/utils vendor/btor2tools/btor2parser vendor/cadical/cadical)
  (foreign_stubs
   (language c)
   (names c_stubs)
