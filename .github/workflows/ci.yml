@@ -3,7 +3,7 @@ name: CI
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ ubuntu-latest, macos-latest ]
 
     strategy:
       matrix:

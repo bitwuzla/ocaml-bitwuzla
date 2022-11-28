@@ -939,7 +939,9 @@ module Session () = struct
       let timestamp = Unix.gettimeofday () +. timeout in
       f ~interrupt:(check, timestamp)
 
-  let get_value e = if term_is_value e then e else get_value t e
+  let get_value e =
+    if term_is_value e || term_is_array e || term_is_fun e then e
+    else get_value t e
 end
 
 module Once = Session

@@ -1,3 +1,11 @@
+## 1.0.4 (2023-02-14)
+
+- Fix an [issue](https://github.com/bitwuzla/bitwuzla/issues/40)
+  with `get_value` and `assignment` when the term is an `array`
+  or a `function` 
+  
+- Enable `Opam` package on `macOs`
+
 ## 1.0.3 (2022-08-30)
 
 Update [Bitwuzla](https://bitwuzla.github.io/) sources.
