@@ -1,3 +1,7 @@
+## 1.0.5 (2023-02-23)
+
+- Enable macOS Homebrew distribution
+
 ## 1.0.4 (2023-02-14)
 
 - Fix an [issue](https://github.com/bitwuzla/bitwuzla/issues/40)

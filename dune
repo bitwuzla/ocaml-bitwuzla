@@ -5,6 +5,7 @@
  (foreign_stubs
   (language c)
   (names c_utils)
+  (flags :standard -I/opt/homebrew/include)
   (include_dirs
    vendor/bitwuzla/src
    (lib zarith)))
@@ -20,4 +21,4 @@
   (language c)
   (names c_stubs)
   (include_dirs vendor/bitwuzla/src/api/c))
- (c_library_flags :standard -lstdc++ -lgmp -lpthread))
+ (c_library_flags :standard -L/opt/homebrew/lib -lstdc++ -lgmp -lpthread))

@@ -1,4 +1,10 @@
-#define _GNU_SOURCE
+#ifdef __linux__
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#  endif
+#else
+#  include <libgen.h>
+#endif
 #include <string.h>
 #include <stdio.h>
 #include <caml/mlvalues.h>
@@ -48,7 +54,7 @@ static const char *pointer_conversion_error =
     int __len = (s);							\
     t *__buf = (p);							\
     value __val = caml_alloc(__len, 0);					\
-    for (int __i; __i < __len; __i += 1)				\
+    for (int __i = 0; __i < __len; __i += 1)				\
       Field(__val, __i) = c(__buf[__i]);   /* assumes c do not alloc */ \
     __val;								\
   })
@@ -67,7 +73,7 @@ static const char *pointer_conversion_error =
     t *__buf = (p);							\
     CAMLlocal1(__val);							\
     __val = caml_alloc(__len, 0);					\
-    for (int __i; __i < __len; __i += 1)				\
+    for (int __i = 0; __i < __len; __i += 1)				\
       Store_field(__val, __i, c(__buf[__i]));				\
     __val;								\
   })
@@ -776,6 +782,8 @@ static ssize_t pp_out_string (void *c, const char *buf, size_t size)
   return size;
 }
 
+#ifdef _GNU_SOURCE
+
 static cookie_io_functions_t formatter_cookie =
   { NULL, pp_out_string, NULL, NULL };
 
@@ -785,6 +793,18 @@ static FILE *openfilefromformatter (value *vformatter)
   setbuf(file, NULL);
   return file;
 }
+
+#else
+
+static FILE *openfilefromformatter (value *vformatter)
+{
+  FILE *file = fwopen((void*)vformatter,
+		      (int (*)(void*,const char*,int))pp_out_string);
+  setbuf(file, NULL);
+  return file;
+}
+
+#endif
 
 CAMLprim value
 ocaml_bitwuzla_get_bv_value (value vt, value vterm)
@@ -917,8 +937,9 @@ native_bitwuzla_parse (value vt, value vpath, value vformatter)
 {
   CAMLparam1(vformatter);
   Bitwuzla *t = Bitwuzla_val(vt);
-  char *path = strdup(String_val(vpath));
-  const char *name = basename(path);
+  const char *path = String_val(vpath);
+  char *copy = strdup(path);
+  const char *name = basename(copy);
   FILE *infile = fopen(path, "r");
   FILE *outfile = openfilefromformatter(&vformatter);
   char *error = NULL;
@@ -926,7 +947,7 @@ native_bitwuzla_parse (value vt, value vpath, value vformatter)
   bool smt2;
   BitwuzlaResult result =
     bitwuzla_parse(t, infile, name, outfile, &error, &status, &smt2);
-  free(path);
+  free(copy);
   fclose(infile);
   fclose(outfile);
   if (error) {
@@ -949,8 +970,9 @@ native_bitwuzla_parse_format
   CAMLparam1(vformatter);
   Bitwuzla *t = Bitwuzla_val(vt);
   const char *format = formats[iformat];
-  char *path = strdup(String_val(vpath));
-  const char *name = basename(path);
+  const char *path = String_val(vpath);
+  char *copy = strdup(path);
+  const char *name = basename(copy);
   FILE *infile = fopen(path, "r");
   FILE *outfile = openfilefromformatter(&vformatter);
   char *error = NULL;
@@ -958,7 +980,7 @@ native_bitwuzla_parse_format
   bool smt2;
   BitwuzlaResult result =
     bitwuzla_parse_format(t, format, infile, name, outfile, &error, &status);
-  free(path);
+  free(copy);
   fclose(infile);
   fclose(outfile);
   if (error) {
