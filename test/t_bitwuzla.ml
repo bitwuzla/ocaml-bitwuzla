@@ -1609,6 +1609,54 @@ module Term = struct
     Term.pp std_formatter @@ Term.Uf.apply fn [ sign; value; rm ];
     [%expect {| (f1 sign value rm) |}]
 
+  let%expect_test "Uf.assignment" =
+    let open Once () in
+    let bv1 = Sort.bool in
+    let fn = Term.const (Sort.fn [ bv1; bv1; bv1 ] bv1) "f" in
+    assert' @@ Term.equal Term.Bl.true'
+    @@ Term.Uf.apply fn [ Term.Bl.true'; Term.Bl.true'; Term.Bl.true' ];
+    assert' @@ Term.equal Term.Bl.true'
+    @@ Term.Uf.apply fn [ Term.Bl.false'; Term.Bl.false'; Term.Bl.false' ];
+    match check_sat () with
+    | Unsat | Unknown -> ()
+    | Sat ->
+        let assignment = Term.Uf.assignment (get_value fn) in
+        Format.open_vbox 0;
+        Array.iter
+          (fun (([ x; y; z ] : (bv -> bv -> bv -> unit) Term.Uf.variadic), r) ->
+            Format.fprintf std_formatter "(%b, %b, %b) : %b@ "
+              (Term.Bl.assignment x) (Term.Bl.assignment y)
+              (Term.Bl.assignment z) (Term.Bl.assignment r))
+          assignment;
+        Format.close_box ();
+        [%expect
+          {|
+          (true, true, true) : true
+          (false, false, false) : true |}]
+
+  let%expect_test "Uf.assignment" =
+    let open Once () in
+    let bv8 = Sort.bv 8 in
+    let fn = Term.const (Sort.fn [ bv8 ] bv8) "f" in
+    let app = Term.Uf.apply fn [ Term.Bv.zero bv8 ] in
+    assert'
+    @@ Term.Bl.logand
+         (Term.Bv.ult (Term.Bv.of_int bv8 5) app)
+         (Term.Bv.ule app (Term.Bv.of_int bv8 10));
+    match check_sat () with
+    | Unsat | Unknown -> ()
+    | Sat ->
+        let assignment = Term.Uf.assignment (get_value fn) in
+        Format.open_vbox 0;
+        Array.iter
+          (fun (([ x ] : (bv -> unit) Term.Uf.variadic), r) ->
+            Format.fprintf std_formatter "%a : %a@ " Z.pp_print
+              (Term.Bv.assignment x) Z.pp_print (Term.Bv.assignment r))
+          assignment;
+        Format.close_box ();
+        [%expect {|
+          0 : 10 |}]
+
   let%test "view" =
     with_debug (fun m ->
         let open (val m : Debug) in
