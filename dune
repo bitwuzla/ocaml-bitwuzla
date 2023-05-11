@@ -1,24 +1,53 @@
 (library
- (public_name bitwuzla)
- (name bitwuzla)
- (modules bitwuzla)
+ (public_name bitwuzla-cxx)
+ (name bitwuzla_cxx)
+ (modules options sort roundingMode kind term result solver bitwuzla_cxx)
+ (libraries zarith)
  (foreign_stubs
-  (language c)
-  (names c_utils)
-  (flags :standard -I/opt/homebrew/include)
+  (language cxx)
+  (names cxx_utils cxx_stubs)
   (include_dirs
+   vendor/bitwuzla/include
    vendor/bitwuzla/src
-   (lib zarith)))
- (libraries unix zarith bitwuzla-c))
+   vendor/bitwuzla/src/lib
+   (lib zarith))
+  (flags :standard -std=c++17))
+ (foreign_archives
+  vendor/bitwuzla/src/api/cpp/bitwuzla-api
+  vendor/bitwuzla/bitwuzla
+  vendor/bitwuzla/src/lib/bitwuzla-libs
+  vendor/cadical/cadical)
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp)
+ (library_flags -linkall))
 
-(library
- (public_name bitwuzla-c)
- (name bitwuzla_c)
- (modules bitwuzla_c)
- (foreign_archives vendor/bitwuzla/bitwuzla vendor/bitwuzla/bitwuzlaxx
-   vendor/bitwuzla/utils vendor/btor2tools/btor2parser vendor/cadical/cadical)
- (foreign_stubs
-  (language c)
-  (names c_stubs)
-  (include_dirs vendor/bitwuzla/src/api/c))
- (c_library_flags :standard -L/opt/homebrew/lib -lstdc++ -lgmp -lpthread))
+(rule
+ (deps api/options.exe)
+ (target options.ml)
+ (action
+  (with-stdout-to
+   %{target}
+   (run %{deps}))))
+
+(rule
+ (deps api/result.exe)
+ (target result.ml)
+ (action
+  (with-stdout-to
+   %{target}
+   (run %{deps}))))
+
+(rule
+ (deps api/rounding_mode.exe)
+ (target roundingMode.ml)
+ (action
+  (with-stdout-to
+   %{target}
+   (run %{deps}))))
+
+(rule
+ (deps api/kind.exe)
+ (target kind.ml)
+ (action
+  (with-stdout-to
+   %{target}
+   (run %{deps}))))

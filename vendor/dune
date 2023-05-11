@@ -1,63 +1,157 @@
-(data_only_dirs cadical symfpu btor2tools bitwuzla)
+(data_only_dirs cadical symfpu bitwuzla)
 
 (subdir
  bitwuzla
- (include_subdirs unqualified)
- (dirs contrib src)
+ (include_subdirs qualified)
+ (dirs include src)
+ (subdir
+  src/lib
+  (include_subdirs qualified)
+  (foreign_library
+   (archive_name bitwuzla-libs)
+   (language cxx)
+   (names
+    bitvector
+    aig_manager
+    aig_cnf
+    aig_printer
+    aig_bitblaster
+    ls
+    ls_bv
+    bitvector_domain
+    bitvector_node
+    node
+    wheel_factorizer
+    rng)
+   (include_dirs bitblast bv ls rng util)
+   (flags :standard -I. -DNDEBUG)
+   (extra_deps ../../../.bitwuzla_tree)))
+ (subdir
+  src/api
+  (dirs cpp)
+  (subdir
+   cpp
+   (include_subdirs no)
+   (foreign_library
+    (archive_name bitwuzla-api)
+    (language cxx)
+    (names bitwuzla)
+    (flags :standard -I../.. -I../../lib -I../../../include -DNDEBUG)
+    (extra_deps ../../config.h ../../../../.bitwuzla_tree))))
  (subdir
   src
+  (dirs :standard \ parser)
   (rule
    (deps ../COPYING)
-   (target bzlaconfig.h)
+   (target config.h)
    (action
     (with-stdout-to
      %{target}
      (progn
-      (echo "#ifndef BZLACONFIG_H_INCLUDED\n")
-      (echo "#define BZLACONFIG_H_INCLUDED\n")
-      (echo "#define BZLA_VERSION \"%{version:bitwuzla}\"\n")
-      (echo "#define BZLA_GIT_ID \"\"\n")
-      (echo "#define BZLA_LICENSE ")
+      (echo "#ifndef BZLA_CONFIG_H_INCLUDED\n")
+      (echo "#define BZLA_CONFIG_H_INCLUDED\n")
+      (echo "namespace bzla::config {\n")
+      (echo "static constexpr bool is_debug_build = false;\n")
+      (echo "static constexpr const char* git_id  = \"\";\n")
+      (echo
+       "static constexpr const char* version = \"%{version:bitwuzla-cxx}\";\n")
+      (echo "static constexpr const char* license = ")
       (pipe-stdout
-       (cat %{deps})
+       (progn
+        (cat %{deps})
+        (echo "\n\n")
+        (echo "This version of Bitwuzla is linked against the following\n")
+        (echo "third party libraries. For copyright information of each\n")
+        (echo "library see the corresponding url.")
+        (echo "\n\n")
+        (echo "  CaDiCaL\n  https://github.com/arminbiere/cadical")
+        (echo "\n\n")
+        (echo
+         "  GMP - GNU Multiple Precision Arithmetic Library\n  https://gmplib.org")
+        (echo "\n\n")
+        (echo "  SymFPU\n  https://github.com/martin-cs/symfpu"))
        (run ../../../utils/stringify.exe))
-      (echo "\n#endif"))))))
+      (echo ";\n")
+      (echo "static constexpr const char* os      = \"%{system}\";\n")
+      (echo "}  // namespace bzla::config\n")
+      (echo "#endif"))))))
  (foreign_library
   (archive_name bitwuzla)
-  (language c)
-  (names :standard \ bzlamain bitwuzlamain pybitwuzla_utils bzlapartgen)
-  (include_dirs src)
-  (extra_deps src/bzlaconfig.h ../cadical/src/ccadical.h
-    ../btor2tools/src/btor2parser/btor2parser.h)
-  (flags :standard -I/opt/homebrew/include -I../cadical/src
-    -I../btor2tools/src/btor2parser -DBZLA_HAVE_PTHREADS -DBZLA_HAVE_SIGNALS
-    -DBZLA_USE_CADICAL -DBZLA_USE_SYMFPU -DNBZLALOG -DNDEBUG))
- (foreign_library
-  (archive_name bitwuzlaxx)
   (language cxx)
-  (names bzlafp bzlaslvquant bzlasynthterm)
-  (include_dirs src)
-  (extra_deps ../.symfpu_tree)
-  (flags :standard -std=gnu++17 -I/opt/homebrew/include -I..
-    -DBZLA_HAVE_PTHREADS -DBZLA_HAVE_SIGNALS -DBZLA_USE_CADICAL
-    -DBZLA_USE_SYMFPU -DNBZLALOG -DNDEBUG))
- (foreign_library
-  (archive_name utils)
-  (language c)
-  (names bzlapartgen)
-  (include_dirs src)
-  (flags :standard -DNBZLALOG -DNDEBUG)))
-
-(subdir
- btor2tools
- (include_subdirs unqualified)
- (dirs src)
- (foreign_library
-  (archive_name btor2parser)
-  (language c)
-  (names btor2parser)
-  (include_dirs src)
-  (flags :standard -DNDEBUG)))
+  (names
+   checks
+   assertion_stack
+   backtrackable
+   check_model
+   check_unsat_core
+   env
+   kind_info
+   node
+   node_data
+   node_kind
+   node_manager
+   node_utils
+   option
+   assertion_tracker
+   assertion_vector
+   contradicting_ands
+   elim_extract
+   elim_lambda
+   elim_uninterpreted
+   embedded_constraints
+   flatten_and
+   normalize
+   rewrite
+   skeleton_preproc
+   variable_substitution
+   preprocessing_pass
+   preprocessor
+   printer
+   evaluator
+   rewrite_utils
+   rewriter
+   rewrites_array
+   rewrites_bool
+   rewrites_bv
+   rewrites_bv_norm
+   rewrites_core
+   rewrites_fp
+   cadical
+   cryptominisat
+   kissat
+   sat_solver_factory
+   array_solver
+   bv_bitblast_solver
+   bv_prop_solver
+   bv_solver
+   aig_bitblaster
+   floating_point
+   fp_solver
+   rounding_mode
+   symfpu_wrapper
+   word_blaster
+   fun_solver
+   quant_solver
+   result
+   solver
+   solver_engine
+   solver_state
+   solving_context
+   type
+   type_data
+   type_manager
+   logger
+   statistics)
+  (include_dirs include src src/lib ../symfpu ../cadical)
+  (flags
+   :standard
+   -std=c++17
+   -I/opt/homebrew/include
+   -Isrc/lib/
+   -I../cadical/src
+   -I..
+   -DNDEBUG)
+  (extra_deps ../.bitwuzla_tree)))
 
 (subdir
  cadical
@@ -72,13 +166,19 @@
 
 (rule
  (deps
-  (source_tree symfpu)
-  (file bitwuzla/contrib/symfpu_20201114.patch))
- (target .symfpu_tree)
+  (source_tree bitwuzla)
+  (:p0001
+   (file patch/0001-api-Add-hook-for-ocaml-z-value.patch))
+  (:p0002
+   (file patch/0002-ocaml-make-NodeManager-global-from-thread-local.patch)))
+ (target .bitwuzla_tree)
  (action
   (no-infer
    (progn
     (with-stdin-from
-     bitwuzla/contrib/symfpu_20201114.patch
-     (run patch -p1 --directory symfpu))
+     %{p0001}
+     (run patch -p1 --directory bitwuzla))
+    (with-stdin-from
+     %{p0002}
+     (run patch -p1 --directory bitwuzla))
     (write-file %{target} "")))))

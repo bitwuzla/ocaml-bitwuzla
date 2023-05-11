@@ -1,0 +1,79 @@
+(executable
+ (name options)
+ (modules options)
+ (libraries build_enum_option))
+
+(library
+ (name build_enum_option)
+ (modules build_enum_option)
+ (foreign_stubs
+  (language cxx)
+  (names build_enum_option)
+  (include_dirs ../vendor/bitwuzla/include))
+ (foreign_archives
+  ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
+  ../vendor/bitwuzla/bitwuzla
+  ../vendor/bitwuzla/src/lib/bitwuzla-libs
+  ../vendor/cadical/cadical)
+ (library_flags -linkall)
+ (c_library_flags :standard -lgmp))
+
+(executable
+ (name result)
+ (modules result)
+ (libraries build_enum_result))
+
+(library
+ (name build_enum_result)
+ (modules build_enum_result)
+ (foreign_stubs
+  (language cxx)
+  (names build_enum_result)
+  (include_dirs ../vendor/bitwuzla/include))
+ (foreign_archives
+  ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
+  ../vendor/bitwuzla/bitwuzla
+  ../vendor/bitwuzla/src/lib/bitwuzla-libs
+  ../vendor/cadical/cadical)
+ (library_flags -linkall)
+ (c_library_flags :standard -lgmp))
+
+(executable
+ (name rounding_mode)
+ (modules rounding_mode)
+ (libraries build_enum_rounding_mode))
+
+(library
+ (name build_enum_rounding_mode)
+ (modules build_enum_rounding_mode)
+ (foreign_stubs
+  (language cxx)
+  (names build_enum_rounding_mode)
+  (include_dirs ../vendor/bitwuzla/include))
+ (foreign_archives
+  ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
+  ../vendor/bitwuzla/bitwuzla
+  ../vendor/bitwuzla/src/lib/bitwuzla-libs
+  ../vendor/cadical/cadical)
+ (library_flags -linkall)
+ (c_library_flags :standard -lgmp))
+
+(executable
+ (name kind)
+ (modules kind)
+ (libraries build_enum_kind))
+
+(library
+ (name build_enum_kind)
+ (modules build_enum_kind)
+ (foreign_stubs
+  (language cxx)
+  (names build_enum_kind)
+  (include_dirs ../vendor/bitwuzla/include))
+ (foreign_archives
+  ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
+  ../vendor/bitwuzla/bitwuzla
+  ../vendor/bitwuzla/src/lib/bitwuzla-libs
+  ../vendor/cadical/cadical)
+ (library_flags -linkall)
+ (c_library_flags :standard -lgmp))

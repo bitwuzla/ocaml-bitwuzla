@@ -1,0 +1,25 @@
+From 6552cf5d2f3281f408b7e3d540ab4c0b69368387 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Recoules?= <frederic.recoules@cea.fr>
+Date: Mon, 31 Jul 2023 11:03:14 +0200
+Subject: [PATCH 2/2] ocaml: make NodeManager global (from thread local)
+
+---
+ src/node/node_manager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/node/node_manager.cpp b/src/node/node_manager.cpp
+index e9f64060..14449729 100644
+--- a/src/node/node_manager.cpp
++++ b/src/node/node_manager.cpp
+@@ -26,7 +26,7 @@ using namespace node;
+ NodeManager&
+ NodeManager::get()
+ {
+-  thread_local static NodeManager mgr;
++  /* thread_local */ static NodeManager mgr;
+   return mgr;
+ }
+ 
+-- 
+2.34.1
+

@@ -1,24 +1,29 @@
 (executable
  (name quickstart)
  (modules quickstart)
- (libraries bitwuzla))
+ (libraries bitwuzla-cxx))
 
 (executable
  (name pushpop)
  (modules pushpop)
- (libraries bitwuzla))
+ (libraries bitwuzla-cxx))
 
 (executable
  (name checksatassuming)
  (modules checksatassuming)
- (libraries bitwuzla))
+ (libraries bitwuzla-cxx))
 
 (executable
  (name unsatcore)
  (modules unsatcore)
- (libraries bitwuzla))
+ (libraries bitwuzla-cxx))
 
 (executable
- (name unsatassumption)
- (modules unsatassumption)
- (libraries bitwuzla))
+ (name unsatassumptions)
+ (modules unsatassumptions)
+ (libraries bitwuzla-cxx))
+
+(executable
+ (name terminator)
+ (modules terminator)
+ (libraries unix bitwuzla-cxx))
