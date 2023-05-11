@@ -1,0 +1,54 @@
+From 3d7b4df1be0a96933b894e009b4d909b7216ced7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Recoules?= <frederic.recoules@cea.fr>
+Date: Thu, 11 May 2023 20:23:48 +0200
+Subject: [PATCH 1/2] api: Add hook for ocaml z value
+
+---
+ include/bitwuzla/cpp/bitwuzla.h | 12 ++++++++++++
+ src/lib/bv/bitvector.h          |  7 +++++++
+ 2 files changed, 19 insertions(+)
+
+diff --git a/include/bitwuzla/cpp/bitwuzla.h b/include/bitwuzla/cpp/bitwuzla.h
+index f0d94c72..cd4e0590 100644
+--- a/include/bitwuzla/cpp/bitwuzla.h
++++ b/include/bitwuzla/cpp/bitwuzla.h
+@@ -716,6 +716,18 @@ std::tuple<std::string, std::string, std::string> Term::value(
+     uint8_t base) const;
+ #endif
+ 
++#ifdef CAML_MLVALUES_H
++/**
++ * Get OCaml Zarith value of bitvector value term.
++ *
++ * @param base Ingored for this template instantiation.
++ *
++ * @return A Z.t value.
++ */
++template <>
++value Term::value(uint8_t base) const;
++#endif
++
+ /**
+  * Syntactical equality operator.
+  *
+diff --git a/src/lib/bv/bitvector.h b/src/lib/bv/bitvector.h
+index b6bde273..524b9bb5 100644
+--- a/src/lib/bv/bitvector.h
++++ b/src/lib/bv/bitvector.h
+@@ -278,6 +278,13 @@ class BitVector
+    * @return The uint64_t representation.
+    */
+   uint64_t to_uint64(bool truncate = false) const;
++#ifdef CAML_MLVALUES_H
++  /**
++ * Get OCaml Zarith value of this bit-vector.
++ * @return A Z.t value.
++ */
++  value to_zarith() const;
++#endif
+ 
+   /** @return the size of this bit-vector. */
+   uint64_t size() const { return d_size; }
+-- 
+2.34.1
+

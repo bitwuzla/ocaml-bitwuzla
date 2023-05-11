@@ -16,12 +16,12 @@ let () =
 
   (* First, create a Bitwuzla options instance. *)
   let options = Options.default () in
-  (* Then, enable unsat core extraction. *)
-  (* Note: Unsat core extraction is disabled by default. *)
-  Options.set options Produce_unsat_cores true;
+  Options.set options Produce_unsat_assumptions true;
   (* Then, create a Bitwuzla instance. *)
   let bitwuzla = Solver.create options in
 
+  (* Create Boolean sort. *)
+  let sortbool = mk_bool_sort () in
   (* Create a bit-vector sort of size 2. *)
   let sortbv2 = mk_bv_sort 2 in
   (* Create a bit-vector sort of size 4 *)
@@ -64,28 +64,31 @@ let () =
   in
 
   (* (assert (! (bvult x2 (f2 (_ +zero 5 11))) :named a0)) *)
-  let a0 = mk_term2 Bv_ult x2 (mk_term2 Apply f2 fpzero) in
-  Solver.assert_formula bitwuzla a0;
+  let a0 = mk_const sortbool ~symbol:"a0" in
+  let assumption0 = mk_term2 Bv_ult x2 (mk_term2 Apply f2 fpzero) in
+  Solver.assert_formula bitwuzla (mk_term2 Equal a0 assumption0);
 
   (* (assert (! (= x1 x2 x3) :named a1)) *)
-  let a1 = mk_term Equal [| x1; x2; x3 |] in
-  Solver.assert_formula bitwuzla a1;
+  let a1 = mk_const sortbool ~symbol:"a1" in
+  let assumption1 = mk_term Equal [| x1; x2; x3 |] in
+  Solver.assert_formula bitwuzla (mk_term2 Equal a1 assumption1);
 
   (* (assert (!(= x4 ((_ to_fp_unsigned 5 11) RNE x3)) :named a2)) *)
-  let a2 =
+  let a2 = mk_const sortbool ~symbol:"a2" in
+  let assumption2 =
     mk_term2 Equal x4
       (mk_term2_indexed2 Fp_to_fp_from_ubv (mk_rm_value Rne) x3 5 11)
   in
-  Solver.assert_formula bitwuzla a2;
+  Solver.assert_formula bitwuzla (mk_term2 Equal a2 assumption2);
 
-  (* (check-sat) *)
-  let result = Solver.check_sat bitwuzla in
+  (* (check-sat-assuming (assumption0 assumption1 assumption2)) *)
+  let result = Solver.check_sat bitwuzla ~assumptions:[| a0; a1; a2 |] in
   Format.printf "Expect: unsat@,";
   Format.printf "Bitwuzla: %s@," (Result.to_string result);
 
-  (* (get-unsat-core) *)
+  (* (get-unsat-assumptions) *)
   let unsat_core = Solver.get_unsat_core bitwuzla in
-  Format.printf "Unsat Core:@,@[<v 1>{";
+  Format.printf "Unsat Assumptions:@,@[<v 1>{";
   Array.iter (Format.printf "@,%a" Term.pp) unsat_core;
   Format.printf "@]@,}@,";
 
