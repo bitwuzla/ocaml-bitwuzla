@@ -230,7 +230,7 @@ Other examples together with their SMT-LIB input can be found in directory
 - an unsatisfiable example with unsat assumption query
 ([unsatassumptions](examples/unsatassumptions.ml))
 - an example with termination callback
-([terminator](examples/terminator.ml).
+([terminator](examples/terminator.ml)).
 
 ## Installation
 
