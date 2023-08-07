@@ -20,7 +20,7 @@ depends: [
   "conf-git" {build}
   "conf-gcc" {build}
   "conf-g++" {build}
-  "conf-gmp"
+  "zarith"
   "ppx_inline_test" {with-test & >= "v0.13"}
   "ppx_expect" {with-test & >= "v0.13"}
   "odoc" {with-doc}

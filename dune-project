@@ -23,7 +23,7 @@ Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fi
   (conf-git :build)
   (conf-gcc :build)
   (conf-g++ :build)
-   conf-gmp
+  zarith
   (ppx_inline_test (and :with-test (>= v0.13)))
   (ppx_expect (and :with-test (>= v0.13))))
  (conflicts
