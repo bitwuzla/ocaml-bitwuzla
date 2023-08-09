@@ -240,7 +240,7 @@ with [*opam*](https://opam.ocaml.org/).
 ### From Opam
 
 ```bash
-opam install bitwuzla
+opam install bitwuzla-cxx
 ```
 
 ### From source
@@ -273,7 +273,7 @@ tar -xjf bitwuzla-cxx-0.1.0.tbz
 
 - [GMP v6.1 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
   (**required**)
-- [OCaml >= 4.08](https://github.com/ocaml/ocaml) (**required**)
+- [OCaml >= 4.12](https://github.com/ocaml/ocaml) (**required**)
 - [dune >= 3.7](https://github.com/ocaml/dune) (**required**)
 - [zarith](https://github.com/ocaml/Zarith) (**required**)
 - [odoc](https://github.com/ocaml/odoc) (*documentation*)
@@ -287,9 +287,9 @@ Dependencies can be automatically installed via
 
 ```bash
 opam pin add -n .                             # read the package definition
-opam install --deps-only bitwuzla             # install OCaml dependencies
-opam install --deps-only --with-doc bitwuzla  # optional, for documentation
-opam install --deps-only --with-test bitwuzla # optional, for tests
+opam install --deps-only bitwuzla-cxx             # install OCaml dependencies
+opam install --deps-only --with-doc bitwuzla-cxx  # optional, for documentation
+opam install --deps-only --with-test bitwuzla-cxx # optional, for tests
 ```
 
 #### Build
