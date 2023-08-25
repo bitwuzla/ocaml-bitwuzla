@@ -101,9 +101,15 @@ external is_rm_value_rtp : t -> bool = "ocaml_bitwuzla_term_is_rm_value_rtp"
 external is_rm_value_rtz : t -> bool = "ocaml_bitwuzla_term_is_rm_value_rtz"
   [@@noalloc]
 
-external to_string : t -> string = "ocaml_bitwuzla_term_to_string"
+external to_string : (int[@untagged]) -> t -> string
+  = "ocaml_bitwuzla_term_to_string" "native_bitwuzla_term_to_string"
+
+let to_string ?(bv_format = 2) t = to_string bv_format t
 
 external pp : Format.formatter -> t -> unit = "ocaml_bitwuzla_term_pp"
+
+external pp_smt2 : bv_format:(int[@untagged]) -> Format.formatter -> t -> unit
+  = "ocaml_bitwuzla_term_pp_smt2" "native_bitwuzla_term_pp_smt2"
 
 external to_bool : t -> bool = "ocaml_bitwuzla_term_boolean_value"
 

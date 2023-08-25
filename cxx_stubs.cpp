@@ -820,9 +820,15 @@ ocaml_bitwuzla_term_is_rm_value_rtz (mlvalue vt)
 }
 
 extern "C" CAMLprim mlvalue
-ocaml_bitwuzla_term_to_string (mlvalue vt)
+native_bitwuzla_term_to_string (intnat base, mlvalue vt)
 {
-  return caml_copy_string(Term_val(vt)->str().c_str());
+  return caml_copy_string(Term_val(vt)->str(base).c_str());
+}
+
+extern "C" CAMLprim mlvalue
+ocaml_bitwuzla_term_to_string (mlvalue vbase, mlvalue vt)
+{
+  return native_bitwuzla_term_to_string(Long_val(vbase), vt);
 }
 
 extern "C" CAMLprim void
@@ -835,6 +841,24 @@ ocaml_bitwuzla_term_pp (mlvalue vf, mlvalue vt)
   formatter << *Term_val(vt);
   caml_callback2(*vpp_close_box, vf, Val_unit);
   CAMLreturn0;
+}
+
+extern "C" CAMLprim void
+native_bitwuzla_term_pp_smt2 (intnat base, mlvalue vf, mlvalue vt)
+{
+  CAMLparam1(vf);
+  Format format(&vf);
+  std::ostream formatter(&format);
+  caml_callback2(*vpp_open_vbox, vf, Val_int(0));
+  formatter << bitwuzla::set_bv_format(base) << *Term_val(vt);
+  caml_callback2(*vpp_close_box, vf, Val_unit);
+  CAMLreturn0;
+}
+
+extern "C" CAMLprim void
+ocaml_bitwuzla_term_pp_smt2 (mlvalue vbase, mlvalue vf, mlvalue vt)
+{
+  native_bitwuzla_term_pp_smt2(Long_val(vbase), vf, vt);
 }
 
 extern "C" CAMLprim mlvalue

@@ -824,3 +824,33 @@ let%test "GC" =
       ignore @@ Solver.check_sat ~assumptions:[| e |] t;
       Gc.full_major ();
       Solver.is_unsat_assumption t e)
+
+let%expect_test "Term.pp_smt2" =
+  let fortytwo = mk_bv_value_int bv8_sort 42 in
+  Term.pp_smt2 ~bv_format:2 Format.std_formatter fortytwo;
+  Format.pp_print_newline Format.std_formatter ();
+  Term.pp_smt2 ~bv_format:10 Format.std_formatter fortytwo;
+  Format.pp_print_newline Format.std_formatter ();
+  Term.pp_smt2 ~bv_format:16 Format.std_formatter fortytwo;
+  [%expect {|
+    #b00101010
+    (_ bv42 8)
+    #x2a |}]
+
+let%expect_test "Term.to_string" =
+  let fortytwo = mk_bv_value_int bv8_sort 42 in
+  Format.pp_print_string Format.std_formatter (Term.to_string fortytwo);
+  Format.pp_print_newline Format.std_formatter ();
+  Format.pp_print_string Format.std_formatter
+    (Term.to_string ~bv_format:2 fortytwo);
+  Format.pp_print_newline Format.std_formatter ();
+  Format.pp_print_string Format.std_formatter
+    (Term.to_string ~bv_format:10 fortytwo);
+  Format.pp_print_newline Format.std_formatter ();
+  Format.pp_print_string Format.std_formatter
+    (Term.to_string ~bv_format:16 fortytwo);
+  [%expect {|
+    #b00101010
+    #b00101010
+    (_ bv42 8)
+    #x2a |}]
