@@ -93,17 +93,6 @@ module Options : sig
         - [Kissat]:
           \[Kissat\](https://github.com/arminbiere/kissat)
     *)
-    | Smt_comp_mode : bool key
-        (** Enable SMT-COMP mode.
-
-        Parser only option. Only effective when an SMT2 input file is parsed.
-
-        Values:
-        - [true]: enable
-        - [false]: disable \[{b default}\]
-
-        This is an expert option.
-    *)
     | Prop_const_bits : bool key
         (** Propagation-based local search solver engine:
         Constant bits.
@@ -1092,14 +1081,32 @@ module Term : sig
      [pp formatter t]
      print term.
 
-     @param t The term.
+     (alias for {!val:pp_smt2}[ 2])
+
      @param formatter The outpout formatter.
+     @param t The term.
   *)
 
-  val to_string : t -> string
+  val pp_smt2 : bv_format:int -> Format.formatter -> t -> unit
   (**
-     [to_string t]
+     [pp_smt2 base formatter t]
+     print term in SMTlib format.
+
+     @param bv_format The bit-vector number format:
+                      [2] for binary, [10] for decimal and [16] for hexadecimal.
+     @param formatter The output formatter.
+     @param t The term.
+  *)
+
+  val to_string : ?bv_format:int -> t -> string
+  (**
+     [to_string t ~bv_format]
      get string representation of this term.
+
+     @param t The term.
+     @param bv_format The bit-vector number format:
+                      [2] for binary \[{b default}\],
+                      [10] for decimal and [16] for hexadecimal.
 
      @return String representation of this term.
   *)
