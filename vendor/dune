@@ -24,7 +24,7 @@
     wheel_factorizer
     rng)
    (include_dirs bitblast bv ls rng util)
-   (flags :standard -I. -DNDEBUG)
+   (flags :standard -std=c++17 -I. -DNDEBUG)
    (extra_deps ../../../.bitwuzla_tree)))
  (subdir
   src/api
@@ -36,7 +36,13 @@
     (archive_name bitwuzla-api)
     (language cxx)
     (names bitwuzla)
-    (flags :standard -I../.. -I../../lib -I../../../include -DNDEBUG)
+    (flags
+     :standard
+     -std=c++17
+     -I../..
+     -I../../lib
+     -I../../../include
+     -DNDEBUG)
     (extra_deps ../../config.h ../../../../.bitwuzla_tree))))
  (subdir
   src
