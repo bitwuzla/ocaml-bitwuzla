@@ -340,11 +340,11 @@ module Options : sig
             This is an expert debug option.
         *)
 
-  and bv_solver = Preprop | Prop | Bitblast
+  and bv_solver = Bitblast | Preprop | Prop
 
-  and sat_solver = Kissat | Cms | Cadical
+  and sat_solver = Cadical | Cms | Kissat
 
-  and prop_path_sel = Random | Essential
+  and prop_path_sel = Essential | Random
 
   val to_string : 'a key -> string
   (** [to_string opt] Returns the long name of this option. *)

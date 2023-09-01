@@ -101,7 +101,9 @@ extern "C" void build_enum_option ()
 	std::string dflt = mode.dflt;
 	dflt[0] = std::toupper(dflt[0]);
 	default_stream << dflt << std::endl;
-	for (std::string m : mode.modes) {
+	std::vector<std::string> modes(mode.modes);
+	std::sort(modes.begin(), modes.end());
+	for (std::string m : modes) {
 	  std::string v = lng_to_vn(m);
 	  mode_types_stream << "  | " << v << std::endl;
 	  mode_to_string_stream <<

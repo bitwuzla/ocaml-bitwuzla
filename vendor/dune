@@ -177,7 +177,9 @@
   (:p0001
    (file patch/0001-api-Add-hook-for-ocaml-z-value.patch))
   (:p0002
-   (file patch/0002-ocaml-make-NodeManager-global-from-thread-local.patch)))
+   (file patch/0002-ocaml-make-NodeManager-global-from-thread-local.patch))
+  (:p0003
+   (file patch/0003-Fix-compilation-with-older-GCC-version.patch)))
  (target .bitwuzla_tree)
  (action
   (no-infer
@@ -187,5 +189,8 @@
      (run patch -p1 --directory bitwuzla))
     (with-stdin-from
      %{p0002}
+     (run patch -p1 --directory bitwuzla))
+    (with-stdin-from
+     %{p0003}
      (run patch -p1 --directory bitwuzla))
     (write-file %{target} "")))))

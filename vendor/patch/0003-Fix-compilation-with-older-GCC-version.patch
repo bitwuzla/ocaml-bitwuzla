@@ -1,0 +1,27 @@
+From 4ee5c40699d5a60e5adc9e54523f82da3f1ac7ad Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Recoules?= <frederic.recoules@cea.fr>
+Date: Fri, 1 Sep 2023 11:09:32 +0200
+Subject: [PATCH] Fix compilation with older GCC version
+
+---
+ src/solver/bv/bv_prop_solver.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/solver/bv/bv_prop_solver.cpp b/src/solver/bv/bv_prop_solver.cpp
+index 64d189d3..b56cee00 100644
+--- a/src/solver/bv/bv_prop_solver.cpp
++++ b/src/solver/bv/bv_prop_solver.cpp
+@@ -275,7 +275,9 @@ BvPropSolver::mk_node(const Node& node)
+   }
+ 
+   std::string symbol =
+-      node.symbol() ? *node.symbol() : "@t" + std::to_string(node.id());
++    node.symbol()
++    ? (std::string) *node.symbol()
++    : "@t" + std::to_string(node.id());
+ 
+   switch (node.kind())
+   {
+-- 
+2.34.1
+
