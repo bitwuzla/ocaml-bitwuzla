@@ -20,7 +20,7 @@
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/cadical/cadical)
  (library_flags -linkall)
- (c_library_flags :standard -lgmp))
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
 
 (executable
  (name result)
@@ -40,7 +40,7 @@
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/cadical/cadical)
  (library_flags -linkall)
- (c_library_flags :standard -lgmp))
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
 
 (executable
  (name rounding_mode)
@@ -60,7 +60,7 @@
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/cadical/cadical)
  (library_flags -linkall)
- (c_library_flags :standard -lgmp))
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
 
 (executable
  (name kind)
@@ -80,4 +80,4 @@
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/cadical/cadical)
  (library_flags -linkall)
- (c_library_flags :standard -lgmp))
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
