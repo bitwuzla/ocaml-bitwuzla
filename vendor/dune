@@ -1,5 +1,9 @@
 (data_only_dirs cadical symfpu bitwuzla)
 
+(env
+ (_
+  (cxx_flags :standard -I/opt/homebrew/include)))
+
 (subdir
  bitwuzla
  (include_subdirs qualified)
@@ -153,7 +157,6 @@
   (flags
    :standard
    -std=c++17
-   -I/opt/homebrew/include
    -Isrc/lib/
    -I../cadical/src
    -I..

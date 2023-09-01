@@ -1,6 +1,6 @@
 (env
  (_
-  (cxx_flags :standard -std=c++17)))
+  (cxx_flags :standard -std=c++17 -I/opt/homebrew/include)))
 
 (executable
  (name options)
