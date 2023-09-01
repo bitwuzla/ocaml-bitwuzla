@@ -143,6 +143,7 @@
    solver_engine
    solver_state
    solving_context
+   timeout_terminator
    type
    type_data
    type_manager

@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <climits>
 #include <cstring>
 #include <bitwuzla/cpp/bitwuzla.h>
 
@@ -82,7 +83,7 @@ extern "C" void build_enum_option ()
 	default_stream << numeric.dflt << std::endl;
         min_stream << "  | " << name << " -> " << numeric.min << std::endl;
 	uint64_t max = numeric.max;
-	if (max >> 62) max >>= 2;
+	if (max > (LONG_MAX / 2)) max = (LONG_MAX / 2);
         max_stream << "  | " << name << " -> " << max << std::endl;
 	set_stream << "set_numeric t (to_cxx k) v" << std::endl;
 	get_stream << "get_numeric t (to_cxx k)" << std::endl;

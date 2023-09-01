@@ -32,304 +32,313 @@ module Options : sig
     | Log_level : int key
         (** Log level.
 
-        Values:
-        - An unsigned integer value ({b default}: [0]).
-    *)
+            Values:
+            - An unsigned integer value ({b default}: [0]).
+        *)
     | Produce_models : bool key
         (** Model generation.
 
-        Values:
-        - [true]: enable
-        - [false]: disable \[{b default}\]
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
 
-        This option cannot be enabled in combination with option
-        [Pp_unconstrained_optimization].
-    *)
+            This option cannot be enabled in combination with option
+            [Pp_unconstrained_optimization].
+        *)
     | Produce_unsat_assumptions : bool key
         (** Unsat assumptions generation.
 
-        Values:
-        - [true]: enable
-        - [false]: disable \[{b default}\]
-    *)
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+        *)
     | Produce_unsat_cores : bool key
         (** Unsat core generation.
 
-        Values:
-        - [true]: enable
-        - [false]: disable \[{b default}\].
-    *)
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\].
+        *)
     | Seed : int key
         (** Seed for random number generator.
 
-        Values:
-        - An unsigned integer value \[{b default}: [42]\].
-    *)
-    | Verbose : int key
+            Values:
+            - An unsigned integer value \[{b default}: [42]\].
+        *)
+    | Verbosity : int key
         (** Verbosity level.
 
-        Values:
-        - An unsigned integer value <= 4 \[{b default}: [0]\].
-    *)
+            Values:
+            - An unsigned integer value <= 4 \[{b default}: [0]\].
+        *)
+    | Time_limit_per : int key
+        (** Time limit in milliseconds per satisfiability check.**
+
+            Values:
+            - An unsigned integer for the time limit in milliseconds.
+            \[{b default}: [0]\].
+        *)
     | Bv_solver : bv_solver key
     | Rewrite_level : int key
         (** Rewrite level.
 
-        Values:
-        - [0]: no rewriting
-        - [1]: term level rewriting
-        - [2]: term level rewriting and full preprocessing [**default**]
+            Values:
+            - [0]: no rewriting
+            - [1]: term level rewriting
+            - [2]: term level rewriting and full preprocessing \[{b default}\]
 
-        This is an expert option to configure rewriting.
-    *)
+            This is an expert option to configure rewriting.
+        *)
     | Sat_solver : sat_solver key
         (** Configure the SAT solver engine.
 
-        Values:
-        - [Cadical] \[{b default}\]:
-          \[CaDiCaL\](https://github.com/arminbiere/cadical)
-        - [Cms]:
-          \[CryptoMiniSat\](https://github.com/msoos/cryptominisat)
-        - [Kissat]:
-          \[Kissat\](https://github.com/arminbiere/kissat)
-    *)
+            Values:
+            - [Cadical] \[{b default}\]:
+            \[CaDiCaL\](https://github.com/arminbiere/cadical)
+            - [Cms]:
+            \[CryptoMiniSat\](https://github.com/msoos/cryptominisat)
+            - [Kissat]:
+            \[Kissat\](https://github.com/arminbiere/kissat)
+        *)
     | Prop_const_bits : bool key
         (** Propagation-based local search solver engine:
-        Constant bits.
+            Constant bits.
 
-        Configure constant bit propagation (requries bit-blasting to AIG).
+            Configure constant bit propagation (requries bit-blasting to AIG).
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Prop_ineq_bounds : bool key
         (** Propagation-based local search solver engine:
-        Infer bounds for inequalities for value computation.
+            Infer bounds for inequalities for value computation.
 
-        When enabled, infer bounds for value computation for inequalities
-        based on satisfied top level inequalities.
+            When enabled, infer bounds for value computation for inequalities
+            based on satisfied top level inequalities.
 
-        Values:
-        - [true]: enable
-        - [false]: disable \[{b default}\]
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Prop_nprops : int key
         (** Propagation-based local search solver engine:
-        Number of propagations.
+            Number of propagations.
 
-        Configure the number of propagations used as a limit for the
-        propagation-based local search solver engine. No limit if 0.
+            Configure the number of propagations used as a limit for the
+            propagation-based local search solver engine. No limit if 0.
 
-        Values:
-        - An unsigned integer value \[{b default}: [0]\].
+            Values:
+            - An unsigned integer value \[{b default}: [0]\].
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Prop_nupdates : int key
         (** Propagation-based local search solver engine:
-        Number of updates.
+            Number of updates.
 
-        Configure the number of model value updates used as a limit for the
-        propagation-based local search solver engine. No limit if 0.
+            Configure the number of model value updates used as a limit for the
+            propagation-based local search solver engine. No limit if 0.
 
-        Values:
-        - An unsigned integer value \[{b default}: [0]\].
+            Values:
+            - An unsigned integer value \[{b default}: [0]\].
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Prop_path_sel : prop_path_sel key
         (** Propagation-based local search solver engine:
-        Path selection.
+            Path selection.
 
-        Configure mode for path selection.
+            Configure mode for path selection.
 
-        Values:
-        - [Essential] \[{b default}\]:
-          Select path based on essential inputs.
-        - [Random]:
-          Select path randomly.
+            Values:
+            - [Essential] \[{b default}\]:
+            Select path based on essential inputs.
+            - [Random]:
+            Select path randomly.
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Prop_prob_pick_rand_input : int key
         (** Propagation-based local search solver engine:
-        Probability for selecting random input.
+            Probability for selecting random input.
 
-        Configure the probability with which to select a random input
-        instead of an essential input when selecting the path.
+            Configure the probability with which to select a random input
+            instead of an essential input when selecting the path.
 
-        Values:
-        - An unsigned integer value <= 1000 (= 100%) \[{b default}: [0]\].
+            Values:
+            - An unsigned integer value <= 1000 (= 100%) \[{b default}: [0]\].
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Prop_prob_pick_inv_value : int key
         (** Propagation-based local search solver engine:
-        Probability for inverse values.
+            Probability for inverse values.
 
-        Configure the probability with which to choose an inverse value over a
-        consistent value when aninverse value exists.
+            Configure the probability with which to choose an inverse value
+            over a consistent value when aninverse value exists.
 
-        Values:
-        - An unsigned integer value <= 1000 (= 100%) \[{b default}: [990]\].
+            Values:
+            - An unsigned integer value <= 1000 (= 100%) \[{b default}: [990]\].
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Prop_sext : bool key
         (** Propagation-based local search solver engine:
-        Value computation for sign extension.
+            Value computation for sign extension.
 
-        When enabled, detect sign extension operations (are rewritten on
-        construction) and use value computation for sign extension.
+            When enabled, detect sign extension operations (are rewritten on
+            construction) and use value computation for sign extension.
 
-        Values:
-        - [true]: enable
-        - [false]: disable \[{b default}\]
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Prop_normalize : bool key
         (** Propagation-based local search solver engine:
-        Local search specific normalization.
+            Local search specific normalization.
 
-        When enabled, perform normalizations for local search, on the local
-        search layer (does not affect node layer).
+            When enabled, perform normalizations for local search, on the local
+            search layer (does not affect node layer).
 
-        Values:
-        - [true]: enable
-        - [false]: disable \[{b default}\]
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
 
-        This is an expert option to configure the prop solver engine.
-    *)
+            This is an expert option to configure the prop solver engine.
+        *)
     | Preprocess : bool key
         (** Preprocessing
 
-        When enabled, applies all enabled preprocessing passes.
+            When enabled, applies all enabled preprocessing passes.
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_contr_ands : bool key
         (** Preprocessing: Find contradicting bit-vector ands
 
-        When enabled, substitutes contradicting nodes of kind #BV_AND
-        with zero.
+            When enabled, substitutes contradicting nodes of kind #BV_AND
+            with zero.
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_elim_extracts : bool key
         (** Preprocessing: Eliminate bit-vector extracts on bit-vector constants
 
-        When enabled, eliminates bit-vector extracts on constants.
+            When enabled, eliminates bit-vector extracts on constants.
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_embedded : bool key
         (** Preprocessing: Embedded constraint substitution
 
-        When enabled, substitutes assertions that occur as sub-expression in
-        the formula with their respective Boolean value.
+            When enabled, substitutes assertions that occur as sub-expression in
+            the formula with their respective Boolean value.
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_flatten_and : bool key
         (** Preprocessing: AND flattening
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_normalize : bool key
         (** Preprocessing: Normalization
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_normalize_share_aware : bool key
         (** Preprocessing: Normalization: Enable share awareness normlization
 
-        When enabled, this disables normalizations that may yield blow-up
-        on the bit-level.
+            When enabled, this disables normalizations that may yield blow-up
+            on the bit-level.
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_skeleton_preproc : bool key
         (** Preprocessing: Boolean skeleton preprocessing
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_variable_subst : bool key
         (** Preprocessing: Variable substitution
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_variable_subst_norm_eq : bool key
         (** Preprocessing: Variable substitution: Equality Normalization
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
         *)
     | Pp_variable_subst_norm_diseq : bool key
-        (** Preprocessing: Variable substitution: Bit-Vector Inequality Normalization
+        (** Preprocessing: Variable substitution:
+            Bit-Vector Inequality Normalization
 
-      Values:
-      - [true]: enable \[{b default}\]
-      - [false]: disable
-  *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Pp_variable_subst_norm_bv_ineq : bool key
         (** Preprocessing: Variable substitution: Bit-Vector Inequality
 
-        Values:
-        - [true]: enable \[{b default}\]
-        - [false]: disable
-    *)
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+        *)
     | Dbg_rw_node_thresh : int key
         (** Debug:
-        Threshold for number of new nodes introduced for recursive call of
-        rewrite().
+            Threshold for number of new nodes introduced for recursive call of
+            rewrite().
 
-        Prints a warning number of newly introduced nodes is above threshold.
+            Prints a warning number of newly introduced nodes is above
+            threshold.
 
-        This is an expert debug option.
-    *)
+            This is an expert debug option.
+        *)
     | Dbg_pp_node_thresh : int key
         (** Debug:
-        Threshold for formula size increase after preprocessing in percent.
+            Threshold for formula size increase after preprocessing in percent.
 
-        Prints a warning if formula size increase is above threshold.
+            Prints a warning if formula size increase is above threshold.
 
-        This is an expert debug option.
-    *)
+            This is an expert debug option.
+        *)
     | Check_model : bool key
         (** Debug: Check models for each satisfiable query.
 
-        This is an expert debug option.
-    *)
+            This is an expert debug option.
+        *)
     | Check_unsat_core : bool key
         (** Debug: Check unsat core for each unsatisfiable query.
 
-        This is an expert debug option.
-    *)
+            This is an expert debug option.
+        *)
 
   and bv_solver = Preprop | Prop | Bitblast
 
@@ -707,13 +716,13 @@ module Kind : sig
     | Ite  (** If-then-else.
 
                SMT-LIB: [ite] *)
-    | Exists
-        (** Existential quantification.
+    | Exists  (** Existential quantification.
 
-              SMT-LIB: [exists] *)
-    | Forall  (** Universal quantification.
+          SMT-LIB: [exists] *)
+    | Forall
+        (** Universal quantification.
 
-              SMT-LIB: [forall] *)
+                  SMT-LIB: [forall] *)
     | Apply  (** Function application. *)
     | Lambda  (** Lambda. *)
     | Select  (** Array select.
@@ -732,21 +741,24 @@ module Kind : sig
         (** Bit-vector arithmetic right shift.
 
         SMT-LIB: [bvashr] *)
-    | Bv_comp  (** Bit-vector comparison.
+    | Bv_comp
+        (** Bit-vector comparison.
 
-               SMT-LIB: [bvcomp] *)
-    | Bv_concat  (** Bit-vector concat.
+                   SMT-LIB: [bvcomp] *)
+    | Bv_concat
+        (** Bit-vector concat.
 
-                 SMT-LIB: [concat] *)
+                     SMT-LIB: [concat] *)
     | Bv_dec  (** Bit-vector decrement.
 
                   Decrement by one. *)
     | Bv_inc  (** Bit-vector increment.
 
                   Increment by one. *)
-    | Bv_mul  (** Bit-vector multiplication.
+    | Bv_mul
+        (** Bit-vector multiplication.
 
-              SMT-LIB: [bvmul] *)
+                  SMT-LIB: [bvmul] *)
     | Bv_nand  (** Bit-vector nand.
 
                    SMT-LIB: [bvnand] *)
@@ -760,7 +772,7 @@ module Kind : sig
     | Bv_not
         (** Bit-vector not (one's complement).
 
-              SMT-LIB: [bvnot] *)
+          SMT-LIB: [bvnot] *)
     | Bv_or  (** Bit-vector or.
 
                  SMT-LIB: [bvor] *)
@@ -780,7 +792,7 @@ module Kind : sig
         (** Bit-vector reduce xor.
 
         Bit-wise {b xor} reduction, all bits are {b xor}'ed together into a
-         single bit.
+        single bit.
         This corresponds to bit-wise {b xor} reduction as known from Verilog. *)
     | Bv_rol
         (** Bit-vector rotate left (not indexed).
@@ -798,46 +810,39 @@ module Kind : sig
         (** Bit-vector signed division overflow test.
 
         Single bit to indicate if signed division produces an overflow. *)
-    | Bv_sdiv
-        (** Bit-vector signed division.
+    | Bv_sdiv  (** Bit-vector signed division.
 
-               SMT-LIB: [bvsdiv] *)
+           SMT-LIB: [bvsdiv] *)
     | Bv_sge
         (** Bit-vector signed greater than or equal.
 
         SMT-LIB: [bvsge] *)
-    | Bv_sgt
-        (** Bit-vector signed greater than.
+    | Bv_sgt  (** Bit-vector signed greater than.
 
-              SMT-LIB: [bvsgt] *)
-    | Bv_shl
-        (** Bit-vector logical left shift.
+          SMT-LIB: [bvsgt] *)
+    | Bv_shl  (** Bit-vector logical left shift.
 
-              SMT-LIB: [bvshl] *)
-    | Bv_shr
-        (** Bit-vector logical right shift.
+          SMT-LIB: [bvshl] *)
+    | Bv_shr  (** Bit-vector logical right shift.
 
-              SMT-LIB: [bvshr] *)
+          SMT-LIB: [bvshr] *)
     | Bv_sle
         (** Bit-vector signed less than or equal.
 
         SMT-LIB: [bvsle] *)
-    | Bv_slt
-        (** Bit-vector signed less than.
+    | Bv_slt  (** Bit-vector signed less than.
 
-              SMT-LIB: [bvslt] *)
-    | Bv_smod
-        (** Bit-vector signed modulo.
+          SMT-LIB: [bvslt] *)
+    | Bv_smod  (** Bit-vector signed modulo.
 
-               SMT-LIB: [bvsmod] *)
+           SMT-LIB: [bvsmod] *)
     | Bv_smulo
         (** Bit-vector signed multiplication overflow test.
 
         SMT-LIB: [bvsmod] *)
-    | Bv_srem
-        (** Bit-vector signed remainder.
+    | Bv_srem  (** Bit-vector signed remainder.
 
-               SMT-LIB: [bvsrem] *)
+           SMT-LIB: [bvsrem] *)
     | Bv_ssubo
         (** Bit-vector signed subtraction overflow test.
 
@@ -852,7 +857,7 @@ module Kind : sig
     | Bv_udiv
         (** Bit-vector unsigned division.
 
-               SMT-LIB: [bvudiv] *)
+           SMT-LIB: [bvudiv] *)
     | Bv_uge
         (** Bit-vector unsigned greater than or equal.
 
@@ -860,24 +865,23 @@ module Kind : sig
     | Bv_ugt
         (** Bit-vector unsigned greater than.
 
-              SMT-LIB: [bvugt] *)
+          SMT-LIB: [bvugt] *)
     | Bv_ule
         (** Bit-vector unsigned less than or equal.
 
         SMT-LIB: [bvule] *)
-    | Bv_ult
-        (** Bit-vector unsigned less than.
+    | Bv_ult  (** Bit-vector unsigned less than.
 
-              SMT-LIB: [bvult] *)
+          SMT-LIB: [bvult] *)
     | Bv_umulo
         (** Bit-vector unsigned multiplication overflow test.
 
-            Single bit to indicate if unsigned multiplication produces
-            an overflow. *)
+        Single bit to indicate if unsigned multiplication produces
+        an overflow. *)
     | Bv_urem
         (** Bit-vector unsigned remainder.
 
-               SMT-LIB: [bvurem] *)
+           SMT-LIB: [bvurem] *)
     | Bv_usubo
         (** Bit-vector unsigned subtraction overflow test.
 
@@ -891,11 +895,11 @@ module Kind : sig
     | Bv_extract
         (** Bit-vector extract.
 
-                  SMT-LIB: [extract] (indexed) *)
+              SMT-LIB: [extract] (indexed) *)
     | Bv_repeat
         (** Bit-vector repeat.
 
-                 SMT-LIB: [repeat] (indexed) *)
+             SMT-LIB: [repeat] (indexed) *)
     | Bv_roli
         (** Bit-vector rotate left by integer.
 
@@ -912,33 +916,37 @@ module Kind : sig
         (** Bit-vector zero extend.
 
         SMT-LIB: [zero_extend] (indexed) *)
-    | Fp_abs
-        (** Floating-point absolute value.
+    | Fp_abs  (** Floating-point absolute value.
 
-              SMT-LIB: [fp.abs] *)
-    | Fp_add  (** Floating-point addition.
+          SMT-LIB: [fp.abs] *)
+    | Fp_add
+        (** Floating-point addition.
 
-              SMT-LIB: [fp.add] *)
-    | Fp_div  (** Floating-point division.
+                  SMT-LIB: [fp.add] *)
+    | Fp_div
+        (** Floating-point division.
 
-              SMT-LIB: [fp.div] *)
-    | Fp_equal  (** Floating-point equality.
+                  SMT-LIB: [fp.div] *)
+    | Fp_equal
+        (** Floating-point equality.
 
-             SMT-LIB: [fp.eq] *)
+                    SMT-LIB: [fp.eq] *)
     | Fp_fma
         (** Floating-point fused multiplcation and addition.
 
         SMT-LIB: [fp.fma] *)
-    | Fp_fp  (** Floating-point IEEE 754 value.
+    | Fp_fp
+        (** Floating-point IEEE 754 value.
 
-             SMT-LIB: [fp] *)
+                 SMT-LIB: [fp] *)
     | Fp_geq
         (** Floating-point greater than or equal.
 
         SMT-LIB: [fp.geq] *)
-    | Fp_gt  (** Floating-point greater than.
+    | Fp_gt
+        (** Floating-point greater than.
 
-             SMT-LIB: [fp.gt] *)
+                 SMT-LIB: [fp.gt] *)
     | Fp_is_inf
         (** Floating-point is infinity tester.
 
@@ -946,7 +954,7 @@ module Kind : sig
     | Fp_is_nan
         (** Floating-point is Nan tester.
 
-                 SMT-LIB: [fp.isNaN] *)
+             SMT-LIB: [fp.isNaN] *)
     | Fp_is_neg
         (** Floating-point is negative tester.
 
@@ -970,7 +978,7 @@ module Kind : sig
     | Fp_leq
         (** Floating-point less than or equal.
 
-              SMT-LIB: [fp.leq] *)
+          SMT-LIB: [fp.leq] *)
     | Fp_lt  (** Floating-point less than.
 
                  SMT-LIB: [fp.lt] *)
@@ -980,16 +988,17 @@ module Kind : sig
     | Fp_min  (** Floating-point min.
 
                   SMT-LIB: [fp.min] *)
-    | Fp_mul
-        (** Floating-point multiplcation.
+    | Fp_mul  (** Floating-point multiplcation.
 
-              SMT-LIB: [fp.mul] *)
-    | Fp_neg  (** Floating-point negation.
+          SMT-LIB: [fp.mul] *)
+    | Fp_neg
+        (** Floating-point negation.
 
-              SMT-LIB: [fp.neg] *)
-    | Fp_rem  (** Floating-point remainder.
+                  SMT-LIB: [fp.neg] *)
+    | Fp_rem
+        (** Floating-point remainder.
 
-              SMT-LIB: [fp.rem] *)
+                  SMT-LIB: [fp.rem] *)
     | Fp_rti
         (** Floating-point round to integral.
 
@@ -1422,7 +1431,7 @@ module Result : sig
        get string representation of this result.
 
        @return String representation of this result.
-    *)
+  *)
 end
 
 module Solver : sig
