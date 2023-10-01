@@ -22,6 +22,18 @@ typedef value mlvalue;
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
+static struct custom_operations exception_operations =
+  {
+    "dummy operations after exception",
+    custom_finalize_default,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default,
+    custom_compare_ext_default,
+    custom_fixed_length_default
+  };
+
 extern "C" CAMLprim value
 ocaml_bitwuzla_copyright ()
 {
@@ -96,6 +108,14 @@ int Format::overflow (int c)
   }                            \
   catch (bitwuzla::Exception &e) { caml_invalid_argument(e.msg().c_str()); }
 
+#define BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom) \
+  }                            \
+  catch (bitwuzla::Exception &e) { \
+    if(custom != Val_unit) \
+      Custom_ops_val(custom) = &exception_operations; \
+    caml_invalid_argument(e.msg().c_str()); \
+  }
+
 class Options : public bitwuzla::Options
 {
 public:
@@ -134,9 +154,11 @@ static struct custom_operations options_operations =
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_options_new ()
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&options_operations, &custom) Options();
   return custom;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim void
@@ -310,21 +332,21 @@ ocaml_bitwuzla_sort_fp_sig_size (mlvalue vt)
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_sort_array_index (mlvalue vt)
 {
+  mlvalue custom = Val_unit;
   BITWUZLA_TRY_CATCH_BEGIN;
-  mlvalue custom;
   new(&sort_operations, &custom) Sort(Sort_val(vt)->array_index());
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_sort_array_element (mlvalue vt)
 {
+  mlvalue custom = Val_unit;
   BITWUZLA_TRY_CATCH_BEGIN;
-  mlvalue custom;
   new(&sort_operations, &custom) Sort(Sort_val(vt)->array_element());
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -339,8 +361,10 @@ ocaml_bitwuzla_sort_fun_domain (mlvalue vt)
   size_t n = domain.size();
   result = caml_alloc(n, 0);
   for (size_t i = 0; i < n; i += 1) {
-    mlvalue custom;
+    mlvalue custom = Val_unit;
+    BITWUZLA_TRY_CATCH_BEGIN;
     new(&sort_operations, &custom) Sort(domain[i]);
+    BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
     caml_modify(&Field(result, i), custom);
   }
   CAMLreturn(result);
@@ -349,11 +373,11 @@ ocaml_bitwuzla_sort_fun_domain (mlvalue vt)
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_sort_fun_codomain (mlvalue vt)
 {
+  mlvalue custom = Val_unit;
   BITWUZLA_TRY_CATCH_BEGIN;
-  mlvalue custom;
   new(&sort_operations, &custom) Sort(Sort_val(vt)->fun_codomain());
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim intnat
@@ -449,25 +473,31 @@ extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_array_sort (mlvalue vi, mlvalue ve)
 {
   CAMLparam2(vi, ve);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&sort_operations, &custom) Sort(bitwuzla::mk_array_sort(*Sort_val(vi),
 							      *Sort_val(ve)));
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
   CAMLreturn(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_bool_sort ()
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&sort_operations, &custom) Sort(bitwuzla::mk_bool_sort());
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
   return custom;
 }
 
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_bv_sort (intnat size)
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&sort_operations, &custom) Sort(bitwuzla::mk_bv_sort(size));
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
   return custom;
 }
 
@@ -480,8 +510,10 @@ ocaml_bitwuzla_mk_bv_sort (mlvalue vsize)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_fp_sort (intnat exp_size, intnat sig_size)
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&sort_operations, &custom) Sort(bitwuzla::mk_fp_sort(exp_size, sig_size));
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
   return custom;
 }
 
@@ -494,9 +526,9 @@ ocaml_bitwuzla_mk_fp_sort (mlvalue vexp_size, mlvalue vsig_size)
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fun_sort (mlvalue vdomain, mlvalue vcodomain)
 {
+  mlvalue custom = Val_unit;
   BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vcodomain);
-  mlvalue custom;
   size_t arity = Wosize_val(vdomain);
   std::vector<bitwuzla::Sort> domain;
   domain.reserve(arity);
@@ -505,27 +537,31 @@ ocaml_bitwuzla_mk_fun_sort (mlvalue vdomain, mlvalue vcodomain)
   new(&sort_operations, &custom)
     Sort(bitwuzla::mk_fun_sort(domain, *Sort_val(vcodomain)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_rm_sort ()
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&sort_operations, &custom) Sort(bitwuzla::mk_rm_sort());
   return custom;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_uninterpreted_sort (mlvalue vopt)
 {
   CAMLparam1(vopt);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
   std::optional<const std::string> symbol;
   if (Is_some(vopt))
     symbol.emplace(std::string(String_val(Field(vopt, 0))));
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&sort_operations, &custom) Sort(bitwuzla::mk_uninterpreted_sort(symbol));
   CAMLreturn(custom);
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 #define value mlvalue
@@ -619,9 +655,11 @@ ocaml_bitwuzla_term_kind (mlvalue vt)
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_term_sort (mlvalue vt)
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&sort_operations, &custom) Sort(Term_val(vt)->sort());
   return custom;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim intnat
@@ -645,8 +683,10 @@ ocaml_bitwuzla_term_children (mlvalue vt)
   size_t n = children.size();
   result = caml_alloc(n, 0);
   for (size_t i = 0; i < n; i += 1) {
-    mlvalue custom;
+    mlvalue custom = Val_unit;
+    BITWUZLA_TRY_CATCH_BEGIN;
     new(&term_operations, &custom) Term(children[i]);
+    BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
     caml_modify(&Field(result, i), custom);
   }
   CAMLreturn(result);
@@ -655,12 +695,12 @@ ocaml_bitwuzla_term_children (mlvalue vt)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_term_get (mlvalue vt, intnat i)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vt);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom) Term((*Term_val(vt))[i]);
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -925,87 +965,91 @@ ocaml_bitwuzla_term_zarith_value (mlvalue vt)
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_true ()
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom) Term(bitwuzla::mk_true());
   return custom;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_false ()
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom) Term(bitwuzla::mk_false());
   return custom;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_bv_zero (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom) Term(bitwuzla::mk_bv_zero(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_bv_one (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom) Term(bitwuzla::mk_bv_one(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_bv_ones (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom) Term(bitwuzla::mk_bv_ones(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_bv_min_signed (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_bv_min_signed(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_bv_max_signed (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_bv_max_signed(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_bv_value (mlvalue vs, mlvalue vv, intnat base)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
   const std::string val = String_val(vv);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_bv_value(*Sort_val(vs), val, base));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1017,13 +1061,13 @@ ocaml_bitwuzla_mk_bv_value (mlvalue vs, mlvalue vv, intnat base)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_bv_value_int64 (mlvalue vs, intnat val)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_bv_value_int64(*Sort_val(vs), val));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1041,122 +1085,124 @@ ocaml_bitwuzla_mk_bv_value_int64 (mlvalue vs, mlvalue vv)
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fp_pos_zero (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_fp_pos_zero(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fp_neg_zero (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_fp_neg_zero(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fp_pos_inf (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_fp_pos_inf(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fp_neg_inf (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_fp_neg_inf(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fp_nan (mlvalue vs)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_fp_nan(*Sort_val(vs)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fp_value (mlvalue v1, mlvalue v2, mlvalue v3)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam3(v1, v2, v3);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_fp_value(*Term_val(v1), *Term_val(v2), *Term_val(v3)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fp_value_from_real (mlvalue vs, mlvalue vrm, mlvalue vv)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam2(vs, vrm);
   const std::string val(String_val(vv));
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_fp_value(*Sort_val(vs), *Term_val(vrm), val));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_fp_value_from_rational (mlvalue vs, mlvalue vrm,
 					  mlvalue vnum, mlvalue vden)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam2(vs, vrm);
   const std::string num(String_val(vnum));
   const std::string den(String_val(vden));
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_fp_value(*Sort_val(vs), *Term_val(vrm), num, den));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_const_array (mlvalue vs, mlvalue vv)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam2(vs, vv);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_const_array(*Sort_val(vs), *Term_val(vv)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_rm_value (intnat rm)
 {
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_rm_value((bitwuzla::RoundingMode)rm));
   return custom;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1168,13 +1214,13 @@ ocaml_bitwuzla_mk_rm_value (mlvalue vrm)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_term1 (intnat k, mlvalue v1)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   const std::vector<bitwuzla::Term> args{ *Term_val(v1) };
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_term((bitwuzla::Kind)k, args));
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1186,13 +1232,13 @@ ocaml_bitwuzla_mk_term1 (intnat vk, mlvalue v1)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_term2 (intnat k, mlvalue v1, mlvalue v2)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   const std::vector<bitwuzla::Term> args{ *Term_val(v1), *Term_val(v2) };
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_term((bitwuzla::Kind)k, args));
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1204,14 +1250,14 @@ ocaml_bitwuzla_mk_term2 (intnat vk, mlvalue v1, mlvalue v2)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_term3 (intnat k, mlvalue v1, mlvalue v2, mlvalue v3)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   const std::vector<bitwuzla::Term>
     args{ *Term_val(v1), *Term_val(v2), *Term_val(v3) };
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_term((bitwuzla::Kind)k, args));
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1223,14 +1269,14 @@ ocaml_bitwuzla_mk_term3 (intnat vk, mlvalue v1, mlvalue v2, mlvalue v3)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_term1_indexed1 (intnat k, mlvalue v1, intnat i)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   const std::vector<bitwuzla::Term> args{ *Term_val(v1) };
   const std::vector<uint64_t> indices{ (uint64_t)i };
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_term((bitwuzla::Kind)k, args, indices));
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1242,14 +1288,14 @@ ocaml_bitwuzla_mk_term1_indexed1 (intnat vk, mlvalue v1, mlvalue vi)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_term1_indexed2 (intnat k, mlvalue v1, intnat i, intnat j)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   const std::vector<bitwuzla::Term> args{ *Term_val(v1) };
   const std::vector<uint64_t> indices{ (uint64_t)i, (uint64_t)j };
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_term((bitwuzla::Kind)k, args, indices));
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1262,14 +1308,14 @@ ocaml_bitwuzla_mk_term1_indexed2 (intnat vk, mlvalue v1, mlvalue vi, mlvalue vj)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_term2_indexed1 (intnat k, mlvalue v1, mlvalue v2, intnat i)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   const std::vector<bitwuzla::Term> args{ *Term_val(v1), *Term_val(v2) };
   const std::vector<uint64_t> indices{ (uint64_t)i };
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_term((bitwuzla::Kind)k, args, indices));
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1282,14 +1328,14 @@ extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_term2_indexed2 (intnat k, mlvalue v1, mlvalue v2,
 				   intnat i, intnat j)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   const std::vector<bitwuzla::Term> args{ *Term_val(v1), *Term_val(v2) };
   const std::vector<uint64_t> indices{ (uint64_t)i, (uint64_t)j };
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_term((bitwuzla::Kind)k, args, indices));
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1303,6 +1349,7 @@ ocaml_bitwuzla_mk_term2_indexed2 (intnat vk, mlvalue v1, mlvalue v2,
 extern "C" CAMLprim mlvalue
 native_bitwuzla_mk_term (intnat k, mlvalue vargs, mlvalue vindices)
 {
+  mlvalue custom = Val_unit;
   BITWUZLA_TRY_CATCH_BEGIN;
   std::vector<bitwuzla::Term> args;
   std::vector<uint64_t> indices;
@@ -1314,11 +1361,10 @@ native_bitwuzla_mk_term (intnat k, mlvalue vargs, mlvalue vindices)
   indices.reserve(arity);
   for (size_t i = 0; i < arity; i += 1)
     indices.emplace_back((uint64_t)Long_val(Field(vindices, i)));
-  mlvalue custom;
   new(&term_operations, &custom)
     Term(bitwuzla::mk_term((bitwuzla::Kind)k, args, indices));
   return custom;
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
@@ -1331,33 +1377,38 @@ extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_const (mlvalue vopt, mlvalue vs)
 {
   CAMLparam2(vopt, vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   std::optional<const std::string> symbol;
   if (Is_some(vopt))
     symbol.emplace(std::string(String_val(Field(vopt, 0))));
   new(&term_operations, &custom)
     Term(bitwuzla::mk_const(*Sort_val(vs), symbol));
   CAMLreturn(custom);
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_mk_var (mlvalue vopt, mlvalue vs)
 {
   CAMLparam2(vopt, vs);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   std::optional<const std::string> symbol;
   if (Is_some(vopt))
     symbol.emplace(std::string(String_val(Field(vopt, 0))));
   new(&term_operations, &custom)
     Term(bitwuzla::mk_var(*Sort_val(vs), symbol));
   CAMLreturn(custom);
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_substitute_term (mlvalue vt, mlvalue vmap)
 {
   CAMLparam1(vt);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   std::unordered_map<bitwuzla::Term, bitwuzla::Term> map;
   size_t n = Wosize_val(vmap);
   map.reserve(n);
@@ -1368,6 +1419,7 @@ ocaml_bitwuzla_substitute_term (mlvalue vt, mlvalue vmap)
   new(&term_operations, &custom)
     Term(bitwuzla::substitute_term(*Term_val(vt), map));
   CAMLreturn(custom);
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim void
@@ -1389,8 +1441,10 @@ ocaml_bitwuzla_substitute_terms (mlvalue va, mlvalue vmap)
   }
   bitwuzla::substitute_terms(terms, map);
   for (size_t i = 0; i < n; i += 1) {
-    mlvalue custom;
+    mlvalue custom = Val_unit;
+    BITWUZLA_TRY_CATCH_BEGIN;
     new(&term_operations, &custom) Term(terms[i]);
+    BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
     caml_modify(&Field(va, i), custom);
   }
   CAMLreturn0;
@@ -1508,8 +1562,10 @@ ocaml_bitwuzla_get_assertions (mlvalue vt)
   size_t n = assertions.size();
   result = caml_alloc(n, 0);
   for (size_t i = 0; i < n; i += 1) {
-    mlvalue custom;
+    mlvalue custom = Val_unit;
+    BITWUZLA_TRY_CATCH_BEGIN;
     new(&term_operations, &custom) Term(assertions[i]);
+    BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
     caml_modify(&Field(result, i), custom);
   }
   CAMLreturn(result);
@@ -1535,8 +1591,10 @@ ocaml_bitwuzla_get_unsat_assumptions (mlvalue vt)
   size_t n = assumptions.size();
   result = caml_alloc(n, 0);
   for (size_t i = 0; i < n; i += 1) {
-    mlvalue custom;
+    mlvalue custom = Val_unit;
+    BITWUZLA_TRY_CATCH_BEGIN;
     new(&term_operations, &custom) Term(assumptions[i]);
+    BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
     caml_modify(&Field(result, i), custom);
   }
   CAMLreturn(result);
@@ -1554,8 +1612,10 @@ ocaml_bitwuzla_get_unsat_core (mlvalue vt)
   size_t n = core.size();
   result = caml_alloc(n, 0);
   for (size_t i = 0; i < n; i += 1) {
-    mlvalue custom;
+    mlvalue custom = Val_unit;
+    BITWUZLA_TRY_CATCH_BEGIN;
     new(&term_operations, &custom) Term(core[i]);
+    BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
     caml_modify(&Field(result, i), custom);
   }
   CAMLreturn(result);
@@ -1587,13 +1647,13 @@ ocaml_bitwuzla_check_sat (mlvalue va, mlvalue vt)
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_get_value (mlvalue vt, mlvalue va)
 {
-  BITWUZLA_TRY_CATCH_BEGIN;
   CAMLparam1(va);
-  mlvalue custom;
+  mlvalue custom = Val_unit;
+  BITWUZLA_TRY_CATCH_BEGIN;
   new(&term_operations, &custom)
     Term(Bitwuzla_val(vt)->get_value(*Term_val(va)));
   CAMLreturn(custom);
-  BITWUZLA_TRY_CATCH_END;
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
 }
 
 extern "C" CAMLprim void
