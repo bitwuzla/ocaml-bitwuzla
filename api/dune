@@ -16,7 +16,7 @@
   (include_dirs ../vendor/bitwuzla/include))
  (foreign_archives
   ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
-  ../vendor/bitwuzla/bitwuzla
+  ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/cadical/cadical)
  (library_flags -linkall)
@@ -36,7 +36,7 @@
   (include_dirs ../vendor/bitwuzla/include))
  (foreign_archives
   ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
-  ../vendor/bitwuzla/bitwuzla
+  ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/cadical/cadical)
  (library_flags -linkall)
@@ -56,7 +56,7 @@
   (include_dirs ../vendor/bitwuzla/include))
  (foreign_archives
   ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
-  ../vendor/bitwuzla/bitwuzla
+  ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/cadical/cadical)
  (library_flags -linkall)
@@ -76,7 +76,7 @@
   (include_dirs ../vendor/bitwuzla/include))
  (foreign_archives
   ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
-  ../vendor/bitwuzla/bitwuzla
+  ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/cadical/cadical)
  (library_flags -linkall)

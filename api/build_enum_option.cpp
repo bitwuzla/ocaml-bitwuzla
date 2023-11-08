@@ -133,21 +133,21 @@ extern "C" void build_enum_option ()
 	    << max_stream.str()
 	    << "type t" << std::endl
 	    << "external default : unit -> t = "
-	    << '"' << "ocaml_bitwuzla_options_new" << '"' << std::endl
+	    << '"' << "ocaml_bitwuzla_cxx_options_new" << '"' << std::endl
 	    << "external set_numeric : t -> (int [@untagged])"
 	    << "-> (int [@untagged]) -> unit = "
-	    << '"' << "ocaml_bitwuzla_options_set_numeric" << '"' << ' '
-	    << '"' << "native_bitwuzla_options_set_numeric" << '"'<< std::endl
+	    << '"' << "ocaml_bitwuzla_cxx_options_set_numeric" << '"' << ' '
+	    << '"' << "native_bitwuzla_cxx_options_set_numeric" << '"'<< std::endl
 	    << "external set_mode : t -> (int [@untagged]) -> string -> unit = "
-	    << '"' << "ocaml_bitwuzla_options_set_mode" << '"' << ' '
-	    << '"' << "native_bitwuzla_options_set_mode" << '"' << std::endl
+	    << '"' << "ocaml_bitwuzla_cxx_options_set_mode" << '"' << ' '
+	    << '"' << "native_bitwuzla_cxx_options_set_mode" << '"' << std::endl
 	    << set_stream.str()
 	    << "external get_numeric : t -> (int [@untagged])"
 	    << "-> (int [@untagged]) = "
-	    << '"' << "ocaml_bitwuzla_options_get_numeric" << '"' << ' '
-	    << '"' << "native_bitwuzla_options_get_numeric" << '"' << std::endl
+	    << '"' << "ocaml_bitwuzla_cxx_options_get_numeric" << '"' << ' '
+	    << '"' << "native_bitwuzla_cxx_options_get_numeric" << '"' << std::endl
 	    << "external get_mode : t -> (int [@untagged]) -> string = "
-	    << '"' << "ocaml_bitwuzla_options_get_mode" << '"' << ' '
-	    << '"' << "native_bitwuzla_options_get_mode" << '"' << std::endl
+	    << '"' << "ocaml_bitwuzla_cxx_options_get_mode" << '"' << ' '
+	    << '"' << "native_bitwuzla_cxx_options_get_mode" << '"' << std::endl
 	    << get_stream.str();
 }

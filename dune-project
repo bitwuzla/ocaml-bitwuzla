@@ -26,9 +26,6 @@ Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fi
   zarith
   (ppx_inline_test (and :with-test (>= v0.13)))
   (ppx_expect (and :with-test (>= v0.13))))
- (conflicts
-  bitwuzla-c
-  (bitwuzla (< 0.1)))
  (tags
   ("SMT solver"
    "AUFBVFP")))
