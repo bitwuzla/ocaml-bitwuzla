@@ -19,7 +19,7 @@ OCaml binding for the SMT solver Bitwuzla C++ API.
 Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fixed-size bit-vectors, arrays and uninterpreted functions and their combinations. Its name is derived from an Austrian dialect expression that can be translated as “someone who tinkers with bits”.")
  (documentation "https://bitwuzla.github.io/docs/ocaml/")
  (depends
-  (ocaml (and (>= 4.12) (< 5)))
+  (ocaml (>= 4.12))
   (conf-git :build)
   (conf-gcc :build)
   (conf-g++ :build)

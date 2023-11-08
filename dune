@@ -1,7 +1,16 @@
 (library
  (public_name bitwuzla-cxx)
  (name bitwuzla_cxx)
- (modules options sort roundingMode kind term result solver bitwuzla_cxx)
+ (modules
+  manager
+  options
+  sort
+  roundingMode
+  kind
+  term
+  result
+  solver
+  bitwuzla_cxx)
  (libraries zarith)
  (foreign_stubs
   (language cxx)

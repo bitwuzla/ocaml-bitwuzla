@@ -138,6 +138,7 @@
    floating_point
    fp_solver
    rounding_mode
+   symfpu_nm
    symfpu_wrapper
    word_blaster
    fun_solver
@@ -151,16 +152,12 @@
    type
    type_data
    type_manager
+   hash_pair
    logger
+   resources
    statistics)
   (include_dirs include src src/lib ../symfpu ../cadical)
-  (flags
-   :standard
-   -std=c++17
-   -Isrc/lib/
-   -I../cadical/src
-   -I..
-   -DNDEBUG)
+  (flags :standard -std=c++17 -Isrc/lib/ -I../cadical/src -I.. -DNDEBUG)
   (extra_deps ../.bitwuzla_tree)))
 
 (subdir
@@ -178,22 +175,12 @@
  (deps
   (source_tree bitwuzla)
   (:p0001
-   (file patch/0001-api-Add-hook-for-ocaml-z-value.patch))
-  (:p0002
-   (file patch/0002-ocaml-make-NodeManager-global-from-thread-local.patch))
-  (:p0003
-   (file patch/0003-Fix-compilation-with-older-GCC-version.patch)))
+   (file patch/0001-api-Add-hook-for-ocaml-z-value.patch)))
  (target .bitwuzla_tree)
  (action
   (no-infer
    (progn
     (with-stdin-from
      %{p0001}
-     (run patch -p1 --directory bitwuzla))
-    (with-stdin-from
-     %{p0002}
-     (run patch -p1 --directory bitwuzla))
-    (with-stdin-from
-     %{p0003}
      (run patch -p1 --directory bitwuzla))
     (write-file %{target} "")))))
