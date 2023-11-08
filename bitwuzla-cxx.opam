@@ -25,10 +25,6 @@ depends: [
   "ppx_expect" {with-test & >= "v0.13"}
   "odoc" {with-doc}
 ]
-conflicts: [
-  "bitwuzla-c"
-  "bitwuzla" {< "0.1"}
-]
 build: [
   ["dune" "subst"] {dev}
   [

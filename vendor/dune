@@ -86,7 +86,7 @@
       (echo "}  // namespace bzla::config\n")
       (echo "#endif"))))))
  (foreign_library
-  (archive_name bitwuzla)
+  (archive_name bitwuzla-cxx)
   (language cxx)
   (names
    checks
