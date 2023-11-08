@@ -16,10 +16,10 @@
    (language cxx)
    (names
     bitvector
-    aig_manager
     aig_cnf
+    aig_manager
+    aig_node
     aig_printer
-    aig_bitblaster
     ls
     ls_bv
     bitvector_domain
@@ -49,10 +49,22 @@
      -DNDEBUG)
     (extra_deps ../../config.h ../../../../.bitwuzla_tree))))
  (subdir
-   src
+  src
   (subdir
-    parser
-    (dirs :standard \ btor2))
+   parser
+   (include_subdirs no)
+   (subdir
+    smt2
+    (foreign_library
+     (archive_name bitwuzla-smt2)
+     (language cxx)
+     (names lexer)
+     (flags
+      :standard
+      -std=c++17
+      -I../..
+      -DNDEBUG)
+     (extra_deps ../../../../.bitwuzla_tree))))
   (rule
    (deps ../COPYING)
    (target config.h)
@@ -104,7 +116,6 @@
    node_manager
    node_utils
    option
-   lexer
    assertion_tracker
    assertion_vector
    contradicting_ands
@@ -129,6 +140,7 @@
    rewrites_bv_norm
    rewrites_core
    rewrites_fp
+   resource_terminator
    cadical
    cryptominisat
    kissat
@@ -141,6 +153,7 @@
    floating_point
    fp_solver
    rounding_mode
+   symfpu_nm
    symfpu_wrapper
    word_blaster
    fun_solver
@@ -150,7 +163,6 @@
    solver_engine
    solver_state
    solving_context
-   timeout_terminator
    type
    type_data
    type_manager
@@ -159,13 +171,7 @@
    resources
    statistics)
   (include_dirs include src src/lib ../symfpu ../cadical)
-  (flags
-   :standard
-   -std=c++17
-   -Isrc/lib/
-   -I../cadical/src
-   -I..
-   -DNDEBUG)
+  (flags :standard -std=c++17 -Isrc/lib/ -I../cadical/src -I.. -DNDEBUG)
   (extra_deps ../.bitwuzla_tree)))
 
 (subdir
@@ -183,17 +189,12 @@
  (deps
   (source_tree bitwuzla)
   (:p0001
-   (file patch/0001-api-Add-hook-for-ocaml-z-value.patch))
-  (:p0002
-   (file patch/0002-ocaml-make-NodeManager-global-from-thread-local.patch)))
+   (file patch/0001-api-Add-hook-for-ocaml-z-value.patch)))
  (target .bitwuzla_tree)
  (action
   (no-infer
    (progn
     (with-stdin-from
      %{p0001}
-     (run patch -p1 --directory bitwuzla))
-    (with-stdin-from
-     %{p0002}
      (run patch -p1 --directory bitwuzla))
     (write-file %{target} "")))))
