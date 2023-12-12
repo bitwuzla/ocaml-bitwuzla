@@ -149,6 +149,20 @@ module Options : sig
 
             This is an expert option to configure the prop solver engine.
         *)
+    | Prop_opt_lt_concat_sext : bool key
+        (** Propagation-based local search solver engine:
+          Optimization for inverse value computation of inequalities over
+          concat and sign extension operands.
+
+          When enabled, use optimized inverse value value computation for
+          inequalities over concats.
+
+          Values:
+          - [true]: enable
+          - [false]: disable \[{b default}\]
+
+          This is an expert option to configure the prop solver engine.
+      *)
     | Prop_path_sel : prop_path_sel key
         (** Propagation-based local search solver engine:
             Path selection.
@@ -765,7 +779,11 @@ module Kind : sig
     | Bv_neg
         (** Bit-vector negation (two's complement).
 
-        SMT-LIB: [bvneg] *)
+            SMT-LIB: [bvneg] *)
+    | Bv_nego
+        (** Bit-vector negation overflow test.
+
+            SMT-LIB: [bvnego] *)
     | Bv_nor  (** Bit-vector nor.
 
                   SMT-LIB: [bvnor] *)
