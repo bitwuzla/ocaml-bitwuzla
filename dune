@@ -24,6 +24,7 @@
  (foreign_archives
   vendor/bitwuzla/src/api/cpp/bitwuzla-api
   vendor/bitwuzla/bitwuzla-cxx
+  vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   vendor/bitwuzla/src/lib/bitwuzla-libs
   vendor/cadical/cadical)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp)

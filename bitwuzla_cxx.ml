@@ -559,6 +559,12 @@ module type S = sig
           (** Bit-vector negation (two's complement).
 
         SMT-LIB: [bvneg] *)
+      | Bv_nego
+          (** Bit-vector negation overflow test.
+
+            Predicate indicating if bit-vector negation produces an overflow.
+
+            SMT-LIB: [bvnego] *)
       | Bv_nor  (** Bit-vector nor.
 
                   SMT-LIB: [bvnor] *)

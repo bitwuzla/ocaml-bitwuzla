@@ -16,10 +16,10 @@
    (language cxx)
    (names
     bitvector
-    aig_manager
     aig_cnf
+    aig_manager
+    aig_node
     aig_printer
-    aig_bitblaster
     ls
     ls_bv
     bitvector_domain
@@ -50,7 +50,21 @@
     (extra_deps ../../config.h ../../../../.bitwuzla_tree))))
  (subdir
   src
-  (dirs :standard \ parser)
+  (subdir
+   parser
+   (include_subdirs no)
+   (subdir
+    smt2
+    (foreign_library
+     (archive_name bitwuzla-smt2)
+     (language cxx)
+     (names lexer)
+     (flags
+      :standard
+      -std=c++17
+      -I../..
+      -DNDEBUG)
+     (extra_deps ../../../../.bitwuzla_tree))))
   (rule
    (deps ../COPYING)
    (target config.h)
@@ -126,6 +140,7 @@
    rewrites_bv_norm
    rewrites_core
    rewrites_fp
+   resource_terminator
    cadical
    cryptominisat
    kissat
@@ -148,7 +163,6 @@
    solver_engine
    solver_state
    solving_context
-   timeout_terminator
    type
    type_data
    type_manager

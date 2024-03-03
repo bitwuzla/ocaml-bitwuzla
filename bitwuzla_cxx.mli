@@ -72,12 +72,19 @@ module Options : sig
             - An unsigned integer value <= 4 \[{b default}: [0]\].
         *)
     | Time_limit_per : int key
-        (** Time limit in milliseconds per satisfiability check.**
+        (** Time limit in milliseconds per satisfiability check.
 
             Values:
             - An unsigned integer for the time limit in milliseconds.
             \[{b default}: [0]\].
         *)
+    | Memory_limit : int key
+        (** Memory limit in MB.
+
+              Values:
+              - An unsigned integer for the memory limit in MB.
+              \[{b default}: [0]\].
+          *)
     | Bv_solver : bv_solver key
     | Rewrite_level : int key
         (** Rewrite level.
@@ -791,6 +798,12 @@ module type S = sig
           (** Bit-vector negation (two's complement).
 
         SMT-LIB: [bvneg] *)
+      | Bv_nego
+          (** Bit-vector negation overflow test.
+
+            Predicate indicating if bit-vector negation produces an overflow.
+
+            SMT-LIB: [bvnego] *)
       | Bv_nor  (** Bit-vector nor.
 
                   SMT-LIB: [bvnor] *)
