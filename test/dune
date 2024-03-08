@@ -6,3 +6,14 @@
  (preprocess
   (pps ppx_expect ppx_inline_test))
  (libraries bitwuzla-cxx))
+
+(library
+ (name t_bitwuzla_cxx_5)
+ (optional)
+ (enabled_if
+  (> %{ocaml_version} 5))
+ (modules t_bitwuzla_cxx_5)
+ (inline_tests)
+ (preprocess
+  (pps ppx_expect ppx_inline_test))
+ (libraries unix bitwuzla-cxx))

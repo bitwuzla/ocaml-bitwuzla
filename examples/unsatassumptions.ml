@@ -87,9 +87,9 @@ let () =
   Format.printf "Bitwuzla: %s@," (Result.to_string result);
 
   (* (get-unsat-assumptions) *)
-  let unsat_core = Solver.get_unsat_core bitwuzla in
+  let unsat_assumptions = Solver.get_unsat_assumptions bitwuzla in
   Format.printf "Unsat Assumptions:@,@[<v 1>{";
-  Array.iter (Format.printf "@,%a" Term.pp) unsat_core;
+  Array.iter (Format.printf "@,%a" Term.pp) unsat_assumptions;
   Format.printf "@]@,}@,";
 
   Format.close_box ()
