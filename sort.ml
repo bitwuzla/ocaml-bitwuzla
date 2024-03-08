@@ -32,11 +32,8 @@ external fp_sig_size : t -> (int[@untagged])
   = "ocaml_bitwuzla_cxx_sort_fp_sig_size" "native_bitwuzla_cxx_sort_fp_sig_size"
 
 external array_index : t -> t = "ocaml_bitwuzla_cxx_sort_array_index"
-
 external array_element : t -> t = "ocaml_bitwuzla_cxx_sort_array_element"
-
 external fun_domain : t -> t array = "ocaml_bitwuzla_cxx_sort_fun_domain"
-
 external fun_codomain : t -> t = "ocaml_bitwuzla_cxx_sort_fun_codomain"
 
 external fun_arity : t -> (int[@untagged])
@@ -46,21 +43,15 @@ external uninterpreted_symbol : t -> string
   = "ocaml_bitwuzla_cxx_sort_uninterpreted_symbol"
 
 external is_array : t -> bool = "ocaml_bitwuzla_cxx_sort_is_array" [@@noalloc]
-
 external is_bool : t -> bool = "ocaml_bitwuzla_cxx_sort_is_bool" [@@noalloc]
-
 external is_bv : t -> bool = "ocaml_bitwuzla_cxx_sort_is_bv" [@@noalloc]
-
 external is_fp : t -> bool = "ocaml_bitwuzla_cxx_sort_is_fp" [@@noalloc]
-
 external is_fun : t -> bool = "ocaml_bitwuzla_cxx_sort_is_fun" [@@noalloc]
-
 external is_rm : t -> bool = "ocaml_bitwuzla_cxx_sort_is_rm" [@@noalloc]
 
 external is_uninterpreted : t -> bool
   = "ocaml_bitwuzla_cxx_sort_is_uninterpreted"
-  [@@noalloc]
+[@@noalloc]
 
 external to_string : t -> string = "ocaml_bitwuzla_cxx_sort_to_string"
-
 external pp : Format.formatter -> t -> unit = "ocaml_bitwuzla_cxx_sort_pp"

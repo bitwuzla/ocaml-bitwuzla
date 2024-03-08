@@ -30,7 +30,8 @@ let kind t = Kind.of_cxx @@ kind t
 external sort : t -> Sort.t = "ocaml_bitwuzla_cxx_term_sort"
 
 external num_children : t -> (int[@untagged])
-  = "ocaml_bitwuzla_cxx_term_num_children" "native_bitwuzla_cxx_term_num_children"
+  = "ocaml_bitwuzla_cxx_term_num_children"
+    "native_bitwuzla_cxx_term_num_children"
 
 external children : t -> t array = "ocaml_bitwuzla_cxx_term_children"
 
@@ -41,68 +42,66 @@ external num_indices : t -> (int[@untagged])
   = "ocaml_bitwuzla_cxx_term_num_indices" "native_bitwuzla_cxx_term_num_indices"
 
 external indices : t -> int array = "ocaml_bitwuzla_cxx_term_indices"
-
 external symbol : t -> string = "ocaml_bitwuzla_cxx_term_symbol"
-
 external is_const : t -> bool = "ocaml_bitwuzla_cxx_term_is_const" [@@noalloc]
 
 external is_variable : t -> bool = "ocaml_bitwuzla_cxx_term_is_variable"
-  [@@noalloc]
+[@@noalloc]
 
 external is_value : t -> bool = "ocaml_bitwuzla_cxx_term_is_value" [@@noalloc]
 
 external is_bv_value_zero : t -> bool
   = "ocaml_bitwuzla_cxx_term_is_bv_value_zero"
-  [@@noalloc]
+[@@noalloc]
 
 external is_bv_value_one : t -> bool = "ocaml_bitwuzla_cxx_term_is_bv_value_one"
-  [@@noalloc]
+[@@noalloc]
 
 external is_bv_value_ones : t -> bool
   = "ocaml_bitwuzla_cxx_term_is_bv_value_ones"
-  [@@noalloc]
+[@@noalloc]
 
 external is_bv_value_min_signed : t -> bool
   = "ocaml_bitwuzla_cxx_term_is_bv_value_min_signed"
-  [@@noalloc]
+[@@noalloc]
 
 external is_bv_value_max_signed : t -> bool
   = "ocaml_bitwuzla_cxx_term_is_bv_value_max_signed"
-  [@@noalloc]
+[@@noalloc]
 
 external is_fp_value_pos_zero : t -> bool
   = "ocaml_bitwuzla_cxx_term_is_fp_value_pos_zero"
-  [@@noalloc]
+[@@noalloc]
 
 external is_fp_value_neg_zero : t -> bool
   = "ocaml_bitwuzla_cxx_term_is_fp_value_neg_zero"
-  [@@noalloc]
+[@@noalloc]
 
 external is_fp_value_pos_inf : t -> bool
   = "ocaml_bitwuzla_cxx_term_is_fp_value_pos_inf"
-  [@@noalloc]
+[@@noalloc]
 
 external is_fp_value_neg_inf : t -> bool
   = "ocaml_bitwuzla_cxx_term_is_fp_value_neg_inf"
-  [@@noalloc]
+[@@noalloc]
 
 external is_fp_value_nan : t -> bool = "ocaml_bitwuzla_cxx_term_is_fp_value_nan"
-  [@@noalloc]
+[@@noalloc]
 
 external is_rm_value_rna : t -> bool = "ocaml_bitwuzla_cxx_term_is_rm_value_rna"
-  [@@noalloc]
+[@@noalloc]
 
 external is_rm_value_rne : t -> bool = "ocaml_bitwuzla_cxx_term_is_rm_value_rne"
-  [@@noalloc]
+[@@noalloc]
 
 external is_rm_value_rtn : t -> bool = "ocaml_bitwuzla_cxx_term_is_rm_value_rtn"
-  [@@noalloc]
+[@@noalloc]
 
 external is_rm_value_rtp : t -> bool = "ocaml_bitwuzla_cxx_term_is_rm_value_rtp"
-  [@@noalloc]
+[@@noalloc]
 
 external is_rm_value_rtz : t -> bool = "ocaml_bitwuzla_cxx_term_is_rm_value_rtz"
-  [@@noalloc]
+[@@noalloc]
 
 external to_string : (int[@untagged]) -> t -> string
   = "ocaml_bitwuzla_cxx_term_to_string" "native_bitwuzla_cxx_term_to_string"
@@ -117,10 +116,12 @@ external pp_smt2 : bv_format:(int[@untagged]) -> Format.formatter -> t -> unit
 external to_bool : t -> bool = "ocaml_bitwuzla_cxx_term_boolean_value"
 
 external to_rounding_mode : t -> (int[@untagged])
-  = "ocaml_bitwuzla_cxx_term_rounding_mode_value" "native_bitwuzla_cxx_term_rounding_mode_value"
+  = "ocaml_bitwuzla_cxx_term_rounding_mode_value"
+    "native_bitwuzla_cxx_term_rounding_mode_value"
 
 external to_base : t -> (int[@untagged]) -> string
-  = "ocaml_bitwuzla_cxx_term_string_value" "native_bitwuzla_cxx_term_string_value"
+  = "ocaml_bitwuzla_cxx_term_string_value"
+    "native_bitwuzla_cxx_term_string_value"
 
 external to_ieee_754 : t -> string * string * string
   = "ocaml_bitwuzla_cxx_term_ieee_754_value"

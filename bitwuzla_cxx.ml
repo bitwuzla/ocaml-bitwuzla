@@ -10,9 +10,7 @@
 (**************************************************************************)
 
 external copyright : unit -> string = "ocaml_bitwuzla_cxx_copyright"
-
 external version : unit -> string = "ocaml_bitwuzla_cxx_version"
-
 external init_format : unit -> unit = "ocaml_bitwuzla_cxx_init_format"
 
 let () =
@@ -44,7 +42,6 @@ external mk_uninterpreted_sort : Manager.t -> ?symbol:string -> unit -> Sort.t
   = "ocaml_bitwuzla_cxx_mk_uninterpreted_sort"
 
 external mk_true : Manager.t -> Term.t = "ocaml_bitwuzla_cxx_mk_true"
-
 external mk_false : Manager.t -> Term.t = "ocaml_bitwuzla_cxx_mk_false"
 
 external mk_bv_zero : Manager.t -> Sort.t -> Term.t
@@ -70,7 +67,8 @@ external mk_bv_value_int : Manager.t -> Sort.t -> (int[@untagged]) -> Term.t
   = "ocaml_bitwuzla_cxx_mk_bv_value_int" "native_bitwuzla_cxx_mk_bv_value_int64"
 
 external mk_bv_value_int64 : Manager.t -> Sort.t -> (int64[@unboxed]) -> Term.t
-  = "ocaml_bitwuzla_cxx_mk_bv_value_int64" "native_bitwuzla_cxx_mk_bv_value_int64"
+  = "ocaml_bitwuzla_cxx_mk_bv_value_int64"
+    "native_bitwuzla_cxx_mk_bv_value_int64"
 
 external mk_fp_pos_zero : Manager.t -> Sort.t -> Term.t
   = "ocaml_bitwuzla_cxx_mk_fp_pos_zero"
@@ -113,7 +111,8 @@ external mk_term3 :
 
 external mk_term1_indexed1 :
   Manager.t -> (int[@untagged]) -> Term.t -> (int[@untagged]) -> Term.t
-  = "ocaml_bitwuzla_cxx_mk_term1_indexed1" "native_bitwuzla_cxx_mk_term1_indexed1"
+  = "ocaml_bitwuzla_cxx_mk_term1_indexed1"
+    "native_bitwuzla_cxx_mk_term1_indexed1"
 
 external mk_term1_indexed2 :
   Manager.t ->
@@ -122,7 +121,8 @@ external mk_term1_indexed2 :
   (int[@untagged]) ->
   (int[@untagged]) ->
   Term.t
-  = "ocaml_bitwuzla_cxx_mk_term1_indexed2" "native_bitwuzla_cxx_mk_term1_indexed2"
+  = "ocaml_bitwuzla_cxx_mk_term1_indexed2"
+    "native_bitwuzla_cxx_mk_term1_indexed2"
 
 external mk_term2_indexed1 :
   Manager.t ->
@@ -131,7 +131,8 @@ external mk_term2_indexed1 :
   Term.t ->
   (int[@untagged]) ->
   Term.t
-  = "ocaml_bitwuzla_cxx_mk_term2_indexed1" "native_bitwuzla_cxx_mk_term2_indexed1"
+  = "ocaml_bitwuzla_cxx_mk_term2_indexed1"
+    "native_bitwuzla_cxx_mk_term2_indexed1"
 
 external mk_term2_indexed2 :
   Manager.t ->
@@ -141,7 +142,8 @@ external mk_term2_indexed2 :
   (int[@untagged]) ->
   (int[@untagged]) ->
   Term.t
-  = "ocaml_bitwuzla_cxx_mk_term2_indexed2" "native_bitwuzla_cxx_mk_term2_indexed2"
+  = "ocaml_bitwuzla_cxx_mk_term2_indexed2"
+    "native_bitwuzla_cxx_mk_term2_indexed2"
 
 external mk_term :
   Manager.t -> (int[@untagged]) -> Term.t array -> int array -> Term.t
@@ -1913,17 +1915,11 @@ module Make () : S = struct
   module Sort = Sort
 
   let mk_array_sort = mk_array_sort t
-
   let mk_bool_sort () = mk_bool_sort t
-
   let mk_bv_sort = mk_bv_sort t
-
   let mk_fp_sort = mk_fp_sort t
-
   let mk_fun_sort = mk_fun_sort t
-
   let mk_rm_sort () = mk_rm_sort t
-
   let mk_uninterpreted_sort = mk_uninterpreted_sort t
 
   module RoundingMode = RoundingMode
@@ -1931,68 +1927,39 @@ module Make () : S = struct
   module Term = Term
 
   let mk_true () = mk_true t
-
   let mk_false () = mk_false t
-
   let mk_bv_zero = mk_bv_zero t
-
   let mk_bv_one = mk_bv_one t
-
   let mk_bv_ones = mk_bv_ones t
-
   let mk_bv_min_signed = mk_bv_min_signed t
-
   let mk_bv_max_signed = mk_bv_max_signed t
-
   let mk_bv_value = mk_bv_value t
-
   let mk_bv_value_int = mk_bv_value_int t
-
   let mk_bv_value_int64 = mk_bv_value_int64 t
-
   let mk_fp_pos_zero = mk_fp_pos_zero t
-
   let mk_fp_neg_zero = mk_fp_neg_zero t
-
   let mk_fp_pos_inf = mk_fp_pos_inf t
-
   let mk_fp_neg_inf = mk_fp_neg_inf t
-
   let mk_fp_nan = mk_fp_nan t
-
   let mk_fp_value = mk_fp_value t
-
   let mk_fp_value_from_real = mk_fp_value_from_real t
-
   let mk_fp_value_from_rational = mk_fp_value_from_rational t
-
   let mk_rm_value m = mk_rm_value t (RoundingMode.to_cxx m)
-
   let mk_term1 k x = mk_term1 t (Kind.to_cxx k) x
-
   let mk_term2 k x1 x2 = mk_term2 t (Kind.to_cxx k) x1 x2
-
   let mk_term3 k x1 x2 x3 = mk_term3 t (Kind.to_cxx k) x1 x2 x3
-
   let mk_term1_indexed1 k x i = mk_term1_indexed1 t (Kind.to_cxx k) x i
-
   let mk_term1_indexed2 k x i j = mk_term1_indexed2 t (Kind.to_cxx k) x i j
-
   let mk_term2_indexed1 k x1 x2 i = mk_term2_indexed1 t (Kind.to_cxx k) x1 x2 i
 
   let mk_term2_indexed2 k x1 x2 i j =
     mk_term2_indexed2 t (Kind.to_cxx k) x1 x2 i j
 
   let mk_term k ?(indices = [||]) args = mk_term t (Kind.to_cxx k) args indices
-
   let mk_const = mk_const t
-
   let mk_const_array = mk_const_array t
-
   let mk_var = mk_var t
-
   let substitute_term = substitute_term t
-
   let substitute_terms = substitute_terms t
 
   module Result = Result

@@ -12,7 +12,6 @@
 type t
 
 external create : Manager.t -> Options.t -> t = "ocaml_bitwuzla_cxx_new"
-
 external unsafe_delete : t -> unit = "ocaml_bitwuzla_cxx_delete"
 
 external configure_terminator : t -> (unit -> bool) option -> unit

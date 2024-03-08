@@ -17,7 +17,6 @@ open Bitwuzla_cxx
 open Format
 
 let print_predicate b = print_int (Bool.to_int b)
-
 let timeout t () = Float.compare (Sys.time ()) t > 0
 
 let pp_array pp f a =
@@ -82,19 +81,12 @@ let with_hard_formula f =
       f t)
 
 let rm_sort = mk_rm_sort ()
-
 let bool_sort = mk_bool_sort ()
-
 let bv8_sort = mk_bv_sort 8
-
 let bv32_sort = mk_bv_sort 32
-
 let fp16_sort = mk_fp_sort 5 11
-
 let ar32_8_sort = mk_array_sort bv32_sort bv8_sort
-
 let fun1_1_1_sort = mk_fun_sort [| bool_sort; bool_sort |] bool_sort
-
 let uninterpreted_sort = mk_uninterpreted_sort ~symbol:"T" ()
 
 let sorts =
@@ -121,31 +113,19 @@ let with_sorts_2 f =
 let bv_zero = mk_bv_zero bv8_sort
 
 let bv_const_a = mk_const bv8_sort ~symbol:"a"
-
 and bv_const_b = mk_const bv8_sort ~symbol:"b"
-
 and bv_const_c = mk_const bv32_sort ~symbol:"c"
 
 let bv_var = mk_var bv8_sort ~symbol:"a"
-
 let fp_zero = mk_fp_pos_zero fp16_sort
-
 let fp_const_a = mk_const fp16_sort ~symbol:"a"
-
 let ar_value = mk_const_array ar32_8_sort bv_zero
-
 let ar_const_a = mk_const ar32_8_sort ~symbol:"a"
-
 let fun_const_a = mk_const fun1_1_1_sort ~symbol:"a"
-
 let rm_rtz = mk_rm_value Rtz
-
 let term1 = mk_term1 Bv_not bv_const_a
-
 let term2 = mk_term2 Bv_add bv_const_a bv_const_b
-
 let term3 = mk_term3 Store ar_const_a bv_const_c bv_const_b
-
 let term1_indexed2 = mk_term1_indexed2 Bv_extract bv_const_a 1 0
 
 let terms =
@@ -168,7 +148,6 @@ let terms =
   |]
 
 let with_terms f = Array.iter f terms
-
 let%test "version" = 0 <> String.length @@ version ()
 
 let%expect_test "copyright" =
@@ -303,9 +282,7 @@ let%test "Sort.hash" =
   true
 
 let%test "Sort.bv_size" = Sort.bv_size bv8_sort = 8
-
 let%test "Sort.fp_exp_size" = Sort.fp_exp_size fp16_sort = 5
-
 let%test "Sort.fp_sig_size" = Sort.fp_sig_size fp16_sort = 11
 
 let%expect_test "Sort.array_index" =
@@ -338,7 +315,6 @@ let%test "Sort.uninterpreted_symbol" =
   with Not_found -> true
 
 let%test "Sort (compare)" = mk_bool_sort () = mk_bool_sort ()
-
 let%test "Sort (compare)" = not (mk_bv_sort 32 = mk_bv_sort 64)
 
 let%expect_test "Sort.is_array" =
@@ -514,13 +490,9 @@ let%test "Term.hash" =
   true
 
 let%test "Term.kind" = Term.kind term1 = Bv_not
-
 let%test "Term.num_children" = Term.num_children term1 = 1
-
 let%test "Term.num_children" = Term.num_children term2 = 2
-
 let%test "Term.num_children" = Term.num_children term3 = 3
-
 let%test "Term.num_children" = Term.num_children term1_indexed2 = 1
 
 let%expect_test "Term.children" =
@@ -569,13 +541,9 @@ let%test "Term.get" =
   with Invalid_argument _ -> true
 
 let%test "Term.num_indices" = Term.num_indices term1 = 0
-
 let%test "Term.num_indices" = Term.num_indices term1 = 0
-
 let%test "Term.num_indices" = Term.num_indices term2 = 0
-
 let%test "Term.num_indices" = Term.num_indices term3 = 0
-
 let%test "Term.num_indices" = Term.num_indices term1_indexed2 = 2
 
 let%expect_test "Term.indices" =
@@ -617,15 +585,10 @@ let%expect_test "Term.is_value" =
   [%expect {| 100001000000001 |}]
 
 let%test "Term.is_bv_value_zero" = not @@ Term.is_bv_value_zero bv_var
-
 let%test "Term.is_bv_value_zero" = Term.is_bv_value_zero @@ mk_bv_zero bv8_sort
-
 let%test "Term.is_bv_value_one" = not @@ Term.is_bv_value_one bv_var
-
 let%test "Term.is_bv_value_one" = Term.is_bv_value_one @@ mk_bv_one bv8_sort
-
 let%test "Term.is_bv_value_ones" = not @@ Term.is_bv_value_ones bv_var
-
 let%test "Term.is_bv_value_ones" = Term.is_bv_value_ones @@ mk_bv_ones bv8_sort
 
 let%test "Term.is_bv_value_min_signed" =
@@ -661,7 +624,6 @@ let%test "Term.is_fp_value_neg_inf" =
   Term.is_fp_value_neg_inf @@ mk_fp_neg_inf fp16_sort
 
 let%test "Term.is_fp_value_nan" = not @@ Term.is_fp_value_nan bv_var
-
 let%test "Term.is_fp_value_nan" = Term.is_fp_value_nan @@ mk_fp_nan fp16_sort
 
 let%test "push/pop" =

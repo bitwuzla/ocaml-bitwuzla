@@ -59,11 +59,7 @@
      (archive_name bitwuzla-smt2)
      (language cxx)
      (names lexer)
-     (flags
-      :standard
-      -std=c++17
-      -I../..
-      -DNDEBUG)
+     (flags :standard -std=c++17 -I../.. -DNDEBUG)
      (extra_deps ../../../../.bitwuzla_tree))))
   (rule
    (deps ../COPYING)

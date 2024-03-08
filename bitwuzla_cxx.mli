@@ -362,9 +362,7 @@ module Options : sig
         *)
 
   and bv_solver = Bitblast | Preprop | Prop
-
   and sat_solver = Cadical | Cms | Kissat
-
   and prop_path_sel = Essential | Random
 
   val to_string : 'a key -> string
