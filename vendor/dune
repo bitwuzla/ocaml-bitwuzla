@@ -9,26 +9,36 @@
  (include_subdirs qualified)
  (dirs include src)
  (subdir
+  src/util
+  (include_subdirs qualified)
+  (foreign_library
+   (archive_name bitwuzla-utils)
+   (language cxx)
+   (names hash_pair logger printer resources statistics)
+   (flags :standard -std=c++17 -I. -I.. -DNDEBUG)
+   (extra_deps ../../../.bitwuzla_tree)))
+ (subdir
   src/lib
   (include_subdirs qualified)
   (foreign_library
    (archive_name bitwuzla-libs)
    (language cxx)
    (names
-    bitvector
     aig_cnf
     aig_manager
     aig_node
     aig_printer
     ls
     ls_bv
+    bitvector
+    bitvector_bounds
     bitvector_domain
     bitvector_node
     node
     wheel_factorizer
     rng)
-   (include_dirs bitblast bv ls rng util)
-   (flags :standard -std=c++17 -I. -DNDEBUG)
+   (include_dirs bitblast bv ls rng)
+   (flags :standard -std=c++17 -I. -I.. -DNDEBUG)
    (extra_deps ../../../.bitwuzla_tree)))
  (subdir
   src/api
@@ -110,6 +120,7 @@
    node_data
    node_kind
    node_manager
+   node_unique_table
    node_utils
    option
    assertion_tracker
@@ -161,11 +172,7 @@
    solving_context
    type
    type_data
-   type_manager
-   hash_pair
-   logger
-   resources
-   statistics)
+   type_manager)
   (include_dirs include src src/lib ../symfpu ../cadical)
   (flags :standard -std=c++17 -Isrc/lib/ -I../cadical/src -I.. -DNDEBUG)
   (extra_deps ../.bitwuzla_tree)))

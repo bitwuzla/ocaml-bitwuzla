@@ -19,6 +19,7 @@
   ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
+  ../vendor/bitwuzla/src/util/bitwuzla-utils
   ../vendor/cadical/cadical)
  (library_flags -linkall)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
@@ -40,6 +41,7 @@
   ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
+  ../vendor/bitwuzla/src/util/bitwuzla-utils
   ../vendor/cadical/cadical)
  (library_flags -linkall)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
@@ -61,6 +63,7 @@
   ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
+  ../vendor/bitwuzla/src/util/bitwuzla-utils
   ../vendor/cadical/cadical)
  (library_flags -linkall)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
@@ -82,6 +85,7 @@
   ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
+  ../vendor/bitwuzla/src/util/bitwuzla-utils
   ../vendor/cadical/cadical)
  (library_flags -linkall)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
