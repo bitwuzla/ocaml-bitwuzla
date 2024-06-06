@@ -13,6 +13,7 @@
 #include <sstream>
 #include <climits>
 #include <cstring>
+#include <algorithm>
 #include <bitwuzla/cpp/bitwuzla.h>
 
 using namespace bitwuzla;
