@@ -173,7 +173,7 @@
    type
    type_data
    type_manager)
-  (include_dirs include src src/lib ../symfpu ../cadical)
+  (include_dirs include src src/lib ../symfpu ../cadical/src)
   (flags :standard -std=c++17 -Isrc/lib/ -I../cadical/src -I.. -DNDEBUG)
   (extra_deps ../.bitwuzla_tree)))
 
