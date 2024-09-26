@@ -20,7 +20,7 @@
    vendor/bitwuzla/src
    vendor/bitwuzla/src/lib
    (lib zarith))
-  (flags :standard -std=c++17 -I/opt/homebrew/include))
+  (flags :standard -std=c++17 -Ivendor/bitwuzla/src -I/opt/homebrew/include))
  (foreign_archives
   vendor/bitwuzla/src/api/cpp/bitwuzla-api
   vendor/bitwuzla/bitwuzla-cxx
