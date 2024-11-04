@@ -51,11 +51,11 @@
     (language cxx)
     (names bitwuzla)
     (flags
-     -std=c++17
      -I../..
      -I../../lib
      -I../../../include
      :standard
+     -std=c++17
      -DNDEBUG)
     (extra_deps ../../config.h ../../../../.bitwuzla_tree))))
  (subdir
@@ -178,12 +178,12 @@
    type_manager)
   (include_dirs include src src/lib ../symfpu ../cadical/src)
   (flags
-   -std=c++17
    -Isrc/lib/
    -I../cadical/src
    -I..
    -Isrc
    :standard
+   -std=c++17
    -DNDEBUG)
   (extra_deps ../.bitwuzla_tree)))
 
