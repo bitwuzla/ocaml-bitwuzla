@@ -128,6 +128,7 @@
    contradicting_ands
    elim_extract
    elim_lambda
+   elim_udiv
    elim_uninterpreted
    embedded_constraints
    flatten_and
@@ -153,6 +154,8 @@
    kissat
    sat_solver_factory
    array_solver
+   abstraction_lemmas
+   abstraction_module
    bv_bitblast_solver
    bv_prop_solver
    bv_solver
@@ -174,7 +177,14 @@
    type_data
    type_manager)
   (include_dirs include src src/lib ../symfpu ../cadical/src)
-  (flags  -std=c++17 -Isrc/lib/ -I../cadical/src -I.. -Isrc :standard -DNDEBUG)
+  (flags
+   -std=c++17
+   -Isrc/lib/
+   -I../cadical/src
+   -I..
+   -Isrc
+   :standard
+   -DNDEBUG)
   (extra_deps ../.bitwuzla_tree)))
 
 (subdir
@@ -192,12 +202,17 @@
  (deps
   (source_tree bitwuzla)
   (:p0001
-   (file patch/0001-api-Add-hook-for-ocaml-z-value.patch)))
+   (file patch/0001-api-Add-hook-for-ocaml-z-value.patch))
+  (:p0002
+   (file patch/0002-binding-Fix-segfault-with-parallel-instances.patch)))
  (target .bitwuzla_tree)
  (action
   (no-infer
    (progn
     (with-stdin-from
      %{p0001}
+     (run patch -p1 --directory bitwuzla))
+    (with-stdin-from
+     %{p0002}
      (run patch -p1 --directory bitwuzla))
     (write-file %{target} "")))))

@@ -84,7 +84,18 @@ module Options : sig
               Values:
               - An unsigned integer for the memory limit in MB.
               \[{b default}: [0]\].
-          *)
+        *)
+    | Relevant_terms : bool key
+        (** Check relevant terms only.
+
+            Theory solvers only perform checks on relevant terms.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure theory solvers.
+        *)
     | Bv_solver : bv_solver key
     | Rewrite_level : int key
         (** Rewrite level.
@@ -234,6 +245,174 @@ module Options : sig
 
             This is an expert option to configure the prop solver engine.
         *)
+    | Abstraction : bool key
+        (** Abstraction module
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_bv_size : int key
+        (** Abstraction module: Minimum bit-vector term size.
+
+            Specifies at which size supported bit-vector operators should be
+            abstracted.
+
+            Values:
+            - [>0]: enable
+            - [0]: disable \[{bdefault}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_eager_refine : bool key
+        (** Bit-vector bitblasting solver: Abstraction module eager mode.
+
+            When enabled, eagerly adds violated refinement lemmas.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_value_limit : int key
+        (** Bit-vector bitblasting solver: Abstraction module value
+            instantiation limit.
+
+            Specifies the limit on the number of value instantiations per
+            abstaction. If the limit is hit, we fall back to fully
+            bit-blasting the specific term.
+
+            Values:
+            - [>0]: enable
+            - [0]: disable \[{bdefault}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_value_only : bool key
+        (** Bit-vector bitblasting solver: Abstraction module value
+            instantiations only.
+
+            When enabled, only adds value instantiations.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_assert : bool key
+        (** Abstraction module: Abstract assertions.
+
+            When enabled, abstracts assertions.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_assert_refs : int key
+        (** Abstraction module: Assertion refinements.
+
+            Maximum number of assertion refinements added per check.
+
+            Values:
+            - An unsigned integer value [> 0].
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_initial_lemmas : bool key
+        (** Abstraction module: Use initial lemmas only.
+
+            Initial lemmas are those lemmas not generated through abduction.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_inc_bitblast : bool key
+        (** Abstraction module: Incrementally bit-blast bvmul and bvadd terms.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_bvadd : bool key
+        (** Abstraction module: Abstract bit-vector addition terms.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_bvmul : bool key
+        (** Abstraction module: Abstract bit-vector multiplication terms.
+
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_bvudiv : bool key
+        (** Abstraction module: Abstract bit-vector unsigned division terms.
+
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_bvurem : bool key
+        (** Abstraction module: Abstract bit-vector unsigned remainder terms.
+
+            Values:
+            - [true]: enable \[{b default}\]
+            - [false]: disable
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_eq : bool key
+        (** Abstraction module: Abstract equality terms.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
+    | Abstraction_ite : bool key
+        (** Abstraction module: Abstract ITE terms.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            @warning This is an expert option to configure the prop solver
+            engine.
+        *)
     | Preprocess : bool key
         (** Preprocessing
 
@@ -259,9 +438,19 @@ module Options : sig
             When enabled, eliminates bit-vector extracts on constants.
 
             Values:
-            - [true]: enable \[{b default}\]
-            - [false]: disable
+            - [true]: enable
+            - [false]: disable \[{b default}\]
         *)
+    | Pp_elim_bvudiv : bool key
+        (** Preprocessing: Eliminate bit-vector operators bvudiv and bvurem
+
+            When enabled, eliminates bit-vector unsigned division and remainder
+            operation in terms of multiplication.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+          *)
     | Pp_embedded : bool key
         (** Preprocessing: Embedded constraint substitution
 
@@ -281,16 +470,6 @@ module Options : sig
         *)
     | Pp_normalize : bool key
         (** Preprocessing: Normalization
-
-            Values:
-            - [true]: enable \[{b default}\]
-            - [false]: disable
-        *)
-    | Pp_normalize_share_aware : bool key
-        (** Preprocessing: Normalization: Enable share awareness normlization
-
-            When enabled, this disables normalizations that may yield blow-up
-            on the bit-level.
 
             Values:
             - [true]: enable \[{b default}\]

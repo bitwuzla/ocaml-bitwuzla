@@ -1,0 +1,438 @@
+From 3c285cd3bafa1b9dd10fcc2958b6e74eceadf952 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Recoules?= <frederic.recoules@cea.fr>
+Date: Mon, 4 Nov 2024 17:43:19 +0100
+Subject: [PATCH] Fix https://github.com/bitwuzla/ocaml-bitwuzla/issues/7
+
+---
+ include/bitwuzla/cpp/bitwuzla.h |  9 ++----
+ src/api/checks.h                |  4 +--
+ src/api/cpp/bitwuzla.cpp        | 24 ++++++++------
+ src/node/node_manager.cpp       | 55 +++++++++++++++++++--------------
+ src/node/node_manager.h         | 16 +++++++---
+ src/type/type_manager.cpp       | 21 +++++++++++++
+ src/type/type_manager.h         | 22 ++++++++++++-
+ 7 files changed, 105 insertions(+), 46 deletions(-)
+
+diff --git a/include/bitwuzla/cpp/bitwuzla.h b/include/bitwuzla/cpp/bitwuzla.h
+index b85a0ce4..5ea2a746 100644
+--- a/include/bitwuzla/cpp/bitwuzla.h
++++ b/include/bitwuzla/cpp/bitwuzla.h
+@@ -1451,7 +1451,7 @@ class TermManager
+ 
+ 
+  private:
+-  std::unique_ptr<bzla::NodeManager> d_nm;
++  bzla::NodeManager *d_nm;
+ };
+ 
+ /* -------------------------------------------------------------------------- */
+@@ -1652,9 +1652,6 @@ class Bitwuzla
+    */
+   std::map<std::string, std::string> statistics() const;
+ 
+-  /** @return The associated term manager instance. */
+-  TermManager &term_mgr();
+-
+  private:
+   /** Helper called when solver state changes. */
+   void solver_state_change();
+@@ -1677,8 +1674,8 @@ class Bitwuzla
+   bool d_uc_is_valid = false;
+   /** Indicates a pending pop from check-sat with assumptions. */
+   bool d_pending_pop = false;
+-  /** The associated term manager instance. */
+-  TermManager &d_tm;
++  /** The associated node manager instance. */
++  bzla::NodeManager *d_nm;
+ };
+ 
+ /* -------------------------------------------------------------------------- */
+diff --git a/src/api/checks.h b/src/api/checks.h
+index d19ca211..f4a3033c 100644
+--- a/src/api/checks.h
++++ b/src/api/checks.h
+@@ -98,7 +98,7 @@ class BitwuzlaExceptionStream
+ #define BITWUZLA_CHECK_TERM_TERM_MGR(term, what)    \
+   do                                                \
+   {                                                 \
+-    BITWUZLA_CHECK(d_nm.get() == term.d_node->nm()) \
++    BITWUZLA_CHECK(d_nm == term.d_node->nm())       \
+         << "mismatching term manager for " << what; \
+   } while (0)
+ 
+@@ -261,7 +261,7 @@ class BitwuzlaExceptionStream
+     for (size_t i = 0, argc = args.size(); i < argc; ++i)                      \
+     {                                                                          \
+       BITWUZLA_CHECK_NOT_NULL_AT_IDX(args[i].d_node, i);                       \
+-      BITWUZLA_CHECK(d_nm.get() == args[i].d_node->nm())                       \
++      BITWUZLA_CHECK(d_nm == args[i].d_node->nm())                             \
+           << "mismatching term manager for term at index " << i;               \
+       if (i == start || i > start)                                             \
+       {                                                                        \
+diff --git a/src/api/cpp/bitwuzla.cpp b/src/api/cpp/bitwuzla.cpp
+index a4519859..651ba362 100644
+--- a/src/api/cpp/bitwuzla.cpp
++++ b/src/api/cpp/bitwuzla.cpp
+@@ -1355,11 +1355,15 @@ class TerminatorInternal : public bzla::Terminator
+ 
+ Bitwuzla::Bitwuzla(TermManager &tm, const Options &options)
+     : d_ctx(new bzla::SolvingContext(*tm.d_nm, *options.d_options, "main")),
+-      d_tm(tm)
++      d_nm(tm.d_nm)
+ {
++  d_nm->inc_ref();
+ }
+ 
+-Bitwuzla::~Bitwuzla() {}
++Bitwuzla::~Bitwuzla()
++{
++  d_nm->dec_ref();
++}
+ 
+ void
+ Bitwuzla::configure_terminator(Terminator *terminator)
+@@ -1578,12 +1582,6 @@ Bitwuzla::statistics() const
+   return d_ctx->env().statistics().get();
+ }
+ 
+-TermManager &
+-Bitwuzla::term_mgr()
+-{
+-  return d_tm;
+-}
+-
+ /* Bitwuzla private --------------------------------------------------------- */
+ 
+ void
+@@ -1599,9 +1597,15 @@ Bitwuzla::solver_state_change()
+ 
+ /* TermManager public ------------------------------------------------------- */
+ 
+-TermManager::TermManager() : d_nm(new bzla::NodeManager()) {}
++TermManager::TermManager() : d_nm(new bzla::NodeManager())
++{
++  d_nm->inc_ref();
++}
+ 
+-TermManager::~TermManager() {}
++TermManager::~TermManager()
++{
++  d_nm->dec_ref();
++}
+ 
+ Sort
+ TermManager::mk_array_sort(const Sort &index, const Sort &element)
+diff --git a/src/node/node_manager.cpp b/src/node/node_manager.cpp
+index 8f28e481..2acf32ab 100644
+--- a/src/node/node_manager.cpp
++++ b/src/node/node_manager.cpp
+@@ -41,14 +41,14 @@ NodeManager::~NodeManager()
+ type::TypeManager*
+ NodeManager::tm()
+ {
+-  return &d_tm;
++  return this;
+ }
+ 
+ Node
+ NodeManager::mk_const(const Type& t, const std::optional<std::string>& symbol)
+ {
+   assert(!t.is_null());
+-  assert(t.tm() == &d_tm);
++  assert(t.tm() == this);
+   NodeData* data = NodeData::alloc(Kind::CONSTANT, symbol);
+   data->d_type   = t;
+   init_id(data);
+@@ -63,7 +63,7 @@ NodeManager::mk_const_array(const Type& t, const Node& term)
+   assert(!term.is_null());
+   assert(t.is_array());
+   assert(t.array_element() == term.type());
+-  assert(t.tm() == &d_tm);
++  assert(t.tm() == this);
+   assert(term.nm() == this);
+ 
+   NodeData* data = find_or_insert_node(Kind::CONST_ARRAY, t, {term}, {});
+@@ -74,7 +74,7 @@ Node
+ NodeManager::mk_var(const Type& t, const std::optional<std::string>& symbol)
+ {
+   assert(!t.is_null());
+-  assert(t.tm() == &d_tm);
++  assert(t.tm() == this);
+   NodeData* data = NodeData::alloc(Kind::VARIABLE, symbol);
+   data->d_type   = t;
+   init_id(data);
+@@ -179,43 +179,43 @@ NodeManager::invert_node(const Node& node)
+ Type
+ NodeManager::mk_bool_type()
+ {
+-  return d_tm.mk_bool_type();
++  return TypeManager::mk_bool_type();
+ }
+ 
+ Type
+ NodeManager::mk_bv_type(uint64_t size)
+ {
+-  return d_tm.mk_bv_type(size);
++  return TypeManager::mk_bv_type(size);
+ }
+ 
+ Type
+ NodeManager::mk_fp_type(uint64_t exp_size, uint64_t sig_size)
+ {
+-  return d_tm.mk_fp_type(exp_size, sig_size);
++  return TypeManager::mk_fp_type(exp_size, sig_size);
+ }
+ 
+ Type
+ NodeManager::mk_rm_type()
+ {
+-  return d_tm.mk_rm_type();
++  return TypeManager::mk_rm_type();
+ }
+ 
+ Type
+ NodeManager::mk_array_type(const Type& index, const Type& elem)
+ {
+-  return d_tm.mk_array_type(index, elem);
++  return TypeManager::mk_array_type(index, elem);
+ }
+ 
+ Type
+ NodeManager::mk_fun_type(const std::vector<Type>& types)
+ {
+-  return d_tm.mk_fun_type(types);
++  return TypeManager::mk_fun_type(types);
+ }
+ 
+ Type
+ NodeManager::mk_uninterpreted_type(const std::optional<std::string>& symbol)
+ {
+-  return d_tm.mk_uninterpreted_type(symbol);
++  return TypeManager::mk_uninterpreted_type(symbol);
+ }
+ 
+ Type
+@@ -280,29 +280,29 @@ NodeManager::compute_type(Kind kind,
+     case Kind::FP_IS_SUBNORMAL:
+     case Kind::FP_IS_ZERO:
+     case Kind::FORALL:
+-    case Kind::EXISTS: return d_tm.mk_bool_type();
++    case Kind::EXISTS: return TypeManager::mk_bool_type();
+ 
+     case Kind::BV_EXTRACT: {
+       uint64_t upper = indices[0];
+       uint64_t lower = indices[1];
+-      return d_tm.mk_bv_type(upper - lower + 1);
++      return TypeManager::mk_bv_type(upper - lower + 1);
+     }
+ 
+     case Kind::BV_REPEAT:
+-      return d_tm.mk_bv_type(children[0].type().bv_size() * indices[0]);
++      return TypeManager::mk_bv_type(children[0].type().bv_size() * indices[0]);
+ 
+     case Kind::BV_SIGN_EXTEND:
+     case Kind::BV_ZERO_EXTEND:
+-      return d_tm.mk_bv_type(children[0].type().bv_size() + indices[0]);
++      return TypeManager::mk_bv_type(children[0].type().bv_size() + indices[0]);
+ 
+     case Kind::BV_CONCAT:
+-      return d_tm.mk_bv_type(children[0].type().bv_size()
+-                             + children[1].type().bv_size());
++      return TypeManager::mk_bv_type(children[0].type().bv_size()
++				     + children[1].type().bv_size());
+ 
+     case Kind::BV_COMP:
+     case Kind::BV_REDAND:
+     case Kind::BV_REDOR:
+-    case Kind::BV_REDXOR: return d_tm.mk_bv_type(1);
++    case Kind::BV_REDXOR: return TypeManager::mk_bv_type(1);
+ 
+     case Kind::BV_ADD:
+     case Kind::BV_AND:
+@@ -346,16 +346,16 @@ NodeManager::compute_type(Kind kind,
+     case Kind::ITE: return children[1].type();
+ 
+     case Kind::FP_FP:
+-      return d_tm.mk_fp_type(children[1].type().bv_size(),
+-                             children[2].type().bv_size() + 1);
++      return TypeManager::mk_fp_type(children[1].type().bv_size(),
++				     children[2].type().bv_size() + 1);
+     case Kind::FP_TO_SBV:
+-    case Kind::FP_TO_UBV: return d_tm.mk_bv_type(indices[0]);
++    case Kind::FP_TO_UBV: return TypeManager::mk_bv_type(indices[0]);
+ 
+     case Kind::FP_TO_FP_FROM_BV:
+     case Kind::FP_TO_FP_FROM_FP:
+     case Kind::FP_TO_FP_FROM_SBV:
+     case Kind::FP_TO_FP_FROM_UBV:
+-      return d_tm.mk_fp_type(indices[0], indices[1]);
++      return TypeManager::mk_fp_type(indices[0], indices[1]);
+ 
+     case Kind::SELECT: return children[0].type().array_element();
+ 
+@@ -373,7 +373,7 @@ NodeManager::compute_type(Kind kind,
+       {
+         types.push_back(children[1].type());
+       }
+-      return d_tm.mk_fun_type(types);
++      return TypeManager::mk_fun_type(types);
+     }
+   }
+ 
+@@ -816,6 +816,7 @@ NodeManager::init_id(NodeData* data)
+   data->d_id = d_node_id_counter++;
+   data->d_nm = this;
+   ++d_stats.d_num_node_data;
++  ++d_refs;
+ }
+ 
+ NodeData*
+@@ -893,9 +894,12 @@ NodeManager::garbage_collect(NodeData* data)
+     NodeData::dealloc(cur);
+     --d_stats.d_num_node_data;
+     ++d_stats.d_num_node_data_dealloc;
++    --d_refs;
+   } while (!visit.empty());
+ 
+   d_in_gc_mode = false;
++
++  check_refs();
+ }
+ 
+ const std::optional<std::reference_wrapper<const std::string>>
+@@ -910,4 +914,9 @@ NodeManager::get_symbol(const NodeData* data) const
+       payload.d_symbol};
+ }
+ 
++void
++NodeManager::inc_ref() { TypeManager::inc_ref(); }
++void
++NodeManager::dec_ref() { TypeManager::dec_ref(); }
++
+ }  // namespace bzla
+diff --git a/src/node/node_manager.h b/src/node/node_manager.h
+index 400916a9..aa693c25 100644
+--- a/src/node/node_manager.h
++++ b/src/node/node_manager.h
+@@ -31,7 +31,7 @@ class BitVector;
+ class FloatingPoint;
+ enum class RoundingMode;
+ 
+-class NodeManager
++class NodeManager : protected type::TypeManager
+ {
+   friend node::NodeData;
+ 
+@@ -200,6 +200,17 @@ class NodeManager
+   uint64_t max_node_id() const { return d_node_id_counter; }
+ #endif
+ 
++  /** Increase the reference count by one. */
++  void inc_ref();
++
++  /**
++   * Decrease the reference count by one.
++   *
++   * If reference count becomes zero, this node manager object will be
++   * automatically garbage collected.
++   */
++  void dec_ref();
++
+   const auto& statistics() const { return d_stats; }
+ 
+  private:
+@@ -245,9 +256,6 @@ class NodeManager
+   const std::optional<std::reference_wrapper<const std::string>> get_symbol(
+       const node::NodeData* d) const;
+ 
+-  /** Type manager. */
+-  type::TypeManager d_tm;
+-
+   /** Node id counter. */
+   uint64_t d_node_id_counter = 1;
+ 
+diff --git a/src/type/type_manager.cpp b/src/type/type_manager.cpp
+index 3a2d1672..588dcd54 100644
+--- a/src/type/type_manager.cpp
++++ b/src/type/type_manager.cpp
+@@ -104,6 +104,7 @@ TypeManager::init_id(TypeData* data)
+   d_node_data.emplace_back(data);
+   assert(d_node_data.size() == static_cast<size_t>(d_type_id_counter));
+   data->d_id = d_type_id_counter++;
++  d_refs++;
+ }
+ 
+ TypeData*
+@@ -186,9 +187,29 @@ TypeManager::garbage_collect(TypeData* data)
+ 
+     assert(d_node_data[cur->d_id - 1]->d_id == cur->d_id);
+     d_node_data[cur->d_id - 1].reset(nullptr);
++    d_refs--;
+   } while (!visit.empty());
+ 
+   d_in_gc_mode = false;
++
++  check_refs();
++}
++
++void
++TypeManager::check_refs()
++{
++  if (d_refs == 0)
++    {
++      delete this;
++    }
++}
++
++void
++TypeManager::dec_ref()
++{
++  assert(d_refs > 0);
++  --d_refs;
++  check_refs();
+ }
+ 
+ }  // namespace bzla::type
+diff --git a/src/type/type_manager.h b/src/type/type_manager.h
+index 19f9597c..a86e6840 100644
+--- a/src/type/type_manager.h
++++ b/src/type/type_manager.h
+@@ -29,7 +29,7 @@ class TypeManager
+   friend TypeData;
+ 
+  public:
+-  ~TypeManager();
++  virtual ~TypeManager();
+ 
+   /**
+    * @return Boolean type.
+@@ -84,6 +84,26 @@ class TypeManager
+   Type mk_uninterpreted_type(
+       const std::optional<std::string>& symbol = std::nullopt);
+ 
++  /** Increase the reference count by one. */
++  void inc_ref() { ++d_refs; }
++
++  /**
++   * Decrease the reference count by one.
++   *
++   * If reference count becomes zero, this type manager object will be
++   * automatically garbage collected.
++   */
++  void dec_ref();
++
++ protected:
++  /**
++   * If reference count is zero, this type manager object will be
++   * garbage collected.
++   */
++  void check_refs();
++  /** Number of references. */
++  uint32_t d_refs = 0;
++
+  private:
+   /** Initialize type data. */
+   void init_id(TypeData* d);
+-- 
+2.34.1
+

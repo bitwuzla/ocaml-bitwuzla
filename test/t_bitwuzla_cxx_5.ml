@@ -255,3 +255,14 @@ let%test "domains" =
     (Array.map Domain.join
        (Array.init (Domain.recommended_domain_count ()) (fun i ->
             Domain.spawn (run i))))
+
+let%test "issues/7" =
+  let run () =
+    let module M = Bitwuzla_cxx.Make () in
+    let _ = M.mk_bool_sort () in
+    true
+  in
+  Array.for_all Fun.id
+    (Array.map Domain.join
+       (Array.init (Domain.recommended_domain_count ()) (fun _ ->
+            Domain.spawn run)))

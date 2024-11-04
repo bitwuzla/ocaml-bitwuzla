@@ -1,3 +1,12 @@
+## 0.6.0 (2024-11-04)
+
+Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.6.0) sources.
+
+Fix a segmentation fault that occurs during the garbage collection of node managers.
+
+Vendor submodules:
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) tag:0.6.0
+
 ## 0.5.0 (2024-06-05)
 
 Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.5.0) sources.
