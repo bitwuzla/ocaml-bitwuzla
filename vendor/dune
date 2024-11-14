@@ -14,7 +14,7 @@
   (foreign_library
    (archive_name bitwuzla-utils)
    (language cxx)
-   (names hash_pair logger printer resources statistics)
+   (names hash_pair logger printer resources statistics util)
    (flags :standard -std=c++17 -I. -I.. -DNDEBUG)
    (extra_deps ../../../.bitwuzla_tree)))
  (subdir

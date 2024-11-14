@@ -1,3 +1,10 @@
+## 0.6.1 (2024-11-14)
+
+Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.6.1) sources.
+
+Vendor submodules:
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) tag:0.6.1
+
 ## 0.6.0 (2024-11-04)
 
 Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.6.0) sources.
