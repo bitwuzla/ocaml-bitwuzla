@@ -1,23 +1,23 @@
-From 3c285cd3bafa1b9dd10fcc2958b6e74eceadf952 Mon Sep 17 00:00:00 2001
+From 2ee66a94795ad16574b5767c56cb54bb03ed7492 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Recoules?= <frederic.recoules@cea.fr>
-Date: Mon, 4 Nov 2024 17:43:19 +0100
+Date: Tue, 7 Jan 2025 14:22:29 +0100
 Subject: [PATCH] Fix https://github.com/bitwuzla/ocaml-bitwuzla/issues/7
 
 ---
  include/bitwuzla/cpp/bitwuzla.h |  9 ++----
  src/api/checks.h                |  4 +--
- src/api/cpp/bitwuzla.cpp        | 24 ++++++++------
+ src/api/cpp/bitwuzla.cpp        | 26 +++++++++-------
  src/node/node_manager.cpp       | 55 +++++++++++++++++++--------------
  src/node/node_manager.h         | 16 +++++++---
  src/type/type_manager.cpp       | 21 +++++++++++++
  src/type/type_manager.h         | 22 ++++++++++++-
- 7 files changed, 105 insertions(+), 46 deletions(-)
+ 7 files changed, 106 insertions(+), 47 deletions(-)
 
 diff --git a/include/bitwuzla/cpp/bitwuzla.h b/include/bitwuzla/cpp/bitwuzla.h
-index b85a0ce4..5ea2a746 100644
+index 4efa6199..7b553ec8 100644
 --- a/include/bitwuzla/cpp/bitwuzla.h
 +++ b/include/bitwuzla/cpp/bitwuzla.h
-@@ -1451,7 +1451,7 @@ class TermManager
+@@ -1520,7 +1520,7 @@ class TermManager
  
  
   private:
@@ -26,7 +26,7 @@ index b85a0ce4..5ea2a746 100644
  };
  
  /* -------------------------------------------------------------------------- */
-@@ -1652,9 +1652,6 @@ class Bitwuzla
+@@ -1735,9 +1735,6 @@ class Bitwuzla
     */
    std::map<std::string, std::string> statistics() const;
  
@@ -36,7 +36,7 @@ index b85a0ce4..5ea2a746 100644
   private:
    /** Helper called when solver state changes. */
    void solver_state_change();
-@@ -1677,8 +1674,8 @@ class Bitwuzla
+@@ -1760,8 +1757,8 @@ class Bitwuzla
    bool d_uc_is_valid = false;
    /** Indicates a pending pop from check-sat with assumptions. */
    bool d_pending_pop = false;
@@ -48,10 +48,10 @@ index b85a0ce4..5ea2a746 100644
  
  /* -------------------------------------------------------------------------- */
 diff --git a/src/api/checks.h b/src/api/checks.h
-index d19ca211..f4a3033c 100644
+index 9658f346..c297db4b 100644
 --- a/src/api/checks.h
 +++ b/src/api/checks.h
-@@ -98,7 +98,7 @@ class BitwuzlaExceptionStream
+@@ -114,7 +114,7 @@ class BitwuzlaExceptionStream
  #define BITWUZLA_CHECK_TERM_TERM_MGR(term, what)    \
    do                                                \
    {                                                 \
@@ -60,7 +60,7 @@ index d19ca211..f4a3033c 100644
          << "mismatching term manager for " << what; \
    } while (0)
  
-@@ -261,7 +261,7 @@ class BitwuzlaExceptionStream
+@@ -277,7 +277,7 @@ class BitwuzlaExceptionStream
      for (size_t i = 0, argc = args.size(); i < argc; ++i)                      \
      {                                                                          \
        BITWUZLA_CHECK_NOT_NULL_AT_IDX(args[i].d_node, i);                       \
@@ -70,17 +70,21 @@ index d19ca211..f4a3033c 100644
        if (i == start || i > start)                                             \
        {                                                                        \
 diff --git a/src/api/cpp/bitwuzla.cpp b/src/api/cpp/bitwuzla.cpp
-index a4519859..651ba362 100644
+index 10b7160f..682e8229 100644
 --- a/src/api/cpp/bitwuzla.cpp
 +++ b/src/api/cpp/bitwuzla.cpp
-@@ -1355,11 +1355,15 @@ class TerminatorInternal : public bzla::Terminator
+@@ -1375,14 +1375,18 @@ class TerminatorInternal : public bzla::Terminator
  
- Bitwuzla::Bitwuzla(TermManager &tm, const Options &options)
-     : d_ctx(new bzla::SolvingContext(*tm.d_nm, *options.d_options, "main")),
--      d_tm(tm)
-+      d_nm(tm.d_nm)
+ /* Bitwuzla public ---------------------------------------------------------- */
+ 
+-Bitwuzla::Bitwuzla(TermManager &tm, const Options &options) : d_tm(tm)
++Bitwuzla::Bitwuzla(TermManager &tm, const Options &options) : d_nm(tm.d_nm)
  {
+   BITWUZLA_TRY_CATCH_BEGIN;
+-  d_ctx.reset(new bzla::SolvingContext(*d_tm.d_nm, *options.d_options, "main"));
++  d_ctx.reset(new bzla::SolvingContext(*d_nm, *options.d_options, "main"));
 +  d_nm->inc_ref();
+   BITWUZLA_TRY_CATCH_END;
  }
  
 -Bitwuzla::~Bitwuzla() {}
@@ -91,7 +95,7 @@ index a4519859..651ba362 100644
  
  void
  Bitwuzla::configure_terminator(Terminator *terminator)
-@@ -1578,12 +1582,6 @@ Bitwuzla::statistics() const
+@@ -1637,12 +1641,6 @@ Bitwuzla::statistics() const
    return d_ctx->env().statistics().get();
  }
  
@@ -104,7 +108,7 @@ index a4519859..651ba362 100644
  /* Bitwuzla private --------------------------------------------------------- */
  
  void
-@@ -1599,9 +1597,15 @@ Bitwuzla::solver_state_change()
+@@ -1658,9 +1656,15 @@ Bitwuzla::solver_state_change()
  
  /* TermManager public ------------------------------------------------------- */
  
@@ -311,10 +315,10 @@ index 8f28e481..2acf32ab 100644
 +
  }  // namespace bzla
 diff --git a/src/node/node_manager.h b/src/node/node_manager.h
-index 400916a9..aa693c25 100644
+index 20fc55af..fd5faddb 100644
 --- a/src/node/node_manager.h
 +++ b/src/node/node_manager.h
-@@ -31,7 +31,7 @@ class BitVector;
+@@ -28,7 +28,7 @@ class BitVector;
  class FloatingPoint;
  enum class RoundingMode;
  
@@ -323,7 +327,7 @@ index 400916a9..aa693c25 100644
  {
    friend node::NodeData;
  
-@@ -200,6 +200,17 @@ class NodeManager
+@@ -197,6 +197,17 @@ class NodeManager
    uint64_t max_node_id() const { return d_node_id_counter; }
  #endif
  
@@ -341,7 +345,7 @@ index 400916a9..aa693c25 100644
    const auto& statistics() const { return d_stats; }
  
   private:
-@@ -245,9 +256,6 @@ class NodeManager
+@@ -242,9 +253,6 @@ class NodeManager
    const std::optional<std::reference_wrapper<const std::string>> get_symbol(
        const node::NodeData* d) const;
  
@@ -352,10 +356,10 @@ index 400916a9..aa693c25 100644
    uint64_t d_node_id_counter = 1;
  
 diff --git a/src/type/type_manager.cpp b/src/type/type_manager.cpp
-index 3a2d1672..588dcd54 100644
+index c32a2f66..9ba29512 100644
 --- a/src/type/type_manager.cpp
 +++ b/src/type/type_manager.cpp
-@@ -104,6 +104,7 @@ TypeManager::init_id(TypeData* data)
+@@ -103,6 +103,7 @@ TypeManager::init_id(TypeData* data)
    d_node_data.emplace_back(data);
    assert(d_node_data.size() == static_cast<size_t>(d_type_id_counter));
    data->d_id = d_type_id_counter++;
@@ -363,7 +367,7 @@ index 3a2d1672..588dcd54 100644
  }
  
  TypeData*
-@@ -186,9 +187,29 @@ TypeManager::garbage_collect(TypeData* data)
+@@ -185,9 +186,29 @@ TypeManager::garbage_collect(TypeData* data)
  
      assert(d_node_data[cur->d_id - 1]->d_id == cur->d_id);
      d_node_data[cur->d_id - 1].reset(nullptr);

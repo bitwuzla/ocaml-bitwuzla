@@ -85,6 +85,12 @@ module Options : sig
               - An unsigned integer for the memory limit in MB.
               \[{b default}: [0]\].
         *)
+    | Nthreads : int key
+        (** Number of parallel threads.
+
+            Values:
+            - An unsigned integer > [0]. \[{b default}: [1]\].
+    *)
     | Relevant_terms : bool key
         (** Check relevant terms only.
 
@@ -94,7 +100,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure theory solvers.
+            Warning: This is an expert option to configure theory solvers.
         *)
     | Bv_solver : bv_solver key
     | Rewrite_level : int key
@@ -252,7 +258,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_bv_size : int key
@@ -263,9 +269,9 @@ module Options : sig
 
             Values:
             - [>0]: enable
-            - [0]: disable \[{bdefault}\]
+            - [0]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_eager_refine : bool key
@@ -277,7 +283,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_value_limit : int key
@@ -290,9 +296,9 @@ module Options : sig
 
             Values:
             - [>0]: enable
-            - [0]: disable \[{bdefault}\]
+            - [0]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_value_only : bool key
@@ -305,7 +311,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_assert : bool key
@@ -317,7 +323,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_assert_refs : int key
@@ -328,7 +334,7 @@ module Options : sig
             Values:
             - An unsigned integer value [> 0].
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_initial_lemmas : bool key
@@ -340,7 +346,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_inc_bitblast : bool key
@@ -350,7 +356,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_bvadd : bool key
@@ -360,7 +366,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_bvmul : bool key
@@ -370,7 +376,7 @@ module Options : sig
             - [true]: enable \[{b default}\]
             - [false]: disable
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_bvudiv : bool key
@@ -380,7 +386,7 @@ module Options : sig
             - [true]: enable \[{b default}\]
             - [false]: disable
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_bvurem : bool key
@@ -390,7 +396,7 @@ module Options : sig
             - [true]: enable \[{b default}\]
             - [false]: disable
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_eq : bool key
@@ -400,7 +406,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Abstraction_ite : bool key
@@ -410,7 +416,7 @@ module Options : sig
             - [true]: enable
             - [false]: disable \[{b default}\]
 
-            @warning This is an expert option to configure the prop solver
+            Warning: This is an expert option to configure the prop solver
             engine.
         *)
     | Preprocess : bool key
@@ -1759,9 +1765,10 @@ module type S = sig
 
      @param t The Bitwuzla instance.
 
-     @return {!constructor:Sat} if the input formula is satisfiable and
-         {!constructor:Unsat} if it is unsatisfiable, and {!constructor:Unknown}
-         when neither satisfiability nor unsatisfiability was determined.
+     @return {!constructor:Result.Sat} if the input formula is satisfiable and
+         {!constructor:Result.Unsat} if it is unsatisfiable, and
+         {!constructor:Result.Unknown} when neither satisfiability nor
+         unsatisfiability was determined.
          This can happen when [t] was terminated via a termination callback.
   *)
 
@@ -2265,8 +2272,15 @@ module type S = sig
 
    This creates a 0-arity function symbol.
 
+   A fresh new term is created each time [mk_const] is called.
+   Thus, calling [mk_const] with the same [sort] and same [symbol]
+   multiple times {b will not} return the same term.
+
+
    @param sort The sort of the constant.
-   @param symbol The symbol of the constant.
+   @param symbol The symbol of the constant (optional). The caller
+                 has to ensure
+                 It is the caller responsability to make the name unique.
 
    @return A term representing the constant.
 *)

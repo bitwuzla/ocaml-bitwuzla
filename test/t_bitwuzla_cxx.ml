@@ -222,12 +222,31 @@ let%test "Options (numeric)" =
 
 let%test "Options (mode)" =
   let t = Options.default () in
-  let d = Options.default_value Sat_solver in
-  let r = d = Options.get t Sat_solver in
-  let s : Options.sat_solver = if d = Cadical then Kissat else Cadical in
-  Options.set t Sat_solver s;
-  let n = Options.get t Sat_solver in
-  r && d <> n && s = n
+  Options.get t Bv_solver = Options.default_value Bv_solver
+  && (Options.set t Bv_solver Bitblast;
+      Options.get t Bv_solver = Bitblast)
+  && (Options.set t Bv_solver Preprop;
+      Options.get t Bv_solver = Preprop)
+  &&
+  (Options.set t Bv_solver Prop;
+   Options.get t Bv_solver = Prop)
+
+let%test "Options (unsupported)" =
+  let t = Options.default () in
+  List.for_all
+    (fun s ->
+      try
+        Options.set t Sat_solver s;
+        false
+      with Invalid_argument _ -> true)
+    [ Cms; Kissat ]
+
+let%test "Options (invalid)" =
+  let t = Options.default () in
+  try
+    Options.set t Rewrite_level (Options.max Rewrite_level + 1);
+    false
+  with Invalid_argument _ -> true
 
 let%expect_test "mk_array_sort" =
   Sort.pp Format.std_formatter ar32_8_sort;

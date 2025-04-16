@@ -105,15 +105,19 @@ int Format::overflow (int c)
 #define BITWUZLA_TRY_CATCH_BEGIN \
   try                            \
   {
-#define BITWUZLA_TRY_CATCH_END \
-  }                            \
-  catch (bitwuzla::Exception &e) { caml_invalid_argument(e.msg().c_str()); }
-#define BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom) \
-  }                            \
-  catch (bitwuzla::Exception &e) { \
-    if(custom != Val_unit) \
-      Custom_ops_val(custom) = &exception_operations; \
+#define BITWUZLA_TRY_CATCH_END		    \
+  }					    \
+  catch (bitwuzla::Exception &e) {	    \
     caml_invalid_argument(e.msg().c_str()); \
+    __builtin_unreachable();		    \
+  }
+#define BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom)   \
+  }						      \
+  catch (bitwuzla::Exception &e) {		      \
+    if(custom != Val_unit)			      \
+      Custom_ops_val(custom) = &exception_operations; \
+    caml_invalid_argument(e.msg().c_str());	      \
+    __builtin_unreachable();			      \
   }
 
 #define Manager_val(v) (*(bitwuzla::TermManager **)Data_custom_val(v))
@@ -209,7 +213,9 @@ ocaml_bitwuzla_cxx_options_set_numeric (mlvalue vt, mlvalue vk, mlvalue vv)
 extern "C" CAMLprim mlvalue
 native_bitwuzla_cxx_options_set_mode (mlvalue vt, intnat k, mlvalue vv)
 {
+  BITWUZLA_TRY_CATCH_BEGIN;
   Options_val(vt)->set((bitwuzla::Option)k, String_val(vv));
+  BITWUZLA_TRY_CATCH_END;
   return Val_unit;
 }
 
@@ -1538,10 +1544,8 @@ static void internal_bitwuzla_delete (value vt)
   Terminator *terminator = Terminator_val(vt);
   Bitwuzla_val(vt) = nullptr;
   Terminator_val(vt) = nullptr;
-  if (t != nullptr) {
-    delete t;
-    delete terminator;
-  }
+  if (t != nullptr) delete t;
+  if (terminator != nullptr) delete terminator;
 }
 
 extern "C" CAMLprim mlvalue
@@ -1567,17 +1571,26 @@ ocaml_bitwuzla_cxx_new (mlvalue vm, mlvalue voptions)
 {
   bitwuzla::Bitwuzla *t =
     new bitwuzla::Bitwuzla(*Manager_val(vm), *Options_val(voptions));
-  Terminator *terminator = new Terminator();
-  t->configure_terminator(terminator);
   value vt = caml_alloc_custom(&bitwuzla_operations, sizeof(struct t), 0, 1);
   Bitwuzla_val(vt) = t;
-  Terminator_val(vt) = terminator;
+  Terminator_val(vt) = nullptr;
   return vt;
 }
 
 extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_cxx_configure_terminator (mlvalue vt, mlvalue vtc)
 {
+  if (Terminator_val(vt) == nullptr) {
+    Terminator *terminator = new Terminator();
+    try {
+      Bitwuzla_val(vt)->configure_terminator(terminator);
+    } catch (bitwuzla::Exception &e) {
+      delete terminator;
+      caml_invalid_argument(e.msg().c_str());
+      __builtin_unreachable();
+    }
+    Terminator_val(vt) = terminator;
+  }
   Terminator_val(vt)->set(Is_some(vtc) ? Some_val(vtc) : Val_unit);
   return Val_unit;
 }

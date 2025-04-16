@@ -1,0 +1,844 @@
+{1 OCaml API Documentation }
+
+{b Bitwuzla} is a Satisfiability Modulo Theories (SMT) solver for bit-vectors,
+floating-points, arrays, uninterpreted functions and their combinations.
+
+This page provides a quickstart guide to give an introduction on how to use
+the OCaml API and a comprehensive set of {{!examples} examples} to cover
+basic and common use cases.
+A comprehensive description of the interface is given
+{{!module:Bitwuzla_cxx} here}.
+
+{2:quickstart Quickstart }
+
+The top level module {!module:Bitwuzla_cxx} is a global session {{!module-type:Bitwuzla_cxx.S} [S]}.
+
+{%html:
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>New sessions %}{{!module-type:Bitwuzla_cxx.S} [S]}{%html: can be created via the functor %}
+{{!module:Bitwuzla_cxx.Make} [Make]}{%html:.</p>
+</div>
+%}
+
+First, create an {{!module:Bitwuzla_cxx.Options} [Options]} instance:
+
+{[
+  let options = Options.default ()
+]}
+
+This instance can be configured via {{!val:Bitwuzla_cxx.Options.set} [Options.set]}.
+For example, to enable model generation
+(SMT-LIB: [(set-option :produce-models true)]):
+
+{[
+  Options.set options Produce_models true;
+]}
+
+For more details on available options, see {{!module:Bitwuzla_cxx.Options} [Options]}.
+
+Then, create a {{!module:Bitwuzla_cxx.S.Solver} [Solver]} instance with a configured options
+(configuration options are now frozen and cannot be changed for this instance):
+
+{[
+  let bitwuzla = Solver.create options
+]}
+
+Next, you will want to {b create} some {b expressions} and {b assert formulas}.
+
+{%html:
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Sorts and terms can be shared between multiple solver instances as long as
+these solvers belong to the same session.</p>
+</div>
+%}
+
+For example, consider the following SMT-LIB input:
+
+{@smtlib[
+(set-logic QF_BV)
+(set-option :produce-models true)
+(declare-const x (_ BitVec 8))
+(declare-const y (_ BitVec 8))
+(assert
+    (distinct
+        ((_ extract 3 0) (bvsdiv x (_ bv2 8)))
+        ((_ extract 3 0) (bvashr y (_ bv1 8)))))
+(check-sat)
+(get-model)
+(exit)
+]}
+
+This input is created and asserted as follows:
+
+{[
+  (* Create bit-vector sorts of size 4 and 8. *)
+  let sortbv4 = mk_bv_sort 4 and sortbv8 = mk_bv_sort 8 in
+  (* Create function sort. *)
+  let sortfun = mk_fun_sort [| sortbv8; sortbv4 |] sortbv8 in
+  (* Create array sort. *)
+  let sortarr = mk_array_sort sortbv8 sortbv8 in
+
+  (* Create two bit-vector constants of that sort. *)
+  let x = mk_const sortbv8 ~symbol:"x" and y = mk_const sortbv8 ~symbol:"y" in
+  (* Create fun const. *)
+  let f = mk_const sortfun ~symbol:"f" in
+  (* Create array const. *)
+  let a = mk_const sortarr ~symbol:"a" in
+
+  (* Create bit-vector values one and two of the same sort. *)
+  let one = mk_bv_one sortbv8 in
+  (* Alternatively, you can create bit-vector value one with: *)
+  (* let one = mk_bv_value sortbv8 "1" 2 in *)
+  (* let one = mk_bv_value_int sortbv8 1 in *)
+  let two = mk_bv_value_int sortbv8 2 in
+
+  (* (bvsdiv x (_ bv2 8)) *)
+  let sdiv = mk_term2 Bv_sdiv x two in
+  (* (bvashr y (_ bv1 8)) *)
+  let ashr = mk_term2 Bv_ashr y one in
+  (* ((_ extract 3 0) (bvsdiv x (_ bv2 8))) *)
+  let sdive = mk_term1_indexed2 Bv_extract sdiv 3 0 in
+  (* ((_ extract 3 0) (bvashr x (_ bv1 8))) *)
+  let ashre = mk_term1_indexed2 Bv_extract ashr 3 0 in
+
+  (* (assert *)
+  (*     (distinct *)
+  (*         ((_ extract 3 0) (bvsdiv x (_ bv2 8))) *)
+  (*         ((_ extract 3 0) (bvashr y (_ bv1 8))))) *)
+  Solver.assert_formula bitwuzla (mk_term2 Distinct sdive ashre);
+  (* (assert (= (f x ((_ extract 6 3) x)) y)) *)
+  Solver.assert_formula bitwuzla
+    (mk_term2 Equal (mk_term3 Apply f x (mk_term1_indexed2 Bv_extract x 6 3)) y);
+  (* (assert (= (select a x) y)) *)
+  Solver.assert_formula bitwuzla (mk_term2 Equal (mk_term2 Select a x) y);
+]}
+
+After asserting formulas, {b satisfiability} can be determined via
+{{!val:Bitwuzla_cxx.Solver.check_sat} [Solver.check_sat]}.
+
+{[
+  (* (check-sat) *)
+  let result = Solver.check_sat bitwuzla in
+]}
+
+Formulas can also be {b assumed} via passing a vector of assumptions into
+{{!val:Bitwuzla_cxx.Solver.check_sat} [Solver.check_sat]}.
+
+If the formula is satisfiable and {b model generation} has been enabled,
+the resulting model can be printed via {{!val:Bitwuzla_cxx.Solver.get_value} [Solver.get_value]}
+and {{!val:Bitwuzla_cxx.Term.pp} [Term.pp]}.
+An example implementation illustrating how to print the current model via declared symbols
+(in this case [x], [y], [f] and [a]) is below:
+
+{[
+  (* Print model in SMT-LIBv2 format. *)
+  Format.printf "@[<v>Model:@,@[<v 2>(@,%a@]@,)@]"
+    (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf term ->
+         let sort = Term.sort term in
+         Format.fprintf ppf "(define-fun %a ("
+           (fun ppf term ->
+             try Format.pp_print_string ppf (Term.symbol term)
+             with Not_found -> Format.fprintf ppf "%@t%Ld" (Term.id term))
+           term;
+         if Sort.is_fun sort then (
+           let value = Solver.get_value bitwuzla term in
+           assert (Term.kind value = Lambda);
+           assert (Term.num_children value = 2);
+           let rec unroll value =
+             let value1 = Term.get value 1 in
+             if Term.kind value1 = Lambda then (
+               let value0 = Term.get value 0 in
+               assert (Term.is_variable value0);
+               Format.fprintf ppf "(%a %a) " Term.pp value0 Sort.pp
+                 (Term.sort value0);
+               unroll value1)
+             else value
+           in
+           let value = unroll value in
+           let value0 = Term.get value 0 in
+           assert (Term.is_variable value0);
+           Format.fprintf ppf "(%a %a)) %a %a)" Term.pp value0 Sort.pp
+             (Term.sort value0) Sort.pp (Sort.fun_codomain sort) Term.pp
+             (Term.get value 1))
+         else
+           Format.fprintf ppf ") %a %a)" Sort.pp sort Term.pp
+             (Solver.get_value bitwuzla term)))
+    [ x; y; f; a ];
+  Format.print_space ();
+  Format.print_space ();
+]}
+
+This will output a possible model, in this case:
+
+{@smtlib[
+(
+  (define-fun x () (_ BitVec 8) #b10011111)
+  (define-fun y () (_ BitVec 8) #b11111111)
+  (define-fun f ((@bzla.var_79 (_ BitVec 8)) (@bzla.var_80 (_ BitVec 4))) 
+  (_ BitVec 8) (ite (and (= @bzla.var_79 #b10011111) (= @bzla.var_80 #b0011)) #b11111111 #b00000000))
+  (define-fun a () (Array (_ BitVec 8) (_ BitVec 8)) (store ((as const (Array (_ BitVec 8) (_ BitVec 8))) #b00000000) #b10011111 #b11111111))
+)
+]}
+
+Alternatively, it is possible to query the value of terms as assignment
+[string] via {{!val:Bitwuzla_cxx.Term.value} [Term.value]}
+{{!constructor:Bitwuzla_cxx.Term.cast.String} [(String { base })]}.
+
+Additionally, for floating-point values, {{!constructor:Bitwuzla_cxx.Term.cast.IEEE_754} [IEEE_754]}
+allows to retrieve the assignment split into assignment strings for the sign bit, the exponent
+and the significand; for boolean values as [bool] ({{!constructor:Bitwuzla_cxx.Term.cast.Bool} [Bool]});
+for rounding mode values as {{!module:Bitwuzla_cxx.RoundingMode} [RoundingMode]}
+({{!constructor:Bitwuzla_cxx.Term.cast.RoundingMode} [RoundingMode]}); and for bitvector values as
+[Z.t] ({{!constructor:Bitwuzla_cxx.Term.cast.Z} [Z]}).
+
+In our case, we can query the assignments of [x] and [y], both bit-vector terms, as binary strings:
+
+{[
+  (* Both x and y are bit-vector terms and their value is a bit-vector *)
+  (* value that can be printed via Term.value. *)
+  Format.printf "value of x: %s@,"
+    (Term.value (String { base = 2 }) (Solver.get_value bitwuzla x));
+  Format.printf "value of y: %s@,"
+    (Term.value (String { base = 2 }) (Solver.get_value bitwuzla y));
+]}
+
+This will print:
+
+{v
+value of x: 10011111
+value of y: 11111111
+v}
+
+The value of [f] (a function term) and [a] (an array term), on the other hand, cannot be represented
+with a simple type. Thus, function values are given as {{!constructor:Bitwuzla_cxx.Kind.t.Lambda} [Lambda]},
+and array values are given as {{!constructor:Bitwuzla_cxx.Kind.t.Store} [Store]}.
+We can retrieve an SMT-LIB2 string representation of the values via {{!val:Bitwuzla_cxx.Term.pp} [Term.pp]}:
+
+{[
+  (* f and a, on the other hand, are a function and array term, respectively. *)
+  (* The value of these terms is not a value term: for f, it is a lambda *)
+  (* term, and the value of a is represented as a store term. Thus we cannot *)
+  (*  use Term.value, but we can print the value of the terms via Term.pp. *)
+  Format.printf "str() representation of value of f:@,%a@," Term.pp
+    (Solver.get_value bitwuzla f);
+  Format.printf "str() representation of value of a:@,%a@," Term.pp
+    (Solver.get_value bitwuzla a);
+]}
+
+This will print:
+
+{v
+str() representation of value of f:
+(lambda ((@bzla.var_79 (_ BitVec 8))) (lambda ((@bzla.var_80 (_ BitVec 4))) (ite (and (= @bzla.var_79 #b10011111) (= @bzla.var_80 #b0011)) #b11111111 #b00000000)))
+str() representation of value of a:
+(store ((as const (Array (_ BitVec 8) (_ BitVec 8))) #b00000000) #b10011111 #b11111111)
+v}
+
+Note that the string representation of values representable as simple type (bit-vectors, boolean, floating-point,
+rounding mode) are given as pure value string (in the given number format) via
+{{!val:Bitwuzla_cxx.Term.value} [Term.value]} {{!constructor:Bitwuzla_cxx.Term.cast.String} [(String { base })]}.
+Their string representation retrieved via {{!val:Bitwuzla_cxx.Term.pp} [Term.pp]}, however, is given in SMT-LIB2 format.
+For example:
+
+{[
+  Format.printf "str() representation of value of x:@,%a@," Term.pp
+    (Solver.get_value bitwuzla x);
+  Format.printf "str() representation of value of y:@,%a@," Term.pp
+    (Solver.get_value bitwuzla y);
+]}
+
+This will print:
+
+{v
+str() representation of value of x:
+#b10011111
+str() representation of value of y:
+#b11111111
+v}
+
+It is also possible to query the model value of expressions that do not occur in the input formula:
+
+{[
+  let v = Solver.get_value bitwuzla (mk_term2 Bv_mul x x) in
+  Format.printf "value of v = x * x: %s@," (Term.value (String { base = 2 }) v);
+]}
+
+This will print:
+
+{v
+value of v = x * x: 11000001
+v}
+
+{2 Examples }
+
+All examples can be found in directory
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples} examples}.
+Assuming Bitwuzla was built from sources, run the following command to build
+and run an example:
+
+[dune exec -- examples/quickstart.exe # replace quickstart by other examples]
+
+{3 Quickstart example}
+
+The example used in the {!section:quickstart} guide.
+
+The SMT-LIB input for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/quickstart.smt2} examples/quickstart.smt2}.
+The source code for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/quickstart.ml} examples/quickstart.ml}.
+
+{[
+open Bitwuzla_cxx
+
+let () =
+  (* First, create a Bitwuzla options instance. *)
+  let options = Options.default () in
+  (* Then, enable model generation. *)
+  Options.set options Produce_models true;
+  (* Then, create a Bitwuzla instance. *)
+  let bitwuzla = Solver.create options in
+
+  (* Create bit-vector sorts of size 4 and 8. *)
+  let sortbv4 = mk_bv_sort 4 and sortbv8 = mk_bv_sort 8 in
+  (* Create function sort. *)
+  let sortfun = mk_fun_sort [| sortbv8; sortbv4 |] sortbv8 in
+  (* Create array sort. *)
+  let sortarr = mk_array_sort sortbv8 sortbv8 in
+
+  (* Create two bit-vector constants of that sort. *)
+  let x = mk_const sortbv8 ~symbol:"x" and y = mk_const sortbv8 ~symbol:"y" in
+  (* Create fun const. *)
+  let f = mk_const sortfun ~symbol:"f" in
+  (* Create array const. *)
+  let a = mk_const sortarr ~symbol:"a" in
+
+  (* Create bit-vector values one and two of the same sort. *)
+  let one = mk_bv_one sortbv8 in
+  (* Alternatively, you can create bit-vector value one with: *)
+  (* let one = mk_bv_value sortbv8 "1" 2 in *)
+  (* let one = mk_bv_value_int sortbv8 1 in *)
+  let two = mk_bv_value_int sortbv8 2 in
+
+  (* (bvsdiv x (_ bv2 8)) *)
+  let sdiv = mk_term2 Bv_sdiv x two in
+  (* (bvashr y (_ bv1 8)) *)
+  let ashr = mk_term2 Bv_ashr y one in
+  (* ((_ extract 3 0) (bvsdiv x (_ bv2 8))) *)
+  let sdive = mk_term1_indexed2 Bv_extract sdiv 3 0 in
+  (* ((_ extract 3 0) (bvashr x (_ bv1 8))) *)
+  let ashre = mk_term1_indexed2 Bv_extract ashr 3 0 in
+
+  (* (assert *)
+  (*     (distinct *)
+  (*         ((_ extract 3 0) (bvsdiv x (_ bv2 8))) *)
+  (*         ((_ extract 3 0) (bvashr y (_ bv1 8))))) *)
+  Solver.assert_formula bitwuzla (mk_term2 Distinct sdive ashre);
+  (* (assert (= (f x ((_ extract 6 3) x)) y)) *)
+  Solver.assert_formula bitwuzla
+    (mk_term2 Equal (mk_term3 Apply f x (mk_term1_indexed2 Bv_extract x 6 3)) y);
+  (* (assert (= (select a x) y)) *)
+  Solver.assert_formula bitwuzla (mk_term2 Equal (mk_term2 Select a x) y);
+
+  (* (check-sat) *)
+  let result = Solver.check_sat bitwuzla in
+
+  Format.open_vbox 0;
+  Format.printf "Expect: sat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+  Format.print_space ();
+
+  (* Print model in SMT-LIBv2 format. *)
+  Format.printf "@[<v>Model:@,@[<v 2>(@,%a@]@,)@]"
+    (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf term ->
+         let sort = Term.sort term in
+         Format.fprintf ppf "(define-fun %a ("
+           (fun ppf term ->
+             try Format.pp_print_string ppf (Term.symbol term)
+             with Not_found -> Format.fprintf ppf "%@t%Ld" (Term.id term))
+           term;
+         if Sort.is_fun sort then (
+           let value = Solver.get_value bitwuzla term in
+           assert (Term.kind value = Lambda);
+           assert (Term.num_children value = 2);
+           let rec unroll value =
+             let value1 = Term.get value 1 in
+             if Term.kind value1 = Lambda then (
+               let value0 = Term.get value 0 in
+               assert (Term.is_variable value0);
+               Format.fprintf ppf "(%a %a) " Term.pp value0 Sort.pp
+                 (Term.sort value0);
+               unroll value1)
+             else value
+           in
+           let value = unroll value in
+           let value0 = Term.get value 0 in
+           assert (Term.is_variable value0);
+           Format.fprintf ppf "(%a %a)) %a %a)" Term.pp value0 Sort.pp
+             (Term.sort value0) Sort.pp (Sort.fun_codomain sort) Term.pp
+             (Term.get value 1))
+         else
+           Format.fprintf ppf ") %a %a)" Sort.pp sort Term.pp
+             (Solver.get_value bitwuzla term)))
+    [ x; y; f; a ];
+  Format.print_space ();
+  Format.print_space ();
+
+  (* Print value for x, y, f and a. *)
+  (* Both x and y are bit-vector terms and their value is a bit-vector *)
+  (* value that can be printed via Term.value. *)
+  Format.printf "value of x: %s@,"
+    (Term.value (String { base = 2 }) (Solver.get_value bitwuzla x));
+  Format.printf "value of y: %s@,"
+    (Term.value (String { base = 2 }) (Solver.get_value bitwuzla y));
+  Format.print_space ();
+
+  (* f and a, on the other hand, are a function and array term, respectively. *)
+  (* The value of these terms is not a value term: for f, it is a lambda *)
+  (* term, and the value of a is represented as a store term. Thus we cannot *)
+  (*  use Term.value, but we can print the value of the terms via Term.pp. *)
+  Format.printf "str() representation of value of f:@,%a@," Term.pp
+    (Solver.get_value bitwuzla f);
+  Format.printf "str() representation of value of a:@,%a@," Term.pp
+    (Solver.get_value bitwuzla a);
+  Format.print_space ();
+
+  (* Note that the assignment string of bit-vector terms is given as the *)
+  (* pure assignment string, either in binary, hexadecimal or decimal format, *)
+  (* whereas Term.pp print the value in SMT-LIB2 format *)
+  (* (in binary number format). *)
+  Format.printf "str() representation of value of x:@,%a@," Term.pp
+    (Solver.get_value bitwuzla x);
+  Format.printf "str() representation of value of y:@,%a@," Term.pp
+    (Solver.get_value bitwuzla y);
+  Format.print_space ();
+
+  (* Query value of bit-vector term that does not occur in the input formula *)
+  let v = Solver.get_value bitwuzla (mk_term2 Bv_mul x x) in
+  Format.printf "value of v = x * x: %s@," (Term.value (String { base = 2 }) v);
+
+  Format.close_box ()
+]}
+
+{3 Incremental example with push and pop}
+
+An incremental example with {{!val:Bitwuzla_cxx.Solver.push} [push]} and
+{{!val:Bitwuzla_cxx.Solver.pop} [pop]}.
+
+The SMT-LIB input for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/pushpop.smt2} examples/pushpop.smt2}.
+The source code for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/pushpop.ml} examples/pushpop.ml}.
+
+{[
+open Bitwuzla_cxx
+
+let () =
+  Format.open_vbox 0;
+
+  (* First, create a Bitwuzla options instance. *)
+  let options = Options.default () in
+  (* Then, create a Bitwuzla instance. *)
+  let bitwuzla = Solver.create options in
+
+  (* Create a bit-vector sort of size 1. *)
+  let sortbv1 = mk_bv_sort 1 in
+  (* Create a bit-vector sort of size 2. *)
+  let sortbv2 = mk_bv_sort 2 in
+
+  (* Create bit-vector variables. *)
+  (* (declare-const o0 (_ BitVec 1)) *)
+  let o0 = mk_const sortbv1 ~symbol:"o0" in
+  (* (declare-const o1 (_ BitVec 1)) *)
+  let o1 = mk_const sortbv1 ~symbol:"o1" in
+  (* (declare-const s0 (_ BitVec 2)) *)
+  let s0 = mk_const sortbv2 ~symbol:"s0" in
+  (* (declare-const s1 (_ BitVec 2)) *)
+  let s1 = mk_const sortbv2 ~symbol:"s1" in
+  (* (declare-const s2 (_ BitVec 2)) *)
+  let s2 = mk_const sortbv2 ~symbol:"s1" in
+  (* (declare-const goal (_ BitVec 2)) *)
+  let goal = mk_const sortbv2 ~symbol:"goal" in
+
+  (* Create bit-vector values zero, one, three. *)
+  let zero = mk_bv_zero sortbv2
+  and one1 = mk_bv_one sortbv1
+  and one2 = mk_bv_one sortbv2
+  and three = mk_bv_value_int sortbv2 3 in
+
+  (* Add some assertions. *)
+  Solver.assert_formula bitwuzla (mk_term2 Equal s0 zero);
+  Solver.assert_formula bitwuzla (mk_term2 Equal goal three);
+
+  (* Push, assert, check sat and pop. *)
+  Solver.push bitwuzla 1;
+  Solver.assert_formula bitwuzla (mk_term2 Equal s0 goal);
+  let result = Solver.check_sat bitwuzla in
+  Format.printf "Expect: unsat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+  Solver.pop bitwuzla 1;
+
+  (* (assert (= s1 (ite (= o0 (_ sortbv1 1)) (bvadd s0 one) s0))) *)
+  Solver.assert_formula bitwuzla
+    (mk_term2 Equal s1
+       (mk_term3 Ite (mk_term2 Equal o0 one1) (mk_term2 Bv_add s0 one2) s0));
+
+  (* Push, assert, check sat and pop. *)
+  Solver.push bitwuzla 1;
+  Solver.assert_formula bitwuzla (mk_term2 Equal s1 goal);
+  let result = Solver.check_sat bitwuzla in
+  Format.printf "Expect: unsat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+  Solver.pop bitwuzla 1;
+
+  (* (assert (= s2 (ite (= o1 (_ sortbv1 1)) (bvadd s1 one) s1))) *)
+  Solver.assert_formula bitwuzla
+    (mk_term2 Equal s2
+       (mk_term3 Ite (mk_term2 Equal o1 one1) (mk_term2 Bv_add s1 one2) s1));
+
+  (* Push, assert, check sat and pop. *)
+  Solver.push bitwuzla 1;
+  Solver.assert_formula bitwuzla (mk_term2 Equal s2 goal);
+  let result = Solver.check_sat bitwuzla in
+  Format.printf "Expect: unsat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+  Solver.pop bitwuzla 1;
+
+  Format.close_box ()
+]}
+
+{3 Incremental example with check-sat-assuming}
+
+This example shows how to implement the example above with
+{{!val:Bitwuzla_cxx.Solver.check_sat} [check-sat-assuming]}
+instead of {{!val:Bitwuzla_cxx.Solver.push} [push]} and {{!val:Bitwuzla_cxx.Solver.pop} [pop]}.
+
+The SMT-LIB input for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/checksatassuming.smt2} examples/checksatassuming.smt2}.
+The source code for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/checksatassuming.ml} examples/checksatassuming.ml}.
+
+{[
+open Bitwuzla_cxx
+
+let () =
+  Format.open_vbox 0;
+
+  (* First, create a Bitwuzla options instance. *)
+  let options = Options.default () in
+  (* Then, create a Bitwuzla instance. *)
+  let bitwuzla = Solver.create options in
+
+  (* Create a bit-vector sort of size 1. *)
+  let sortbv1 = mk_bv_sort 1 in
+  (* Create a bit-vector sort of size 2 *)
+  let sortbv2 = mk_bv_sort 2 in
+
+  (* Create bit-vector variables. *)
+  (* (declare-const o0 (_ BitVec 1)) *)
+  let o0 = mk_const sortbv1 ~symbol:"o0" in
+  (* (declare-const o1 (_ BitVec 1)) *)
+  let o1 = mk_const sortbv1 ~symbol:"o1" in
+  (* (declare-const s0 (_ BitVec 2)) *)
+  let s0 = mk_const sortbv2 ~symbol:"s0" in
+  (* (declare-const s1 (_ BitVec 2)) *)
+  let s1 = mk_const sortbv2 ~symbol:"s1" in
+  (* (declare-const s2 (_ BitVec 2)) *)
+  let s2 = mk_const sortbv2 ~symbol:"s1" in
+  (* (declare-const goal (_ BitVec 2)) *)
+  let goal = mk_const sortbv2 ~symbol:"goal" in
+
+  (* Create bit-vector values zero, one, three. *)
+  let zero = mk_bv_zero sortbv2
+  and one1 = mk_bv_one sortbv1
+  and one2 = mk_bv_one sortbv2
+  and three = mk_bv_value_int sortbv2 3 in
+
+  (* Add some assertions. *)
+  Solver.assert_formula bitwuzla (mk_term2 Equal s0 zero);
+  Solver.assert_formula bitwuzla (mk_term2 Equal goal three);
+
+  (* (check-sat-assuming ((= s0 goal))) *)
+  let result =
+    Solver.check_sat bitwuzla ~assumptions:[| mk_term2 Equal s0 goal |]
+  in
+  Format.printf "Expect: unsat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+
+  (* (assert (= s1 (ite (= o0 (_ sortbv1 1)) (bvadd s0 one) s0))) *)
+  Solver.assert_formula bitwuzla
+    (mk_term2 Equal s1
+       (mk_term3 Ite (mk_term2 Equal o0 one1) (mk_term2 Bv_add s0 one2) s0));
+
+  (* (check-sat-assuming ((= s1 goal))) *)
+  let result =
+    Solver.check_sat bitwuzla ~assumptions:[| mk_term2 Equal s1 goal |]
+  in
+  Format.printf "Expect: unsat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+
+  (* (assert (= s2 (ite (= o1 (_ sortbv1 1)) (bvadd s1 one) s1))) *)
+  Solver.assert_formula bitwuzla
+    (mk_term2 Equal s2
+       (mk_term3 Ite (mk_term2 Equal o1 one1) (mk_term2 Bv_add s1 one2) s1));
+
+  (* (check-sat-assuming ((= s2 goal))) *)
+  let result =
+    Solver.check_sat bitwuzla ~assumptions:[| mk_term2 Equal s2 goal |]
+  in
+  Format.printf "Expect: unsat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+
+  Format.close_box ()
+]}
+
+{3 Unsat core example}
+
+This example shows how to extract an unsat core. It creates bit-vector
+and floating-point terms and further illustrates how to create lambda terms
+([define-fun]).
+
+The SMT-LIB input for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/unsatcore.smt2} examples/unsatcore.smt2}.
+The source code for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/unsatcore.ml} examples/unsatcore.ml}.
+
+{[
+open Bitwuzla_cxx
+
+let () =
+  Format.open_vbox 0;
+
+  (* First, create a Bitwuzla options instance. *)
+  let options = Options.default () in
+  (* Then, enable unsat core extraction. *)
+  (* Note: Unsat core extraction is disabled by default. *)
+  Options.set options Produce_unsat_cores true;
+  (* Then, create a Bitwuzla instance. *)
+  let bitwuzla = Solver.create options in
+
+  (* Create a bit-vector sort of size 2. *)
+  let sortbv2 = mk_bv_sort 2 in
+  (* Create a bit-vector sort of size 4 *)
+  let sortbv4 = mk_bv_sort 4 in
+  (* Create Float16 floatinf-point sort. *)
+  let sortfp16 = mk_fp_sort 5 11 in
+
+  (* Create bit-vector variables. *)
+  (* (declare-const x0 (_ BitVec 4)) *)
+  let x0 = mk_const sortbv4 ~symbol:"x0" in
+  (* (declare-const x1 (_ BitVec 2)) *)
+  let x1 = mk_const sortbv2 ~symbol:"x1" in
+  (* (declare-const x2 (_ BitVec 2)) *)
+  let x2 = mk_const sortbv2 ~symbol:"x2" in
+  (* (declare-const x3 (_ BitVec 2)) *)
+  let x3 = mk_const sortbv2 ~symbol:"x3" in
+  (* (declare-const x4 Float16) *)
+  let x4 = mk_const sortfp16 ~symbol:"x4" in
+
+  (* Create FP positive zero. *)
+  let fpzero = mk_fp_pos_zero sortfp16 in
+  (* Create BV zero of size 4. *)
+  let bvzero = mk_bv_zero sortbv4 in
+
+  (* (define-fun f0 ((a Float16)) Bool (fp.gt a (_ +zero 5 11))) *)
+  let a_f0 = mk_var sortfp16 ~symbol:"a_f0" in
+  let f0 = mk_term2 Lambda a_f0 (mk_term2 Fp_gt a_f0 fpzero) in
+
+  (* (define-fun f1 ((a Float16)) (_ BitVec 4) (ite (f0 a) x0 #b0000)) *)
+  let a_f1 = mk_var sortfp16 ~symbol:"a_f1" in
+  let f1 =
+    mk_term2 Lambda a_f1 (mk_term3 Ite (mk_term2 Apply f0 a_f1) x0 bvzero)
+  in
+
+  (* (define-fun f2 ((a Float16)) (_ BitVec 2) ((_ extract 1 0) (f1 a))) *)
+  let a_f2 = mk_var sortfp16 ~symbol:"a_f2" in
+  let f2 =
+    mk_term2 Lambda a_f2
+      (mk_term1_indexed2 Bv_extract (mk_term2 Apply f1 a_f2) 1 0)
+  in
+
+  (* (assert (! (bvult x2 (f2 (_ +zero 5 11))) :named a0)) *)
+  let a0 = mk_term2 Bv_ult x2 (mk_term2 Apply f2 fpzero) in
+  Solver.assert_formula bitwuzla a0;
+
+  (* (assert (! (= x1 x2 x3) :named a1)) *)
+  let a1 = mk_term Equal [| x1; x2; x3 |] in
+  Solver.assert_formula bitwuzla a1;
+
+  (* (assert (!(= x4 ((_ to_fp_unsigned 5 11) RNE x3)) :named a2)) *)
+  let a2 =
+    mk_term2 Equal x4
+      (mk_term2_indexed2 Fp_to_fp_from_ubv (mk_rm_value Rne) x3 5 11)
+  in
+  Solver.assert_formula bitwuzla a2;
+
+  (* (check-sat) *)
+  let result = Solver.check_sat bitwuzla in
+  Format.printf "Expect: unsat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+
+  (* (get-unsat-core) *)
+  let unsat_core = Solver.get_unsat_core bitwuzla in
+  Format.printf "Unsat Core:@,@[<v 1>{";
+  Array.iter (Format.printf "@,%a" Term.pp) unsat_core;
+  Format.printf "@]@,}@,";
+
+  Format.close_box ()
+]}
+
+{3 Unsat assumptions example}
+
+This example shows how to implement the example above with
+{{!val:Bitwuzla_cxx.Solver.get_unsat_assumptions} [get-unsat-assumptions]}.
+
+The SMT-LIB input for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/unsatassumption.smt2} examples/unsatassumption.smt2}.
+The source code for this example can be found at
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/unsatassumption.ml} examples/unsatassumption.ml}.
+
+{[
+open Bitwuzla_cxx
+
+let () =
+  Format.open_vbox 0;
+
+  (* First, create a Bitwuzla options instance. *)
+  let options = Options.default () in
+  Options.set options Produce_unsat_assumptions true;
+  (* Then, create a Bitwuzla instance. *)
+  let bitwuzla = Solver.create options in
+
+  (* Create Boolean sort. *)
+  let sortbool = mk_bool_sort () in
+  (* Create a bit-vector sort of size 2. *)
+  let sortbv2 = mk_bv_sort 2 in
+  (* Create a bit-vector sort of size 4 *)
+  let sortbv4 = mk_bv_sort 4 in
+  (* Create Float16 floatinf-point sort. *)
+  let sortfp16 = mk_fp_sort 5 11 in
+
+  (* Create bit-vector variables. *)
+  (* (declare-const x0 (_ BitVec 4)) *)
+  let x0 = mk_const sortbv4 ~symbol:"x0" in
+  (* (declare-const x1 (_ BitVec 2)) *)
+  let x1 = mk_const sortbv2 ~symbol:"x1" in
+  (* (declare-const x2 (_ BitVec 2)) *)
+  let x2 = mk_const sortbv2 ~symbol:"x2" in
+  (* (declare-const x3 (_ BitVec 2)) *)
+  let x3 = mk_const sortbv2 ~symbol:"x3" in
+  (* (declare-const x4 Float16) *)
+  let x4 = mk_const sortfp16 ~symbol:"x4" in
+
+  (* Create FP positive zero. *)
+  let fpzero = mk_fp_pos_zero sortfp16 in
+  (* Create BV zero of size 4. *)
+  let bvzero = mk_bv_zero sortbv4 in
+
+  (* (define-fun f0 ((a Float16)) Bool (fp.gt a (_ +zero 5 11))) *)
+  let a_f0 = mk_var sortfp16 ~symbol:"a_f0" in
+  let f0 = mk_term2 Lambda a_f0 (mk_term2 Fp_gt a_f0 fpzero) in
+
+  (* (define-fun f1 ((a Float16)) (_ BitVec 4) (ite (f0 a) x0 #b0000)) *)
+  let a_f1 = mk_var sortfp16 ~symbol:"a_f1" in
+  let f1 =
+    mk_term2 Lambda a_f1 (mk_term3 Ite (mk_term2 Apply f0 a_f1) x0 bvzero)
+  in
+
+  (* (define-fun f2 ((a Float16)) (_ BitVec 2) ((_ extract 1 0) (f1 a))) *)
+  let a_f2 = mk_var sortfp16 ~symbol:"a_f2" in
+  let f2 =
+    mk_term2 Lambda a_f2
+      (mk_term1_indexed2 Bv_extract (mk_term2 Apply f1 a_f2) 1 0)
+  in
+
+  (* (assert (! (bvult x2 (f2 (_ +zero 5 11))) :named a0)) *)
+  let a0 = mk_const sortbool ~symbol:"a0" in
+  let assumption0 = mk_term2 Bv_ult x2 (mk_term2 Apply f2 fpzero) in
+  Solver.assert_formula bitwuzla (mk_term2 Equal a0 assumption0);
+
+  (* (assert (! (= x1 x2 x3) :named a1)) *)
+  let a1 = mk_const sortbool ~symbol:"a1" in
+  let assumption1 = mk_term Equal [| x1; x2; x3 |] in
+  Solver.assert_formula bitwuzla (mk_term2 Equal a1 assumption1);
+
+  (* (assert (!(= x4 ((_ to_fp_unsigned 5 11) RNE x3)) :named a2)) *)
+  let a2 = mk_const sortbool ~symbol:"a2" in
+  let assumption2 =
+    mk_term2 Equal x4
+      (mk_term2_indexed2 Fp_to_fp_from_ubv (mk_rm_value Rne) x3 5 11)
+  in
+  Solver.assert_formula bitwuzla (mk_term2 Equal a2 assumption2);
+
+  (* (check-sat-assuming (assumption0 assumption1 assumption2)) *)
+  let result = Solver.check_sat bitwuzla ~assumptions:[| a0; a1; a2 |] in
+  Format.printf "Expect: unsat@,";
+  Format.printf "Bitwuzla: %s@," (Result.to_string result);
+
+  (* (get-unsat-assumptions) *)
+  let unsat_assumptions = Solver.get_unsat_assumptions bitwuzla in
+  Format.printf "Unsat Assumptions:@,@[<v 1>{";
+  Array.iter (Format.printf "@,%a" Term.pp) unsat_assumptions;
+  Format.printf "@]@,}@,";
+
+  Format.close_box ()
+]}
+
+{3 Termination callback example}
+
+This example shows how to configure a termination callback.
+The source code for this example can be found
+{{: https://github.com/bitwuzla/ocaml-bitwuzla/tree/master/examples/terminator.ml} examples/terminator.ml}.
+
+{[
+open Bitwuzla_cxx
+
+let timeout time_limit =
+  let start = Unix.gettimeofday () in
+  fun () -> Float.compare (Unix.gettimeofday () -. start) time_limit >= 0
+
+let () =
+  Format.open_vbox 0;
+
+  (* First, create a Bitwuzla options instance. *)
+  let options = Options.default () in
+  (* Then, create a Bitwuzla instance. *)
+  let bitwuzla = Solver.create options in
+
+  let bv = mk_bv_sort 32 in
+
+  let x = mk_const bv and s = mk_const bv and t = mk_const bv in
+
+  let a =
+    mk_term2 Distinct
+      (mk_term2 Bv_mul s (mk_term2 Bv_mul x t))
+      (mk_term2 Bv_mul (mk_term2 Bv_mul s x) t)
+  in
+
+  (* Now, we check that the following formula is unsat. *)
+  (* (assert (distinct (bvmul s (bvmul x t)) (bvmul (bvmul s x) t))) *)
+  Format.printf "> Without terminator (with preprocessing):@,";
+  Format.printf "Expect: unsat@,";
+  Format.printf "Result: %s@,"
+    (Result.to_string (Solver.check_sat bitwuzla ~assumptions:[| a |]));
+
+  (* Now, for illustration purposes, we disable preprocessing, which will *)
+  (* significantly increase solving time, and connect a terminator instance *)
+  (* that terminates after a certain time limit. *)
+  Options.set options Preprocess false;
+  (* Create new Bitwuzla instance with reconfigured options. *)
+  let bitwuzla2 = Solver.create options in
+
+  (* Configure and connect terminator. *)
+  let terminator = timeout 1. in
+  Solver.configure_terminator bitwuzla2 (Some terminator);
+
+  (* Now, we expect Bitwuzla to be terminated during the check-sat call. *)
+  Format.printf "> With terminator (no preprocessing):@,";
+  Format.printf "Expect: unknown@,";
+  Format.printf "Result: %s@,"
+    (Result.to_string (Solver.check_sat bitwuzla2 ~assumptions:[| a |]));
+
+  Format.close_box ()
+]}
