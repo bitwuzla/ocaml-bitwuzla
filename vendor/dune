@@ -209,6 +209,7 @@
  (action
   (no-infer
    (progn
+    (run chmod -R u+w bitwuzla)
     (with-stdin-from
      %{p0001}
      (run patch -p1 --directory bitwuzla))
