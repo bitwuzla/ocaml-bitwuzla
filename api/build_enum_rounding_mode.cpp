@@ -31,7 +31,7 @@ extern "C" void build_enum_rounding_mode ()
     RoundingMode rm = (RoundingMode)i;
     std::string ln(std::to_string(rm));
     std::string name(ln);
-    for (int j = 1; j < name.length(); j += 1)
+    for (std::string::size_type j = 1; j < name.length(); j += 1)
       name[j] = std::tolower(name[j]);
     type_stream << "  | " << name << std::endl;
     to_string_stream <<

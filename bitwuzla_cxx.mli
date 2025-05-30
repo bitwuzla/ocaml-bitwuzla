@@ -91,17 +91,6 @@ module Options : sig
             Values:
             - An unsigned integer > [0]. \[{b default}: [1]\].
     *)
-    | Relevant_terms : bool key
-        (** Check relevant terms only.
-
-            Theory solvers only perform checks on relevant terms.
-
-            Values:
-            - [true]: enable
-            - [false]: disable \[{b default}\]
-
-            Warning: This is an expert option to configure theory solvers.
-        *)
     | Bv_solver : bv_solver key
     | Rewrite_level : int key
         (** Rewrite level.
@@ -123,6 +112,35 @@ module Options : sig
             \[CryptoMiniSat\](https://github.com/msoos/cryptominisat)
             - [Kissat]:
             \[Kissat\](https://github.com/arminbiere/kissat)
+        *)
+    | Write_aiger : string key
+        (** Print bit-vector abstraction as AIG in binary or ascii AIGER format.
+
+            Expects a filename (as string) as the configuration value.
+            The filename suffix determines whether binary (.aig) or ascii (.aag)
+            AIGER is used. A configuration value representing the empty string
+            disables the option.
+
+            Note. Incremental queries to the SAT solver will overwrite the file
+            with the latest AIG.
+
+            Values:
+            - A string denoting the filename the AIGER output is written to.
+            \[{b default:} [""]\]
+        *)
+    | Write_cnf : string key
+        (** Print bit-vector abstraction as CNF in DIMACS format.
+
+            Expects a filename (as string) as the configuration value.
+            A configuration value representing the empty string disables
+            the option.
+
+            Note. Incremental queries to the SAT solver will overwrite the file
+            with the latest CNF.
+
+            Values:
+            - A string denoting the filename the DIMACS output is written to.
+            \[{b default:} [""]\]
         *)
     | Prop_const_bits : bool key
         (** Propagation-based local search solver engine:
@@ -231,19 +249,6 @@ module Options : sig
 
             When enabled, detect sign extension operations (are rewritten on
             construction) and use value computation for sign extension.
-
-            Values:
-            - [true]: enable
-            - [false]: disable \[{b default}\]
-
-            This is an expert option to configure the prop solver engine.
-        *)
-    | Prop_normalize : bool key
-        (** Propagation-based local search solver engine:
-            Local search specific normalization.
-
-            When enabled, perform normalizations for local search, on the local
-            search layer (does not affect node layer).
 
             Values:
             - [true]: enable
@@ -2278,8 +2283,7 @@ module type S = sig
 
 
    @param sort The sort of the constant.
-   @param symbol The symbol of the constant (optional). The caller
-                 has to ensure
+   @param symbol The symbol of the constant (optional).
                  It is the caller responsability to make the name unique.
 
    @return A term representing the constant.

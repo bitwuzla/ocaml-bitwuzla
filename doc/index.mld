@@ -1,3 +1,5 @@
+@short_title OCaml API
+
 {1 OCaml API Documentation }
 
 {b Bitwuzla} is a Satisfiability Modulo Theories (SMT) solver for bit-vectors,
@@ -14,10 +16,13 @@ A comprehensive description of the interface is given
 The top level module {!module:Bitwuzla_cxx} is a global session {{!module-type:Bitwuzla_cxx.S} [S]}.
 
 {%html:
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New sessions %}{{!module-type:Bitwuzla_cxx.S} [S]}{%html: can be created via the functor %}
+<div class="admonition note" style="margin-top: 10px; margin-bottom: 10px; padding: 7px; padding: 12px; line-height: 24px; margin-bottom: 24px; background: #e7f2fa">
+<p class="admonition-title" style="font: normal normal normal 14px/1 FontAwesome; font-size: inherit;
+  text-rendering: auto; font-weight: 700; display: block; color: #fff; background: #6ab0de; padding: 6px 12px; margin: -12px -12px 12px"><span style="font-family: FontAwesome; display: inline-block;
+  font-style: normal; font-weight: 400; line-height: 1; text-decoration: inherit; margin-right: 4px"></span>Note</p>
+<p style="margin-bottom: 0;">New sessions %}{{!module-type:Bitwuzla_cxx.S} [S]}{%html: can be created via the functor %}
 {{!module:Bitwuzla_cxx.Make} [Make]}{%html:.</p>
+<span style="display: block; content: ''; clear: both;"></span>
 </div>
 %}
 
@@ -47,10 +52,13 @@ Then, create a {{!module:Bitwuzla_cxx.S.Solver} [Solver]} instance with a config
 Next, you will want to {b create} some {b expressions} and {b assert formulas}.
 
 {%html:
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Sorts and terms can be shared between multiple solver instances as long as
+<div class="admonition note" style="margin-top: 10px; margin-bottom: 10px; padding: 7px; padding: 12px; line-height: 24px; margin-bottom: 24px; background: #e7f2fa">
+<p class="admonition-title" style="font: normal normal normal 14px/1 FontAwesome; font-size: inherit;
+  text-rendering: auto; font-weight: 700; display: block; color: #fff; background: #6ab0de; padding: 6px 12px; margin: -12px -12px 12px"><span style="font-family: FontAwesome; display: inline-block;
+  font-style: normal; font-weight: 400; line-height: 1; text-decoration: inherit; margin-right: 4px"></span>Note</p>
+<p style="margin-bottom: 0;">Sorts and terms can be shared between multiple solver instances as long as
 these solvers belong to the same session.</p>
+<span style="display: block; content: ''; clear: both;"></span>
 </div>
 %}
 
@@ -176,9 +184,13 @@ This will output a possible model, in this case:
 (
   (define-fun x () (_ BitVec 8) #b10011111)
   (define-fun y () (_ BitVec 8) #b11111111)
-  (define-fun f ((@bzla.var_79 (_ BitVec 8)) (@bzla.var_80 (_ BitVec 4))) 
-  (_ BitVec 8) (ite (and (= @bzla.var_79 #b10011111) (= @bzla.var_80 #b0011)) #b11111111 #b00000000))
-  (define-fun a () (Array (_ BitVec 8) (_ BitVec 8)) (store ((as const (Array (_ BitVec 8) (_ BitVec 8))) #b00000000) #b10011111 #b11111111))
+  (define-fun f((@bzla.var_79 (_ BitVec 8)) (@bzla.var_80 (_ BitVec 4))) 
+    (_ BitVec 8) (ite (and
+		       (= @bzla.var_79 #b10011111)
+		       (= @bzla.var_80 #b0011)) #b11111111 #b00000000))
+  (define-fun a () (Array (_ BitVec 8) (_ BitVec 8))
+    (store ((as const (Array (_ BitVec 8) (_ BitVec 8))) #b00000000)
+	   #b10011111 #b11111111))
 )
 ]}
 
@@ -231,9 +243,13 @@ This will print:
 
 {v
 str() representation of value of f:
-(lambda ((@bzla.var_79 (_ BitVec 8))) (lambda ((@bzla.var_80 (_ BitVec 4))) (ite (and (= @bzla.var_79 #b10011111) (= @bzla.var_80 #b0011)) #b11111111 #b00000000)))
+(lambda ((@bzla.var_79 (_ BitVec 8)))
+  (lambda ((@bzla.var_80 (_ BitVec 4)))
+    (ite (and (= @bzla.var_79 #b10011111)
+	      (= @bzla.var_80 #b0011)) #b11111111 #b00000000)))
 str() representation of value of a:
-(store ((as const (Array (_ BitVec 8) (_ BitVec 8))) #b00000000) #b10011111 #b11111111)
+(store ((as const (Array (_ BitVec 8) (_ BitVec 8))) #b00000000)
+       #b10011111 #b11111111)
 v}
 
 Note that the string representation of values representable as simple type (bit-vectors, boolean, floating-point,

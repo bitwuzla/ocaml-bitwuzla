@@ -157,7 +157,7 @@ let%expect_test "copyright" =
     Bitwuzla is a Satisfiability Modulo Theories (SMT) Solver for bit-vectors,
     floating-points, arrays and uninterpreted functions.
 
-    Copyright (C) 2018-2023 by its authors and contributors and their institutional
+    Copyright (C) 2018-2025 by its authors and contributors and their institutional
     affiliations as listed in file AUTHORS.
 
     MIT License

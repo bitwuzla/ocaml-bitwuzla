@@ -28,7 +28,7 @@ extern "C" void build_enum_kind ()
     Kind k = (Kind)i;
     std::string ln(std::to_string(k));
     std::string name(ln);
-    for (int j = 1; j < name.length(); j += 1)
+    for (std::string::size_type j = 1; j < name.length(); j += 1)
       name[j] = std::tolower(name[j]);
     type_stream << "  | " << name << std::endl;
     to_string_stream <<

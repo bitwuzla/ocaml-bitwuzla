@@ -1,7 +1,7 @@
-From 839eab68ee124a70d473e4ee1a3579994b470bc1 Mon Sep 17 00:00:00 2001
+From aba99626bb9138e7601b0824040c5dbcc6a7daf5 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Recoules?= <frederic.recoules@cea.fr>
 Date: Thu, 2 Jan 2025 15:11:49 +0100
-Subject: [PATCH] api: Add hook for ocaml z value
+Subject: [PATCH 1/2] api: Add hook for ocaml z value
 
 ---
  include/bitwuzla/cpp/bitwuzla.h | 12 ++++++++++++
@@ -9,10 +9,10 @@ Subject: [PATCH] api: Add hook for ocaml z value
  2 files changed, 20 insertions(+)
 
 diff --git a/include/bitwuzla/cpp/bitwuzla.h b/include/bitwuzla/cpp/bitwuzla.h
-index 92947362..4efa6199 100644
+index 5ab21f79..df31099f 100644
 --- a/include/bitwuzla/cpp/bitwuzla.h
 +++ b/include/bitwuzla/cpp/bitwuzla.h
-@@ -824,6 +824,18 @@ std::tuple<std::string, std::string, std::string> Term::value(
+@@ -865,6 +865,18 @@ std::tuple<std::string, std::string, std::string> Term::value(
      uint8_t base) const;
  #endif
  
@@ -32,10 +32,10 @@ index 92947362..4efa6199 100644
   * Syntactical equality operator.
   *
 diff --git a/src/lib/bv/bitvector.h b/src/lib/bv/bitvector.h
-index 491672b7..5734099d 100644
+index 975be674..d4e86093 100644
 --- a/src/lib/bv/bitvector.h
 +++ b/src/lib/bv/bitvector.h
-@@ -292,6 +292,14 @@ class BitVector
+@@ -310,6 +310,14 @@ class BitVector
     */
    uint64_t to_uint64(bool truncate = false) const;
  

@@ -1,3 +1,12 @@
+## 0.8.0 (2025-05-30)
+
+Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.8.0) sources.
+
+Vendor submodules:
+- [Cadical](https://github.com/arminbiere/cadical) tag:rel-2.1.2
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) tag:0.8.0
+
+
 ## 0.7.0 (2025-04-16)
 
 Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.7.0) sources.

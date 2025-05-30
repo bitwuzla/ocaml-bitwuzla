@@ -1,7 +1,7 @@
-From 2ee66a94795ad16574b5767c56cb54bb03ed7492 Mon Sep 17 00:00:00 2001
+From 492e76193b8eb83680f5ce6466259d5c6f198f27 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Recoules?= <frederic.recoules@cea.fr>
 Date: Tue, 7 Jan 2025 14:22:29 +0100
-Subject: [PATCH] Fix https://github.com/bitwuzla/ocaml-bitwuzla/issues/7
+Subject: [PATCH 2/2] Fix https://github.com/bitwuzla/ocaml-bitwuzla/issues/7
 
 ---
  include/bitwuzla/cpp/bitwuzla.h |  9 ++----
@@ -14,10 +14,10 @@ Subject: [PATCH] Fix https://github.com/bitwuzla/ocaml-bitwuzla/issues/7
  7 files changed, 106 insertions(+), 47 deletions(-)
 
 diff --git a/include/bitwuzla/cpp/bitwuzla.h b/include/bitwuzla/cpp/bitwuzla.h
-index 4efa6199..7b553ec8 100644
+index df31099f..0bb0116d 100644
 --- a/include/bitwuzla/cpp/bitwuzla.h
 +++ b/include/bitwuzla/cpp/bitwuzla.h
-@@ -1520,7 +1520,7 @@ class TermManager
+@@ -1561,7 +1561,7 @@ class TermManager
  
  
   private:
@@ -26,7 +26,7 @@ index 4efa6199..7b553ec8 100644
  };
  
  /* -------------------------------------------------------------------------- */
-@@ -1735,9 +1735,6 @@ class Bitwuzla
+@@ -1776,9 +1776,6 @@ class Bitwuzla
     */
    std::map<std::string, std::string> statistics() const;
  
@@ -36,7 +36,7 @@ index 4efa6199..7b553ec8 100644
   private:
    /** Helper called when solver state changes. */
    void solver_state_change();
-@@ -1760,8 +1757,8 @@ class Bitwuzla
+@@ -1801,8 +1798,8 @@ class Bitwuzla
    bool d_uc_is_valid = false;
    /** Indicates a pending pop from check-sat with assumptions. */
    bool d_pending_pop = false;
@@ -70,10 +70,10 @@ index 9658f346..c297db4b 100644
        if (i == start || i > start)                                             \
        {                                                                        \
 diff --git a/src/api/cpp/bitwuzla.cpp b/src/api/cpp/bitwuzla.cpp
-index 10b7160f..682e8229 100644
+index 46ed7051..f99a0e7e 100644
 --- a/src/api/cpp/bitwuzla.cpp
 +++ b/src/api/cpp/bitwuzla.cpp
-@@ -1375,14 +1375,18 @@ class TerminatorInternal : public bzla::Terminator
+@@ -1428,14 +1428,18 @@ class TerminatorInternal : public bzla::Terminator
  
  /* Bitwuzla public ---------------------------------------------------------- */
  
@@ -95,7 +95,7 @@ index 10b7160f..682e8229 100644
  
  void
  Bitwuzla::configure_terminator(Terminator *terminator)
-@@ -1637,12 +1641,6 @@ Bitwuzla::statistics() const
+@@ -1690,12 +1694,6 @@ Bitwuzla::statistics() const
    return d_ctx->env().statistics().get();
  }
  
@@ -108,7 +108,7 @@ index 10b7160f..682e8229 100644
  /* Bitwuzla private --------------------------------------------------------- */
  
  void
-@@ -1658,9 +1656,15 @@ Bitwuzla::solver_state_change()
+@@ -1711,9 +1709,15 @@ Bitwuzla::solver_state_change()
  
  /* TermManager public ------------------------------------------------------- */
  

@@ -90,6 +90,16 @@ extern "C" void build_enum_option ()
 	get_stream << "get_numeric t (to_cxx k)" << std::endl;
       }
       break;
+    case OptionInfo::Kind::STRING:
+      {
+	key_type_stream << "string";
+	OptionInfo::String str =
+	  std::get<OptionInfo::String>(info.values);
+	default_stream << '"' << str.dflt << '"' << std::endl;
+        set_stream << "set_mode t (to_cxx k) v" << std::endl;
+	get_stream << "get_string t (to_cxx k)" << std::endl;
+      }
+      break;
     case OptionInfo::Kind::MODE:
       {
 	key_type_stream << ln;
@@ -150,5 +160,8 @@ extern "C" void build_enum_option ()
 	    << "external get_mode : t -> (int [@untagged]) -> string = "
 	    << '"' << "ocaml_bitwuzla_cxx_options_get_mode" << '"' << ' '
 	    << '"' << "native_bitwuzla_cxx_options_get_mode" << '"' << std::endl
+	    << "external get_string : t -> (int [@untagged]) -> string = "
+	    << '"' << "ocaml_bitwuzla_cxx_options_get_str" << '"' << ' '
+	    << '"' << "native_bitwuzla_cxx_options_get_str" << '"' << std::endl
 	    << get_stream.str();
 }

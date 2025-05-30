@@ -250,6 +250,18 @@ ocaml_bitwuzla_cxx_options_get_mode (mlvalue vt, mlvalue vk)
   return native_bitwuzla_cxx_options_get_mode(vt, Long_val(vk));
 }
 
+extern "C" CAMLprim mlvalue
+native_bitwuzla_cxx_options_get_str (mlvalue vt, intnat k)
+{
+  Options *t = Options_val(vt);
+  return caml_copy_string(t->get_str((bitwuzla::Option)k).c_str());
+}
+
+extern "C" CAMLprim mlvalue
+ocaml_bitwuzla_cxx_options_get_str (mlvalue vt, mlvalue vk)
+{
+  return native_bitwuzla_cxx_options_get_str(vt, Long_val(vk));
+}
 
 class Sort : public bitwuzla::Sort
 {
