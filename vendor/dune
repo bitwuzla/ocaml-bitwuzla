@@ -196,7 +196,7 @@
   (language cxx)
   (names :standard \ mobical cadical)
   (include_dirs src)
-  (flags :standard -std=c++11 -DNDEBUG -DNBUILD)))
+  (flags :standard -std=c++11 -DNDEBUG -DNBUILD -DNCLOSEFROM)))
 
 (rule
  (deps
