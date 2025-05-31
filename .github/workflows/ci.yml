@@ -3,39 +3,34 @@ name: CI
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
     strategy:
+      fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
         ocaml-compiler:
-          - 4.12.0
-          - 4.13.1
-          - 4.14.1
+          - 5
         package:
           - bitwuzla-cxx
-        test:
-          -
-          - --with-test
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
-        uses: ocaml/setup-ocaml@v2
+        uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
       - run: opam pin add . --no-action
 
-      - run: opam depext ${{ matrix.package }} --yes ${{ matrix.test }}
-
-
-      - run: opam install ${{ matrix.package }} --deps-only ${{ matrix.test }}
+      - run: opam install ${{ matrix.package }} --deps-only --with-test
 
       - run: opam exec -- dune build --only-packages ${{ matrix.package }} @install
 
-      - if: matrix.test != ''
-        run: opam exec -- dune build --only-packages ${{ matrix.package }} @runtest
+      - run: opam exec -- dune build --only-packages ${{ matrix.package }} @runtest
