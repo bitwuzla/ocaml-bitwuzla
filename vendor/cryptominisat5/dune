@@ -1,0 +1,5 @@
+(copy_files
+ (files ../cryptominisat/src/cryptominisat.h))
+
+(copy_files
+ (files ../cryptominisat/src/solvertypesmini.h))

@@ -2,7 +2,7 @@
 (generate_opam_files true)
 
 (name bitwuzla-cxx)
-(version 0.8.0)
+(version 0.8.2)
 (maintainers "Frédéric Recoules <frederic.recoules@cea.fr>")
 (authors "Frédéric Recoules")
 (source (github  bitwuzla/ocaml-bitwuzla))

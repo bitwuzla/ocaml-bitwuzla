@@ -20,7 +20,10 @@
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/bitwuzla/src/util/bitwuzla-utils
-  ../vendor/cadical/cadical)
+  ../vendor/cadical/cadical
+  ../vendor/cryptominisat/cryptominisat
+  ../vendor/cryptominisat/picosat
+  ../vendor/kissat/kissat)
  (library_flags -linkall)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
 
@@ -42,7 +45,10 @@
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/bitwuzla/src/util/bitwuzla-utils
-  ../vendor/cadical/cadical)
+  ../vendor/cadical/cadical
+  ../vendor/cryptominisat/cryptominisat
+  ../vendor/cryptominisat/picosat
+  ../vendor/kissat/kissat)
  (library_flags -linkall)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
 
@@ -64,7 +70,10 @@
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/bitwuzla/src/util/bitwuzla-utils
-  ../vendor/cadical/cadical)
+  ../vendor/cadical/cadical
+  ../vendor/cryptominisat/cryptominisat
+  ../vendor/cryptominisat/picosat
+  ../vendor/kissat/kissat)
  (library_flags -linkall)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
 
@@ -86,6 +95,9 @@
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
   ../vendor/bitwuzla/src/util/bitwuzla-utils
-  ../vendor/cadical/cadical)
+  ../vendor/cadical/cadical
+  ../vendor/cryptominisat/cryptominisat
+  ../vendor/cryptominisat/picosat
+  ../vendor/kissat/kissat)
  (library_flags -linkall)
  (c_library_flags :standard -L/opt/homebrew/lib -lgmp))

@@ -231,16 +231,6 @@ let%test "Options (mode)" =
   (Options.set t Bv_solver Prop;
    Options.get t Bv_solver = Prop)
 
-let%test "Options (unsupported)" =
-  let t = Options.default () in
-  List.for_all
-    (fun s ->
-      try
-        Options.set t Sat_solver s;
-        false
-      with Invalid_argument _ -> true)
-    [ Cms; Kissat ]
-
 let%test "Options (invalid)" =
   let t = Options.default () in
   try
@@ -793,6 +783,22 @@ let%test "terminate" =
       Solver.configure_terminator t (Some (timeout (Sys.time () +. 5.)));
       Solver.check_sat t = Unknown)
 
+let%test "terminate" =
+  List.for_all
+    (fun solver ->
+      let options = Options.default () in
+      Options.set options Sat_solver solver;
+      let t = Solver.create options in
+      let r =
+        try
+          Solver.configure_terminator t (Some (timeout (Sys.time () +. 5.)));
+          false
+        with Invalid_argument _ -> true
+      in
+      Solver.unsafe_delete t;
+      r)
+    [ Cms; Kissat ]
+
 let%test "GC" =
   (with_unsat_formula false) (fun (t, e) ->
       for _ = 0 to 1023 do
@@ -835,3 +841,11 @@ let%expect_test "Term.to_string" =
     #b00101010
     (_ bv42 8)
     #x2a |}]
+
+let%test "quickstart" =
+  List.for_all
+    (fun solver ->
+      let options = Options.default () in
+      Options.set options Sat_solver solver;
+      Examples.quickstart (module Bitwuzla_cxx) options)
+    [ Cadical; Cms; Kissat ]

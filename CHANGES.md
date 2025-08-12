@@ -1,3 +1,14 @@
+## 0.8.2 (2025-08-12)
+
+Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.8.2) sources.
+
+Vendor submodules:
+- [Cadical](https://github.com/arminbiere/cadical) tag:rel-2.1.2
+- [CryptoMiniSat](https://github.com/msoos/cryptominisat) tag:5.11.21
+- [Kissat](https://github.com/arminbiere/kissat) tag:rel-4.0.1
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) tag:0.8.2
+
+
 ## 0.8.0 (2025-05-30)
 
 Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.8.0) sources.

@@ -14,7 +14,7 @@
   (foreign_library
    (archive_name bitwuzla-utils)
    (language cxx)
-   (names hash_pair logger printer resources statistics util integer gmp_utils)
+   (names hash logger printer resources statistics util integer gmp_utils)
    (flags :standard -std=c++17 -I. -I.. -DNDEBUG)
    (extra_deps ../../../.bitwuzla_tree)))
  (subdir
@@ -176,14 +176,25 @@
    type
    type_data
    type_manager)
-  (include_dirs include src src/lib ../symfpu ../cadical/src)
+  (include_dirs
+   include
+   src
+   src/lib
+   ../symfpu
+   ../cadical/src
+   ../cryptominisat5
+   ../kissat/src)
   (flags
    -Isrc/lib/
-   -I../cadical/src
    -I..
    -Isrc
+   -I../cadical/src
+   -I../cryptominisat5
+   -I../kissat/src
    :standard
    -std=c++17
+   -DBZLA_USE_KISSAT
+   -DBZLA_USE_CMS
    -DNDEBUG)
   (extra_deps ../.bitwuzla_tree)))
 
@@ -197,6 +208,98 @@
   (names :standard \ mobical cadical)
   (include_dirs src)
   (flags :standard -std=c++11 -DNDEBUG -DNBUILD -DNCLOSEFROM)))
+
+(subdir
+ kissat
+ (include_subdirs unqualified)
+ (dirs src)
+ (foreign_library
+  (archive_name kissat)
+  (language c)
+  (names :standard \ config application main)
+  (include_dirs src)
+  (flags :standard -DNDEBUG -DNBUILD))
+ (subdir
+  src
+  (rule
+   (deps ../VERSION)
+   (target build.h)
+   (action
+    (with-stdout-to
+     %{target}
+     (progn
+      (echo "#define VERSION ")
+      (with-stdin-from
+       %{deps}
+       (run ../../../utils/stringify.exe))
+      (echo "\n")
+      (echo "#define COMPILER \"\"\n")
+      (echo "#define ID (char*)NULL\n")
+      (echo "#define BUILD \"\"\n")
+      (echo "#define DIR \"\"\n")))))))
+
+(subdir
+ cryptominisat
+ (include_subdirs unqualified)
+ (dirs src)
+ (foreign_library
+  (archive_name cryptominisat)
+  (language cxx)
+  (names
+   bva
+   cardfinder
+   ccnr
+   ccnr_cms
+   clauseallocator
+   clausecleaner
+   cnf
+   completedetachreattacher
+   cryptominisat
+   cryptominisat_c
+   datasync
+   distillerbin
+   distillerlitrem
+   distillerlong
+   distillerlongwithimpl
+   frat
+   gatefinder
+   gaussian
+   get_clause_query
+   GitSHA1
+   hyperengine
+   intree
+   lucky
+   matrixfinder
+   occsimplifier
+   packedrow
+   propengine
+   reducedb
+   sccfinder
+   searcher
+   searchstats
+   sls
+   solutionextender
+   solver
+   solverconf
+   sqlstats
+   str_impl_w_impl
+   subsumeimplicit
+   subsumestrengthen
+   vardistgen
+   varreplacer
+   xorfinder
+   oracle)
+  (include_dirs src)
+  (flags :standard -I.))
+ (foreign_library
+  (archive_name picosat)
+  (language c)
+  (names picosat version))
+ (subdir
+  src
+  (rule
+   (action
+    (copy GitSHA1.cpp.in GitSHA1.cpp)))))
 
 (rule
  (deps

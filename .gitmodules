@@ -4,9 +4,12 @@
 [submodule "vendor/symfpu"]
 	path = vendor/symfpu
 	url = https://github.com/martin-cs/symfpu.git
-[submodule "vendor/btor2tools"]
-	path = vendor/btor2tools
-	url = https://github.com/Boolector/btor2tools.git
 [submodule "vendor/bitwuzla"]
 	path = vendor/bitwuzla
 	url = https://github.com/bitwuzla/bitwuzla.git
+[submodule "vendor/cryptominisat"]
+	path = vendor/cryptominisat
+	url = https://github.com/msoos/cryptominisat.git
+[submodule "vendor/kissat"]
+	path = vendor/kissat
+	url = https://github.com/arminbiere/kissat.git
