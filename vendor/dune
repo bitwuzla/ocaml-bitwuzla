@@ -290,11 +290,12 @@
    xorfinder
    oracle)
   (include_dirs src)
-  (flags :standard -I.))
+  (flags :standard -std=c++17 -I. -Wno-class-memaccess -Wno-maybe-uninitialized))
  (foreign_library
   (archive_name picosat)
   (language c)
-  (names picosat version))
+  (names picosat version)
+  (flags :standard -DEMSCRIPTEN -Wno-pointer-compare ))
  (subdir
   src
   (rule
