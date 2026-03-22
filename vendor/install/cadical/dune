@@ -1,0 +1,5 @@
+(copy_files
+ (files ../../cadical/src/cadical.hpp))
+
+(copy_files
+ (files ../../cadical/src/tracer.hpp))

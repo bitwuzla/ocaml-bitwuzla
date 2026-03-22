@@ -52,3 +52,9 @@ external check_sat : Term.t array -> t -> (int[@untagged])
 let check_sat ?(assumptions = [||]) t = Result.of_cxx @@ check_sat assumptions t
 
 external get_value : t -> Term.t -> Term.t = "ocaml_bitwuzla_cxx_get_value"
+
+external get_interpolant : t -> Term.t array -> Term.t
+  = "ocaml_bitwuzla_cxx_get_interpolant"
+
+external get_interpolants : t -> Term.t array array -> Term.t array
+  = "ocaml_bitwuzla_cxx_get_interpolants"

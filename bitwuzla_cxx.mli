@@ -37,6 +37,12 @@ module Options : sig
 
             This option cannot be enabled in combination with option
             [Pp_unconstrained_optimization]. *)
+    | Produce_interpolants : bool key
+        (** Interpolant generation.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\] *)
     | Produce_unsat_assumptions : bool key
         (** Unsat assumptions generation.
 
@@ -357,15 +363,6 @@ module Options : sig
 
             Warning: This is an expert option to configure the prop solver
             engine. *)
-    | Abstraction_eq : bool key
-        (** Abstraction module: Abstract equality terms.
-
-            Values:
-            - [true]: enable
-            - [false]: disable \[{b default}\]
-
-            Warning: This is an expert option to configure the prop solver
-            engine. *)
     | Abstraction_ite : bool key
         (** Abstraction module: Abstract ITE terms.
 
@@ -375,6 +372,81 @@ module Options : sig
 
             Warning: This is an expert option to configure the prop solver
             engine. *)
+    | Interpolants_algo : interpolants_algo key
+        (** Interpolant generation.
+
+            The bit-level algorithm used for interpolant generation.
+
+            Values:
+            - [Mcmillan]: Use the {i asymmetric} interpolant generation via
+              McMillan's algorithm \[{b default}\]
+            - [Pudlak]: Use the {i symmetric} interpolant generation via
+              Pudlak's algorithm
+
+            Warning: This is an expert option to configure interpolant
+            generation. *)
+    | Interpolants_lift : bool key
+        (** Interpolant generation.
+
+            When enabled, the generated interpolant is lifted as much as
+            possible to the theory level. Else, the resulting interpolant
+            exactly corresponds to the bit-level AIG interpolant.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            Warning; This is an expert option to configure interpolant
+            generation. *)
+    | Interpolants_subst : bool key
+        (** Interpolant generation.
+
+            When enabled, the generated interpolant is computed via
+            substituitions. If all A-local symbols are eliminated via
+            substitution, the resulting A is an interpolant. If all B-local
+            symbols are eliminated via substitution, ~B is an interpolant.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            Warning; This is an expert option to configure interpolant
+            generation. *)
+    | Interpolants_simp : bool key
+        (** Interpolant generation.
+
+            When enabled, the generated bit-level interpolant is simplified by
+            applying several post-processing steps that try to recover more
+            word-level structure.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            Warning: This is an expert option to configure interpolant
+            generation. *)
+    | Interpolants_stats : bool key
+        (** Interpolant generation.
+
+            When enabled, compute statistics about generated interpolant.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            Warning: This is an expert option to configure interpolant
+            generation. *)
+    | Interpolants_print_stats : bool key
+        (** Interpolant generation.
+
+            When enabled, prints statistics to stdout.
+
+            Values:
+            - [true]: enable
+            - [false]: disable \[{b default}\]
+
+            Warning: This is an expert option to configure interpolant
+            generation. *)
     | Preprocess : bool key
         (** Preprocessing
 
@@ -476,6 +548,10 @@ module Options : sig
             Prints a warning if formula size increase is above threshold.
 
             This is an expert debug option. *)
+    | Check_interpolant : bool key
+        (** Debug: Check interpolants for each get-interpolant query.
+
+            This is an expert debug option. *)
     | Check_model : bool key
         (** Debug: Check models for each satisfiable query.
 
@@ -486,8 +562,9 @@ module Options : sig
             This is an expert debug option. *)
 
   and bv_solver = Bitblast | Preprop | Prop
-  and sat_solver = Cadical | Cms | Kissat
+  and sat_solver = Cadical | Cms | Gimsatul | Kissat
   and prop_path_sel = Essential | Random
+  and interpolants_algo = Mcmillan | Pudlak
 
   val to_string : 'a key -> string
   (** [to_string opt] Returns the long name of this option. *)
@@ -1556,6 +1633,44 @@ module type S = sig
         @return A term representing the model value of term [term]. *)
 
     (** {2 Unsat} *)
+
+    val get_interpolant : t -> Term.t array -> Term.t
+    (** Get a term representing the interpolant I given the current set of
+        assertions, partitioned into partitions A and B such that [(and A B)] is
+        unsat and [(=> A I)] and [(=> I (not B))].
+
+        Partition A is the given set of assertions, partition B consists of the
+        remaining assertions that are not in A.
+
+        Requires that the last {!val:check_sat} query returned [UNSAT].
+
+        Note: Assertions in A and B must be currently asserted formulas.
+
+        @param A
+          The set of formulas representing partition A. This must be a strict
+          subset of the set of current assertions.
+        @return Interpolant I such that [(=> A I)] and [(=> I (not B))].
+
+        Warning: The signature of this function is experimental and may change
+        in future versions. *)
+
+    val get_interpolants : t -> Term.t array array -> Term.t array
+    (** Get an inductive sequence of interpolants [[ I1, ..., In]] given the
+        current set of assertions [F] and a sequence of partitions.
+
+        @see <https://bitwuzla.github.io/docs/cpp/classes/bitwuzla.html#_CPPv4N8bitwuzla8Bitwuzla16get_interpolantsERKNSt6vectorINSt6vectorI4TermEEEE>
+          Official documentation.
+
+        Requires that the last {!val:check_sat} query returned [UNSAT].
+
+        Note: Assertions in [Ai] must be currently asserted formulas.
+
+        Note: Current SAT state must be unsat.
+        @param A The set of A increments.
+        @return The interpolation sequence.
+
+        Warning: The signature of this function is experimental and may change
+        in future versions. *)
 
     val is_unsat_assumption : t -> Term.t -> bool
     (** [is_unsat_assumption t term] determine if an assumption is an unsat

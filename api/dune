@@ -15,7 +15,6 @@
   (names build_enum_option)
   (include_dirs ../vendor/bitwuzla/include))
  (foreign_archives
-  ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
   ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
@@ -25,7 +24,7 @@
   ../vendor/cryptominisat/picosat
   ../vendor/kissat/kissat)
  (library_flags -linkall)
- (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp -lmpfr))
 
 (executable
  (name result)
@@ -40,7 +39,6 @@
   (names build_enum_result)
   (include_dirs ../vendor/bitwuzla/include))
  (foreign_archives
-  ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
   ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
@@ -50,7 +48,7 @@
   ../vendor/cryptominisat/picosat
   ../vendor/kissat/kissat)
  (library_flags -linkall)
- (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp -lmpfr))
 
 (executable
  (name rounding_mode)
@@ -65,7 +63,6 @@
   (names build_enum_rounding_mode)
   (include_dirs ../vendor/bitwuzla/include))
  (foreign_archives
-  ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
   ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
@@ -75,7 +72,7 @@
   ../vendor/cryptominisat/picosat
   ../vendor/kissat/kissat)
  (library_flags -linkall)
- (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp -lmpfr))
 
 (executable
  (name kind)
@@ -90,7 +87,6 @@
   (names build_enum_kind)
   (include_dirs ../vendor/bitwuzla/include))
  (foreign_archives
-  ../vendor/bitwuzla/src/api/cpp/bitwuzla-api
   ../vendor/bitwuzla/bitwuzla-cxx
   ../vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   ../vendor/bitwuzla/src/lib/bitwuzla-libs
@@ -100,4 +96,4 @@
   ../vendor/cryptominisat/picosat
   ../vendor/kissat/kissat)
  (library_flags -linkall)
- (c_library_flags :standard -L/opt/homebrew/lib -lgmp))
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp -lmpfr))

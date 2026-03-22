@@ -27,3 +27,8 @@
  (name terminator)
  (modules terminator)
  (libraries unix bitwuzla-cxx))
+
+(executable
+ (name interpolation)
+ (modules interpolation)
+ (libraries unix bitwuzla-cxx))

@@ -1199,6 +1199,44 @@ module type S = sig
 
     (** {2 Unsat} *)
 
+    val get_interpolant : t -> Term.t array -> Term.t
+    (** Get a term representing the interpolant I given the current set of
+        assertions, partitioned into partitions A and B such that [(and A B)] is
+        unsat and [(=> A I)] and [(=> I (not B))].
+
+        Partition A is the given set of assertions, partition B consists of the
+        remaining assertions that are not in A.
+
+        Requires that the last {!val:check_sat} query returned [UNSAT].
+
+        Note: Assertions in A and B must be currently asserted formulas.
+
+        @param A
+          The set of formulas representing partition A. This must be a strict
+          subset of the set of current assertions.
+        @return Interpolant I such that [(=> A I)] and [(=> I (not B))].
+
+        Warning: The signature of this function is experimental and may change
+        in future versions. *)
+
+    val get_interpolants : t -> Term.t array array -> Term.t array
+    (** Get an inductive sequence of interpolants [[ I1, ..., In]] given the
+        current set of assertions [F] and a sequence of partitions.
+
+        @see <https://bitwuzla.github.io/docs/cpp/classes/bitwuzla.html#_CPPv4N8bitwuzla8Bitwuzla16get_interpolantsERKNSt6vectorINSt6vectorI4TermEEEE>
+          Official documentation.
+
+        Requires that the last {!val:check_sat} query returned [UNSAT].
+
+        Note: Assertions in [Ai] must be currently asserted formulas.
+
+        Note: Current SAT state must be unsat.
+        @param A The set of A increments.
+        @return The interpolation sequence.
+
+        Warning: The signature of this function is experimental and may change
+        in future versions. *)
+
     val is_unsat_assumption : t -> Term.t -> bool
     (** [is_unsat_assumption t term] determine if an assumption is an unsat
         assumption.

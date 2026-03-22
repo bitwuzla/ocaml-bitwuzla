@@ -1755,6 +1755,52 @@ ocaml_bitwuzla_cxx_get_value(mlvalue vt, mlvalue va)
 }
 
 extern "C" CAMLprim mlvalue
+ocaml_bitwuzla_cxx_get_interpolant(mlvalue vt, mlvalue vA)
+{
+  CAMLparam0();
+  mlvalue custom = Val_unit;
+  size_t size = Wosize_val(vA);
+  std::vector<bitwuzla::Term> A;
+  A.reserve(size);
+  for (size_t i = 0; i < size; i += 1)
+    A.emplace_back(*Term_val(Field(vA, i)));
+  BITWUZLA_TRY_CATCH_BEGIN;
+  new (&term_operations, &custom)
+      Term(Bitwuzla_val(vt)->get_interpolant(A));
+  CAMLreturn(custom);
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
+}
+
+extern "C" CAMLprim mlvalue
+ocaml_bitwuzla_cxx_get_interpolants(mlvalue vt, mlvalue vA)
+{
+  CAMLparam0();
+  CAMLlocal1(vresult);
+  mlvalue custom = Val_unit;
+  size_t size = Wosize_val(vA);
+  std::vector<std::vector<bitwuzla::Term>> A(size);
+  for (size_t i = 0; i < size; i += 1)
+  {
+    mlvalue vAi = Field(vA, i);
+    size_t size2 = Wosize_val(vAi);
+    A[i].reserve(size2);
+    for (size_t j = 0; j < size2; j += 1)
+      A[i].emplace_back(*Term_val(Field(vAi, j)));
+  }
+  BITWUZLA_TRY_CATCH_BEGIN;
+  std::vector<bitwuzla::Term> result = Bitwuzla_val(vt)->get_interpolants(A);
+  size_t n = result.size();
+  vresult = caml_alloc(n, 0);
+  for (size_t i = 0; i < n; i += 1)
+  {
+    new (&term_operations, &custom) Term(result[i]);
+    caml_modify(&Field(vresult, i), custom);
+  }
+  CAMLreturn(vresult);
+  BITWUZLA_TRY_CATCH_END_CUSTOM_ALLOC(custom);
+}
+
+extern "C" CAMLprim mlvalue
 ocaml_bitwuzla_cxx_pp_formula(mlvalue vf, mlvalue vt)
 {
   CAMLparam1(vf);

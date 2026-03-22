@@ -22,7 +22,6 @@
    (lib zarith))
   (flags :standard -std=c++17 -Ivendor/bitwuzla/src -I/opt/homebrew/include))
  (foreign_archives
-  vendor/bitwuzla/src/api/cpp/bitwuzla-api
   vendor/bitwuzla/bitwuzla-cxx
   vendor/bitwuzla/src/parser/smt2/bitwuzla-smt2
   vendor/bitwuzla/src/lib/bitwuzla-libs
@@ -31,7 +30,7 @@
   vendor/cryptominisat/cryptominisat
   vendor/cryptominisat/picosat
   vendor/kissat/kissat)
- (c_library_flags :standard -L/opt/homebrew/lib -lgmp)
+ (c_library_flags :standard -L/opt/homebrew/lib -lgmp -lmpfr)
  (library_flags -linkall))
 
 (rule

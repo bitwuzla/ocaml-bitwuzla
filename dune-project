@@ -2,7 +2,7 @@
 (generate_opam_files true)
 
 (name bitwuzla-cxx)
-(version 0.8.2)
+(version 0.9.0)
 (maintainers "Frédéric Recoules <frederic.recoules@cea.fr>")
 (authors "Frédéric Recoules")
 (source (github  bitwuzla/ocaml-bitwuzla))
@@ -23,6 +23,7 @@ Bitwuzla is a Satisfiability Modulo Theories (SMT) solver for the theories of fi
   (conf-git :build)
   (conf-gcc :build)
   (conf-g++ :build)
+  conf-mpfr
   zarith
   (ppx_inline_test (and :with-test (>= v0.13)))
   (ppx_expect (and :with-test (>= v0.13))))

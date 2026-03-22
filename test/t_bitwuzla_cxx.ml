@@ -188,11 +188,21 @@ let%expect_test "copyright" =
       CaDiCaL
       https://github.com/arminbiere/cadical
 
+      CryptoMiniSat
+      https://github.com/msoos/cryptominisat
+
+      Kissat
+      https://github.com/arminbiere/kissat
+
       GMP - GNU Multiple Precision Arithmetic Library
       https://gmplib.org
 
+      MPFR - GNU Multiple Precision Floating-Point Realiable Library
+      https://www.mpfr.org
+
       SymFPU
-      https://github.com/martin-cs/symfpu |}]
+      https://github.com/martin-cs/symfpu
+    |}]
 
 let%test "Options (bool)" =
   let t = Options.default () in
@@ -667,10 +677,14 @@ let%expect_test "simplify" =
   with_sat_formula (fun (t, _) ->
       ignore (Solver.simplify t);
       Solver.pp_formula Format.std_formatter t);
-  [%expect {|
+  [%expect
+    {|
     (set-logic ALL)
+    (declare-const a Bool)
+    (assert a)
     (check-sat)
-    (exit) |}]
+    (exit)
+    |}]
 
 let%expect_test "get_value" =
   Term.pp Format.std_formatter
@@ -849,3 +863,55 @@ let%test "quickstart" =
       Options.set options Sat_solver solver;
       Examples.quickstart (module Bitwuzla_cxx) options)
     [ Cadical; Cms; Kissat ]
+
+let%expect_test "interpolation" =
+  let sortbv2 = mk_bv_sort 2 in
+  let sortbv4 = mk_bv_sort 4 in
+
+  let x1 = mk_const sortbv2 ~symbol:"x1" in
+  let x2 = mk_const sortbv2 ~symbol:"x2" in
+  let x3 = mk_const sortbv2 ~symbol:"x3" in
+  let a1 =
+    mk_term2 Bv_slt (mk_bv_zero sortbv4)
+      (mk_term2 Bv_sub
+         (mk_term1_indexed1 Bv_zero_extend x1 2)
+         (mk_bv_one sortbv4))
+  in
+  let a2 = mk_term2 Equal x1 x2 in
+  let a3 =
+    mk_term2 Equal x3
+      (mk_term1_indexed2 Bv_extract
+         (mk_term1 Bv_neg (mk_term1_indexed1 Bv_zero_extend x2 2))
+         1 0)
+  in
+  let a4 = mk_term2 Equal x3 (mk_bv_zero sortbv2) in
+  let options = Options.default () in
+  Options.set options Produce_interpolants true;
+  Options.set options Interpolants_simp true;
+  let bitwuzla = Solver.create options in
+  Solver.assert_formula bitwuzla a1;
+  Solver.assert_formula bitwuzla a2;
+  Solver.assert_formula bitwuzla a3;
+  Solver.assert_formula bitwuzla a4;
+  ignore (Solver.check_sat bitwuzla);
+  let interpolant = Solver.get_interpolant bitwuzla [| a1; a2 |] in
+  Format.printf "%a@ " Term.pp interpolant;
+  let interpolants =
+    Solver.get_interpolants bitwuzla [| [| a1 |]; [| a2 |]; [| a3 |] |]
+  in
+  Format.printf "@[<v>(@ %a)@]"
+    (fun ppf interpolants ->
+      Array.iter
+        (fun term ->
+          Term.pp ppf term;
+          Format.pp_print_space ppf ())
+        interpolants)
+    interpolants;
+  [%expect {|
+    (not (= x2 #b00))
+    (
+    (= #b0 ((_ extract 3 3) (bvadd (concat #b00 x1) #b1111)))
+    (not (= x2 #b00))
+    (not (= x3 #b00))
+    )
+    |}]

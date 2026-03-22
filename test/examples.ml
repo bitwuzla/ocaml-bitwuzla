@@ -215,6 +215,102 @@ let terminator (session : (module S)) (options : Options.t) : bool =
    Solver.configure_terminator bitwuzla2 (Some terminator);
    Solver.check_sat bitwuzla2 ~assumptions:[| a |] = Unknown)
 
+let interpolation (session : (module S)) (options : Options.t) : bool =
+  let open (val session) in
+  let sortbv2 = mk_bv_sort 2 in
+  let sortbv4 = mk_bv_sort 4 in
+
+  let x1 = mk_const sortbv2 ~symbol:"x1" in
+  let x2 = mk_const sortbv2 ~symbol:"x2" in
+  let x3 = mk_const sortbv2 ~symbol:"x3" in
+  let a1 =
+    mk_term2 Bv_slt (mk_bv_zero sortbv4)
+      (mk_term2 Bv_sub
+         (mk_term1_indexed1 Bv_zero_extend x1 2)
+         (mk_bv_one sortbv4))
+  in
+  let a2 = mk_term2 Equal x1 x2 in
+  let a3 =
+    mk_term2 Equal x3
+      (mk_term1_indexed2 Bv_extract
+         (mk_term1 Bv_neg (mk_term1_indexed1 Bv_zero_extend x2 2))
+         1 0)
+  in
+  let a4 = mk_term2 Equal x3 (mk_bv_zero sortbv2) in
+  Options.set options Produce_interpolants true;
+  Options.set options Interpolants_simp true;
+  let bitwuzla = Solver.create options in
+  Solver.assert_formula bitwuzla a1;
+  Solver.assert_formula bitwuzla a2;
+  Solver.assert_formula bitwuzla a3;
+  Solver.assert_formula bitwuzla a4;
+  Solver.check_sat bitwuzla = Unsat
+  &&
+  let interpolant = Solver.get_interpolant bitwuzla [| a1; a2 |] in
+  let checker = Solver.create options in
+  Solver.check_sat
+    ~assumptions:
+      [| mk_term1 Not (mk_term2 Implies (mk_term2 And a1 a2) interpolant) |]
+    checker
+  = Unsat
+  && Solver.check_sat
+       ~assumptions:
+         [|
+           mk_term1 Not
+             (mk_term2 Implies interpolant (mk_term1 Not (mk_term2 And a3 a4)));
+         |]
+       checker
+     = Unsat
+  &&
+  let interpolants =
+    Solver.get_interpolants bitwuzla [| [| a1 |]; [| a2 |]; [| a3 |] |]
+  in
+  Array.length interpolants = 3
+  && Solver.check_sat
+       ~assumptions:[| mk_term1 Not (mk_term2 Implies a1 interpolants.(0)) |]
+       checker
+     = Unsat
+  && Solver.check_sat
+       ~assumptions:
+         [|
+           mk_term1 Not
+             (mk_term2 Implies interpolants.(0)
+                (mk_term1 Not (mk_term And [| a2; a3; a4 |])));
+         |]
+       checker
+     = Unsat
+  && Solver.check_sat
+       ~assumptions:
+         [|
+           mk_term1 Not (mk_term2 Implies (mk_term2 And a1 a2) interpolants.(1));
+         |]
+       checker
+     = Unsat
+  && Solver.check_sat
+       ~assumptions:
+         [|
+           mk_term1 Not
+             (mk_term2 Implies interpolants.(1)
+                (mk_term1 Not (mk_term2 And a3 a4)));
+         |]
+       checker
+     = Unsat
+  && Solver.check_sat
+       ~assumptions:
+         [|
+           mk_term1 Not
+             (mk_term2 Implies (mk_term And [| a1; a2; a3 |]) interpolants.(2));
+         |]
+       checker
+     = Unsat
+  && Solver.check_sat
+       ~assumptions:
+         [|
+           mk_term1 Not (mk_term2 Implies interpolants.(2) (mk_term1 Not a4));
+         |]
+       checker
+     = Unsat
+
 let collection =
   [|
     quickstart;
@@ -223,4 +319,5 @@ let collection =
     unsatassumptions;
     unsatcore;
     terminator;
+    interpolation;
   |]

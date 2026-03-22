@@ -42,22 +42,7 @@
    (extra_deps ../../../.bitwuzla_tree)))
  (subdir
   src/api
-  (dirs cpp)
-  (subdir
-   cpp
-   (include_subdirs no)
-   (foreign_library
-    (archive_name bitwuzla-api)
-    (language cxx)
-    (names bitwuzla)
-    (flags
-     -I../..
-     -I../../lib
-     -I../../../include
-     :standard
-     -std=c++17
-     -DNDEBUG)
-    (extra_deps ../../config.h ../../../../.bitwuzla_tree))))
+  (dirs cpp))
  (subdir
   src
   (subdir
@@ -96,8 +81,15 @@
         (echo "\n\n")
         (echo "  CaDiCaL\n  https://github.com/arminbiere/cadical")
         (echo "\n\n")
+        (echo "  CryptoMiniSat\n  https://github.com/msoos/cryptominisat")
+        (echo "\n\n")
+        (echo "  Kissat\n  https://github.com/arminbiere/kissat")
+        (echo "\n\n")
         (echo
          "  GMP - GNU Multiple Precision Arithmetic Library\n  https://gmplib.org")
+        (echo "\n\n")
+        (echo
+         "  MPFR - GNU Multiple Precision Floating-Point Realiable Library\n  https://www.mpfr.org")
         (echo "\n\n")
         (echo "  SymFPU\n  https://github.com/martin-cs/symfpu"))
        (run ../../../utils/stringify.exe))
@@ -112,9 +104,14 @@
    checks
    assertion_stack
    backtrackable
+   bitwuzla
+   result
+   terminator
+   check_interpolant
    check_model
    check_unsat_core
    env
+   interpolator
    kind_info
    node
    node_data
@@ -129,7 +126,6 @@
    elim_extract
    elim_lambda
    elim_udiv
-   elim_uninterpreted
    embedded_constraints
    flatten_and
    normalize
@@ -138,7 +134,8 @@
    variable_substitution
    preprocessing_pass
    preprocessor
-   printer
+   btor2_printer
+   smt2_printer
    evaluator
    rewrite_utils
    rewriter
@@ -151,12 +148,16 @@
    resource_terminator
    cadical
    cryptominisat
+   cadical_tracer
+   tracer
+   tracer_kinds
    kissat
    sat_solver_factory
    array_solver
    abstraction_lemmas
    abstraction_module
    bv_bitblast_solver
+   bv_interpolator
    bv_prop_solver
    bv_solver
    aig_bitblaster
@@ -164,15 +165,16 @@
    fp_solver
    rounding_mode
    symfpu_nm
+   symfpu_floating_point_typeinfo
    symfpu_wrapper
    word_blaster
    fun_solver
    quant_solver
-   result
    solver
    solver_engine
    solver_state
    solving_context
+   card
    type
    type_data
    type_manager)
@@ -182,7 +184,8 @@
    src/lib
    ../symfpu
    ../cadical/src
-   ../cryptominisat5
+   ../install
+   ../install/cryptominisat5
    ../kissat/src)
   (flags
    -Isrc/lib/
@@ -193,6 +196,9 @@
    -I../kissat/src
    :standard
    -std=c++17
+   -DMPFR_USE_C99_FEATURE=1
+   -DBZLA_IS_SAT_SOLVER_CONFIGURED
+   -DBZLA_USE_CADICAL
    -DBZLA_USE_KISSAT
    -DBZLA_USE_CMS
    -DNDEBUG)

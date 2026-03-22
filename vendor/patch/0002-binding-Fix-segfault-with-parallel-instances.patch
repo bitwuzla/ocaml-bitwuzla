@@ -1,23 +1,23 @@
-From 492e76193b8eb83680f5ce6466259d5c6f198f27 Mon Sep 17 00:00:00 2001
+From 3c80eb71a79be39a37b9fd227ac1266b443bbb3d Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Recoules?= <frederic.recoules@cea.fr>
-Date: Tue, 7 Jan 2025 14:22:29 +0100
+Date: Sun, 22 Mar 2026 14:54:12 +0100
 Subject: [PATCH 2/2] Fix https://github.com/bitwuzla/ocaml-bitwuzla/issues/7
 
 ---
- include/bitwuzla/cpp/bitwuzla.h |  9 ++----
+ include/bitwuzla/cpp/bitwuzla.h |  9 ++---
  src/api/checks.h                |  4 +--
- src/api/cpp/bitwuzla.cpp        | 26 +++++++++-------
- src/node/node_manager.cpp       | 55 +++++++++++++++++++--------------
- src/node/node_manager.h         | 16 +++++++---
- src/type/type_manager.cpp       | 21 +++++++++++++
- src/type/type_manager.h         | 22 ++++++++++++-
- 7 files changed, 106 insertions(+), 47 deletions(-)
+ src/api/cpp/bitwuzla.cpp        | 31 ++++++++++-------
+ src/node/node_manager.cpp       | 61 +++++++++++++++++++--------------
+ src/node/node_manager.h         | 16 ++++++---
+ src/type/type_manager.cpp       | 21 ++++++++++++
+ src/type/type_manager.h         | 22 +++++++++++-
+ 7 files changed, 112 insertions(+), 52 deletions(-)
 
 diff --git a/include/bitwuzla/cpp/bitwuzla.h b/include/bitwuzla/cpp/bitwuzla.h
-index df31099f..0bb0116d 100644
+index 7fa7e67e..fa48cf1d 100644
 --- a/include/bitwuzla/cpp/bitwuzla.h
 +++ b/include/bitwuzla/cpp/bitwuzla.h
-@@ -1561,7 +1561,7 @@ class TermManager
+@@ -1553,7 +1553,7 @@ class TermManager
  
  
   private:
@@ -26,7 +26,7 @@ index df31099f..0bb0116d 100644
  };
  
  /* -------------------------------------------------------------------------- */
-@@ -1776,9 +1776,6 @@ class Bitwuzla
+@@ -1866,9 +1866,6 @@ class Bitwuzla
     */
    std::map<std::string, std::string> statistics() const;
  
@@ -36,7 +36,7 @@ index df31099f..0bb0116d 100644
   private:
    /** Helper called when solver state changes. */
    void solver_state_change();
-@@ -1801,8 +1798,8 @@ class Bitwuzla
+@@ -1889,8 +1886,8 @@ class Bitwuzla
    bool d_uc_is_valid = false;
    /** Indicates a pending pop from check-sat with assumptions. */
    bool d_pending_pop = false;
@@ -44,14 +44,14 @@ index df31099f..0bb0116d 100644
 -  TermManager &d_tm;
 +  /** The associated node manager instance. */
 +  bzla::NodeManager *d_nm;
+   /** The associated SAT solver factory. */
+   std::unique_ptr<bzla::sat::SatSolverFactory> d_sat_factory;
  };
- 
- /* -------------------------------------------------------------------------- */
 diff --git a/src/api/checks.h b/src/api/checks.h
-index 9658f346..c297db4b 100644
+index 8f272e45..fb1bd5b9 100644
 --- a/src/api/checks.h
 +++ b/src/api/checks.h
-@@ -114,7 +114,7 @@ class BitwuzlaExceptionStream
+@@ -130,7 +130,7 @@ class BitwuzlaExceptionStream
  #define BITWUZLA_CHECK_TERM_TERM_MGR(term, what)    \
    do                                                \
    {                                                 \
@@ -60,7 +60,7 @@ index 9658f346..c297db4b 100644
          << "mismatching term manager for " << what; \
    } while (0)
  
-@@ -277,7 +277,7 @@ class BitwuzlaExceptionStream
+@@ -297,7 +297,7 @@ class BitwuzlaExceptionStream
      for (size_t i = 0, argc = args.size(); i < argc; ++i)                      \
      {                                                                          \
        BITWUZLA_CHECK_NOT_NULL_AT_IDX(args[i].d_node, i);                       \
@@ -70,19 +70,41 @@ index 9658f346..c297db4b 100644
        if (i == start || i > start)                                             \
        {                                                                        \
 diff --git a/src/api/cpp/bitwuzla.cpp b/src/api/cpp/bitwuzla.cpp
-index 46ed7051..f99a0e7e 100644
+index 5932be48..0def59ef 100644
 --- a/src/api/cpp/bitwuzla.cpp
 +++ b/src/api/cpp/bitwuzla.cpp
-@@ -1428,14 +1428,18 @@ class TerminatorInternal : public bzla::Terminator
+@@ -1424,7 +1424,7 @@ class SatSolverFactoryInternal : public bzla::sat::SatSolverFactory
  
  /* Bitwuzla public ---------------------------------------------------------- */
  
 -Bitwuzla::Bitwuzla(TermManager &tm, const Options &options) : d_tm(tm)
 +Bitwuzla::Bitwuzla(TermManager &tm, const Options &options) : d_nm(tm.d_nm)
  {
+ #if !defined(BZLA_IS_SAT_SOLVER_CONFIGURED)
+   (void) tm;
+@@ -1434,7 +1434,8 @@ Bitwuzla::Bitwuzla(TermManager &tm, const Options &options) : d_tm(tm)
    BITWUZLA_TRY_CATCH_BEGIN;
--  d_ctx.reset(new bzla::SolvingContext(*d_tm.d_nm, *options.d_options, "main"));
-+  d_ctx.reset(new bzla::SolvingContext(*d_nm, *options.d_options, "main"));
+   d_sat_factory.reset(new bzla::sat::SatSolverFactory(*options.d_options));
+   d_ctx.reset(new bzla::SolvingContext(
+-      *d_tm.d_nm, *options.d_options, *d_sat_factory, "main"));
++      *d_nm, *options.d_options, *d_sat_factory, "main"));
++  d_nm->inc_ref();
+   BITWUZLA_TRY_CATCH_END;
+ #endif
+ }
+@@ -1442,17 +1443,21 @@ Bitwuzla::Bitwuzla(TermManager &tm, const Options &options) : d_tm(tm)
+ Bitwuzla::Bitwuzla(TermManager& tm,
+                    SatSolverFactory& sat_factory,
+                    const Options& options)
+-    : d_tm(tm)
++    : d_nm(tm.d_nm)
+ {
+   BITWUZLA_TRY_CATCH_BEGIN;
+   d_sat_factory.reset(
+       new SatSolverFactoryInternal(sat_factory, *options.d_options));
+   d_ctx.reset(new bzla::SolvingContext(
+-      *d_tm.d_nm, *options.d_options, *d_sat_factory, "main"));
++      *d_nm, *options.d_options, *d_sat_factory, "main"));
 +  d_nm->inc_ref();
    BITWUZLA_TRY_CATCH_END;
  }
@@ -95,7 +117,7 @@ index 46ed7051..f99a0e7e 100644
  
  void
  Bitwuzla::configure_terminator(Terminator *terminator)
-@@ -1690,12 +1694,6 @@ Bitwuzla::statistics() const
+@@ -1795,12 +1800,6 @@ Bitwuzla::statistics() const
    return d_ctx->env().statistics().get();
  }
  
@@ -108,7 +130,7 @@ index 46ed7051..f99a0e7e 100644
  /* Bitwuzla private --------------------------------------------------------- */
  
  void
-@@ -1711,9 +1709,15 @@ Bitwuzla::solver_state_change()
+@@ -1816,9 +1815,15 @@ Bitwuzla::solver_state_change()
  
  /* TermManager public ------------------------------------------------------- */
  
@@ -127,10 +149,10 @@ index 46ed7051..f99a0e7e 100644
  Sort
  TermManager::mk_array_sort(const Sort &index, const Sort &element)
 diff --git a/src/node/node_manager.cpp b/src/node/node_manager.cpp
-index 8f28e481..2acf32ab 100644
+index c8c8f9a9..20f61719 100644
 --- a/src/node/node_manager.cpp
 +++ b/src/node/node_manager.cpp
-@@ -41,14 +41,14 @@ NodeManager::~NodeManager()
+@@ -42,14 +42,14 @@ NodeManager::~NodeManager()
  type::TypeManager*
  NodeManager::tm()
  {
@@ -147,7 +169,7 @@ index 8f28e481..2acf32ab 100644
    NodeData* data = NodeData::alloc(Kind::CONSTANT, symbol);
    data->d_type   = t;
    init_id(data);
-@@ -63,7 +63,7 @@ NodeManager::mk_const_array(const Type& t, const Node& term)
+@@ -64,7 +64,7 @@ NodeManager::mk_const_array(const Type& t, const Node& term)
    assert(!term.is_null());
    assert(t.is_array());
    assert(t.array_element() == term.type());
@@ -156,7 +178,7 @@ index 8f28e481..2acf32ab 100644
    assert(term.nm() == this);
  
    NodeData* data = find_or_insert_node(Kind::CONST_ARRAY, t, {term}, {});
-@@ -74,7 +74,7 @@ Node
+@@ -75,7 +75,7 @@ Node
  NodeManager::mk_var(const Type& t, const std::optional<std::string>& symbol)
  {
    assert(!t.is_null());
@@ -243,7 +265,7 @@ index 8f28e481..2acf32ab 100644
 -      return d_tm.mk_bv_type(children[0].type().bv_size()
 -                             + children[1].type().bv_size());
 +      return TypeManager::mk_bv_type(children[0].type().bv_size()
-+				     + children[1].type().bv_size());
++                                     + children[1].type().bv_size());
  
      case Kind::BV_COMP:
      case Kind::BV_REDAND:
@@ -251,16 +273,16 @@ index 8f28e481..2acf32ab 100644
 -    case Kind::BV_REDXOR: return d_tm.mk_bv_type(1);
 +    case Kind::BV_REDXOR: return TypeManager::mk_bv_type(1);
  
+     case Kind::AM_ABSTRACT:
      case Kind::BV_ADD:
-     case Kind::BV_AND:
-@@ -346,16 +346,16 @@ NodeManager::compute_type(Kind kind,
+@@ -347,26 +347,26 @@ NodeManager::compute_type(Kind kind,
      case Kind::ITE: return children[1].type();
  
      case Kind::FP_FP:
 -      return d_tm.mk_fp_type(children[1].type().bv_size(),
 -                             children[2].type().bv_size() + 1);
 +      return TypeManager::mk_fp_type(children[1].type().bv_size(),
-+				     children[2].type().bv_size() + 1);
++                                     children[2].type().bv_size() + 1);
      case Kind::FP_TO_SBV:
 -    case Kind::FP_TO_UBV: return d_tm.mk_bv_type(indices[0]);
 +    case Kind::FP_TO_UBV: return TypeManager::mk_bv_type(indices[0]);
@@ -272,9 +294,22 @@ index 8f28e481..2acf32ab 100644
 -      return d_tm.mk_fp_type(indices[0], indices[1]);
 +      return TypeManager::mk_fp_type(indices[0], indices[1]);
  
+     case Kind::FP_SYMFPU_INF:
+     case Kind::FP_SYMFPU_NAN:
+     case Kind::FP_SYMFPU_SIGN:
+-    case Kind::FP_SYMFPU_ZERO: return d_tm.mk_bv_type(1);
++    case Kind::FP_SYMFPU_ZERO: return TypeManager::mk_bv_type(1);
+ 
+     case Kind::FP_SYMFPU_EXP:
+-      return d_tm.mk_bv_type(fp::WordBlaster::unpacked_exp_size(children[0]));
++      return TypeManager::mk_bv_type(fp::WordBlaster::unpacked_exp_size(children[0]));
+     case Kind::FP_SYMFPU_SIG:
+-      return d_tm.mk_bv_type(fp::WordBlaster::unpacked_sig_size(children[0]));
++      return TypeManager::mk_bv_type(fp::WordBlaster::unpacked_sig_size(children[0]));
+ 
      case Kind::SELECT: return children[0].type().array_element();
  
-@@ -373,7 +373,7 @@ NodeManager::compute_type(Kind kind,
+@@ -384,7 +384,7 @@ NodeManager::compute_type(Kind kind,
        {
          types.push_back(children[1].type());
        }
@@ -283,7 +318,7 @@ index 8f28e481..2acf32ab 100644
      }
    }
  
-@@ -816,6 +816,7 @@ NodeManager::init_id(NodeData* data)
+@@ -841,6 +841,7 @@ NodeManager::init_id(NodeData* data)
    data->d_id = d_node_id_counter++;
    data->d_nm = this;
    ++d_stats.d_num_node_data;
@@ -291,7 +326,7 @@ index 8f28e481..2acf32ab 100644
  }
  
  NodeData*
-@@ -893,9 +894,12 @@ NodeManager::garbage_collect(NodeData* data)
+@@ -918,9 +919,12 @@ NodeManager::garbage_collect(NodeData* data)
      NodeData::dealloc(cur);
      --d_stats.d_num_node_data;
      ++d_stats.d_num_node_data_dealloc;
@@ -304,7 +339,7 @@ index 8f28e481..2acf32ab 100644
  }
  
  const std::optional<std::reference_wrapper<const std::string>>
-@@ -910,4 +914,9 @@ NodeManager::get_symbol(const NodeData* data) const
+@@ -935,4 +939,9 @@ NodeManager::get_symbol(const NodeData* data) const
        payload.d_symbol};
  }
  

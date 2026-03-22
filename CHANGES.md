@@ -1,3 +1,12 @@
+## 0.9.0 (2026-03-23)
+
+Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.9.0) sources.
+
+Vendor submodules:
+- [Kissat](https://github.com/arminbiere/kissat) tag:rel-4.0.4
+- [SymFPU](https://github.com/martin-cs/symfpu) commit:aeaa3fa
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) tag:0.9.0
+
 ## 0.8.2 (2025-08-12)
 
 Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.8.2) sources.
