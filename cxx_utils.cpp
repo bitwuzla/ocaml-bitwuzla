@@ -18,31 +18,34 @@
 
 #include <zarith.h>
 #ifdef ARCH_SIXTYFOUR
-#define Z_MAX_INT       0x3fffffffffffffff
+#define Z_MAX_INT 0x3fffffffffffffff
 #else
-#define Z_MAX_INT       0x3fffffff
+#define Z_MAX_INT 0x3fffffff
 #endif
 
 template <>
-value
-bitwuzla::Term::value(uint8_t base) const
+value bitwuzla::Term::value(uint8_t base) const
 {
-  (void) base;
+  (void)base;
   BITWUZLA_CHECK_NOT_NULL(d_node);
   BITWUZLA_CHECK_TERM_IS_BV_VALUE(*this);
   return d_node->value<bzla::BitVector>().to_zarith();
 }
 
-value
-bzla::BitVector::to_zarith() const
+value bzla::BitVector::to_zarith() const
 {
   assert(!is_null());
   value val;
-  if (is_gmp()) {
-    val = ml_z_from_mpz((mpz_t&)d_val_gmp);
-  } else if (d_val_uint64 <= Z_MAX_INT) {
+  if (is_gmp())
+  {
+    val = ml_z_from_mpz((mpz_t &)d_val_gmp);
+  }
+  else if (d_val_uint64 <= Z_MAX_INT)
+  {
     val = Val_long(d_val_uint64);
-  } else {
+  }
+  else
+  {
     mpz_t bits;
     mpz_init(bits);
     mpz_import(bits, 1, -1, sizeof(uint64_t), -1, 0, &d_val_uint64);
