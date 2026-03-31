@@ -1,3 +1,11 @@
+## 1.0.6 (2026-03-31)
+
+[LEGACY] Compatibility fix to be able to link with `bitwuzla-cxx` (>= 0.9).
+
+Vendor submodules:
+- [Cadical](https://github.com/arminbiere/cadical) tag:rel-2.1.2
+
+
 ## 1.0.5 (2023-02-23)
 
 - Enable macOS Homebrew distribution
