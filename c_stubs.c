@@ -2,9 +2,8 @@
 #  ifndef _GNU_SOURCE
 #    define _GNU_SOURCE
 #  endif
-#else
-#  include <libgen.h>
 #endif
+#include <libgen.h>
 #include <string.h>
 #include <stdio.h>
 #include <caml/mlvalues.h>
