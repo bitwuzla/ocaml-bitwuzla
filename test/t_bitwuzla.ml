@@ -401,6 +401,16 @@ module Term = struct
     Term.pp std_formatter @@ Term.Bl.implies a b;
     [%expect {| (bvnot (bvand a (bvnot b))) |}]
 
+  let%expect_test "Bl.forall" =
+    let open Once () in
+    Term.pp std_formatter @@ Term.Bl.forall [ Sort.bool; Sort.bool ]
+    (fun [ a; b ] -> Term.Bl.implies a b);
+    [%expect {|
+      (forall (
+       (x1 (_ BitVec 1))
+       (x2 (_ BitVec 1)))(bvnot (bvand x1 (bvnot x2))))
+      |}]
+
   let%expect_test "Bv.zero" =
     let open Once () in
     let bv8 = Sort.bv 8 in
@@ -2495,6 +2505,20 @@ let%test "check_sat" =
   assert' @@ Term.distinct b128 one128;
   assert' @@ Term.equal ab128 p;
   (timeout 1. check_sat) () = Unknown
+
+let%test "check_sat" =
+  let open Once () in
+  let bv16 = Sort.bv 16 in
+  assert' @@ Term.Bl.exists [ bv16 ]
+  (fun [ a ] -> Term.Bl.forall [ bv16 ] (fun [ b ] -> Term.Bv.ule a b));
+  check_sat () = Sat
+
+let%test "check_sat" =
+  let open Once () in
+  let bv16 = Sort.bv 16 in
+  assert' @@ Term.Bl.exists [ bv16 ]
+  (fun [ a ] -> Term.Bl.forall [ bv16 ] (fun [ b ] -> Term.Bv.ult a b));
+  check_sat () = Unsat
 
 module Incremental = struct
   let%test "check_sat" =

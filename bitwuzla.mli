@@ -401,6 +401,30 @@ module Once () : sig
 
          @return boolean representation of current model value of term [t].
       *)
+
+      val exists : 'a Sort.variadic -> ('a variadic -> t) -> t
+      (**
+         [exists sorts f]
+         create an existential quantification.
+
+         @param sorts The quantified variable sorts.
+         @param f A function that take the quantified variables and
+         return a boolean term.
+
+         @return an existential quantification
+      *)
+
+      val forall : 'a Sort.variadic -> ('a variadic -> t) -> t
+      (**
+         [forall sorts f]
+         create an universal quantification.
+
+         @param sorts The quantified variable sorts.
+         @param f A function that take the quantified variables and
+         return a boolean term.
+
+         @return an universal quantification
+      *)
     end
 
     (** Bit-vector *)

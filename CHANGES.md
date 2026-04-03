@@ -1,6 +1,7 @@
-## 1.0.6 (2026-03-31)
+## 1.0.6 (2026-04-03)
 
 [LEGACY] Compatibility fix to be able to link with `bitwuzla-cxx` (>= 0.9).
+Add `exists` and `forall` quantifiers to the typed API.
 
 Vendor submodules:
 - [Cadical](https://github.com/arminbiere/cadical) tag:rel-2.1.2

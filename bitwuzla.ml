@@ -137,6 +137,16 @@ module Session () = struct
 
       let implies b0 b1 = mk_term2 t Implies b0 b1
 
+      let exists s f =
+        let vs = List.map (fun s -> mk_var t s "") @@ Sort.of_variadic s in
+        let e = f @@ to_variadic vs in
+        mk_term t Exists (Array.append (Array.of_list vs) [|e|])
+
+      let forall s f =
+        let vs = List.map (fun s -> mk_var t s "") @@ Sort.of_variadic s in
+        let e = f @@ to_variadic vs in
+        mk_term t Forall (Array.append (Array.of_list vs) [|e|])
+
       let of_bool b = if b then true' else false'
 
       let of_bv = bl_of_bv
