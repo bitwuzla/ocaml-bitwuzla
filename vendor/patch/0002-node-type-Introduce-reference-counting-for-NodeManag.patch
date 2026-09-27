@@ -1,0 +1,504 @@
+From 4eac1306e1074ca5c0fb09847ef5f89907a20867 Mon Sep 17 00:00:00 2001
+From: Mathias Preiner <mathias.preiner@gmail.com>
+Date: Wed, 6 May 2026 16:25:48 -0700
+Subject: [PATCH 2/2] node/type: Introduce reference counting for
+ NodeManager/TypeManager.
+
+Defers destruction of NodeManager/TypeManager until all data referencing
+them is freed. This prevents premature destruction of
+NodeManager/TypeManager when Node/Type objects are still live.
+
+Fixes #184.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+---
+ include/bitwuzla/cpp/bitwuzla.h | 14 +++++-
+ src/api/cpp/bitwuzla.cpp        |  7 +++
+ src/node/node_data.cpp          |  5 ++
+ src/node/node_manager.cpp       | 86 +++++++++++++++++++--------------
+ src/node/node_manager.h         | 19 ++++++--
+ src/node/node_unique_table.cpp  | 27 ++---------
+ src/type/type_manager.cpp       | 42 ++++++++--------
+ src/type/type_manager.h         |  9 ++++
+ 8 files changed, 126 insertions(+), 83 deletions(-)
+
+diff --git a/include/bitwuzla/cpp/bitwuzla.h b/include/bitwuzla/cpp/bitwuzla.h
+index 7fa7e67e..c7bc814f 100644
+--- a/include/bitwuzla/cpp/bitwuzla.h
++++ b/include/bitwuzla/cpp/bitwuzla.h
+@@ -1553,7 +1553,19 @@ class TermManager
+ 
+ 
+  private:
+-  std::unique_ptr<bzla::NodeManager> d_nm;
++  /**
++   * Custom deleter: forwards to `NodeManager::release()`, which signals
++   * the manager (and its `TypeManager`) that the API owner is gone. Real
++   * destruction of each manager is deferred until its own reference
++   * counter reaches zero, so any `bitwuzla::Term` or `bitwuzla::Sort`
++   * outliving this `TermManager` can still safely run its destructor.
++   */
++  struct NodeManagerDeleter
++  {
++    void operator()(bzla::NodeManager* nm) const noexcept;
++  };
++
++  std::unique_ptr<bzla::NodeManager, NodeManagerDeleter> d_nm;
+ };
+ 
+ /* -------------------------------------------------------------------------- */
+diff --git a/src/api/cpp/bitwuzla.cpp b/src/api/cpp/bitwuzla.cpp
+index bdfbdce6..f025cbbb 100644
+--- a/src/api/cpp/bitwuzla.cpp
++++ b/src/api/cpp/bitwuzla.cpp
+@@ -1814,6 +1814,13 @@ Bitwuzla::solver_state_change()
+ 
+ /* TermManager public ------------------------------------------------------- */
+ 
++void
++TermManager::NodeManagerDeleter::operator()(
++    bzla::NodeManager* nm) const noexcept
++{
++  nm->release();
++}
++
+ TermManager::TermManager() : d_nm(new bzla::NodeManager()) {}
+ 
+ TermManager::~TermManager() {}
+diff --git a/src/node/node_data.cpp b/src/node/node_data.cpp
+index f4505056..4783a173 100644
+--- a/src/node/node_data.cpp
++++ b/src/node/node_data.cpp
+@@ -113,8 +113,13 @@ NodeData::alloc(Kind kind,
+ void
+ NodeData::dealloc(NodeData* data)
+ {
++  NodeManager* nm = data->d_nm;
+   data->~NodeData();
+   std::free(data);
++  if (nm != nullptr)
++  {
++    nm->release();
++  }
+ }
+ 
+ NodeData::~NodeData()
+diff --git a/src/node/node_manager.cpp b/src/node/node_manager.cpp
+index 53a143e8..8cb6337f 100644
+--- a/src/node/node_manager.cpp
++++ b/src/node/node_manager.cpp
+@@ -25,31 +25,39 @@ using namespace node;
+ 
+ /* --- NodeManager public -------------------------------------------------- */
+ 
++NodeManager::NodeManager() : d_tm(new type::TypeManager()) {}
++
+ NodeManager::~NodeManager()
+ {
+-  // Cleanup remaining node data for constants and variables.
+-  //
+-  // Note: Automatic reference counting of Node should actually prevent node
+-  //       data leaks. However, nodes that are stored in static memory do not
+-  //       get garbage collected. Hence, we have to make sure to invalidate all
+-  //       node data before destructing the node manager.
+-  for (NodeData* d : d_alloc_nodes)
++  // Release owning reference of type manager, will destruct when all TypeData
++  // is deallocated.
++  d_tm->release();
++  assert(d_alloc_nodes.empty());
++}
++
++void
++NodeManager::release()
++{
++  assert(d_refs > 0);
++  // Do not `delete this` during garbage collection, will be deleted after GC is
++  // done.
++  if (--d_refs == 0 && !d_in_gc_mode)
+   {
+-    NodeData::dealloc(d);
++    delete this;
+   }
+ }
+ 
+ type::TypeManager*
+ NodeManager::tm()
+ {
+-  return &d_tm;
++  return d_tm;
+ }
+ 
+ Node
+ NodeManager::mk_const(const Type& t, const std::optional<std::string>& symbol)
+ {
+   assert(!t.is_null());
+-  assert(t.tm() == &d_tm);
++  assert(t.tm() == d_tm);
+   NodeData* data = NodeData::alloc(Kind::CONSTANT, symbol);
+   data->d_type   = t;
+   init_id(data);
+@@ -64,7 +72,7 @@ NodeManager::mk_const_array(const Type& t, const Node& term)
+   assert(!term.is_null());
+   assert(t.is_array());
+   assert(t.array_element() == term.type());
+-  assert(t.tm() == &d_tm);
++  assert(t.tm() == d_tm);
+   assert(term.nm() == this);
+ 
+   NodeData* data = find_or_insert_node(Kind::CONST_ARRAY, t, {term}, {});
+@@ -75,7 +83,7 @@ Node
+ NodeManager::mk_var(const Type& t, const std::optional<std::string>& symbol)
+ {
+   assert(!t.is_null());
+-  assert(t.tm() == &d_tm);
++  assert(t.tm() == d_tm);
+   NodeData* data = NodeData::alloc(Kind::VARIABLE, symbol);
+   data->d_type   = t;
+   init_id(data);
+@@ -179,43 +187,43 @@ NodeManager::invert_node(const Node& node)
+ Type
+ NodeManager::mk_bool_type()
+ {
+-  return d_tm.mk_bool_type();
++  return d_tm->mk_bool_type();
+ }
+ 
+ Type
+ NodeManager::mk_bv_type(uint64_t size)
+ {
+-  return d_tm.mk_bv_type(size);
++  return d_tm->mk_bv_type(size);
+ }
+ 
+ Type
+ NodeManager::mk_fp_type(uint64_t exp_size, uint64_t sig_size)
+ {
+-  return d_tm.mk_fp_type(exp_size, sig_size);
++  return d_tm->mk_fp_type(exp_size, sig_size);
+ }
+ 
+ Type
+ NodeManager::mk_rm_type()
+ {
+-  return d_tm.mk_rm_type();
++  return d_tm->mk_rm_type();
+ }
+ 
+ Type
+ NodeManager::mk_array_type(const Type& index, const Type& elem)
+ {
+-  return d_tm.mk_array_type(index, elem);
++  return d_tm->mk_array_type(index, elem);
+ }
+ 
+ Type
+ NodeManager::mk_fun_type(const std::vector<Type>& types)
+ {
+-  return d_tm.mk_fun_type(types);
++  return d_tm->mk_fun_type(types);
+ }
+ 
+ Type
+ NodeManager::mk_uninterpreted_type(const std::optional<std::string>& symbol)
+ {
+-  return d_tm.mk_uninterpreted_type(symbol);
++  return d_tm->mk_uninterpreted_type(symbol);
+ }
+ 
+ Type
+@@ -280,29 +288,29 @@ NodeManager::compute_type(Kind kind,
+     case Kind::FP_IS_SUBNORMAL:
+     case Kind::FP_IS_ZERO:
+     case Kind::FORALL:
+-    case Kind::EXISTS: return d_tm.mk_bool_type();
++    case Kind::EXISTS: return d_tm->mk_bool_type();
+ 
+     case Kind::BV_EXTRACT: {
+       uint64_t upper = indices[0];
+       uint64_t lower = indices[1];
+-      return d_tm.mk_bv_type(upper - lower + 1);
++      return d_tm->mk_bv_type(upper - lower + 1);
+     }
+ 
+     case Kind::BV_REPEAT:
+-      return d_tm.mk_bv_type(children[0].type().bv_size() * indices[0]);
++      return d_tm->mk_bv_type(children[0].type().bv_size() * indices[0]);
+ 
+     case Kind::BV_SIGN_EXTEND:
+     case Kind::BV_ZERO_EXTEND:
+-      return d_tm.mk_bv_type(children[0].type().bv_size() + indices[0]);
++      return d_tm->mk_bv_type(children[0].type().bv_size() + indices[0]);
+ 
+     case Kind::BV_CONCAT:
+-      return d_tm.mk_bv_type(children[0].type().bv_size()
+-                             + children[1].type().bv_size());
++      return d_tm->mk_bv_type(children[0].type().bv_size()
++                              + children[1].type().bv_size());
+ 
+     case Kind::BV_COMP:
+     case Kind::BV_REDAND:
+     case Kind::BV_REDOR:
+-    case Kind::BV_REDXOR: return d_tm.mk_bv_type(1);
++    case Kind::BV_REDXOR: return d_tm->mk_bv_type(1);
+ 
+     case Kind::AM_ABSTRACT:
+     case Kind::BV_ADD:
+@@ -347,28 +355,28 @@ NodeManager::compute_type(Kind kind,
+     case Kind::ITE: return children[1].type();
+ 
+     case Kind::FP_FP:
+-      return d_tm.mk_fp_type(children[1].type().bv_size(),
+-                             children[2].type().bv_size() + 1);
++      return d_tm->mk_fp_type(children[1].type().bv_size(),
++                              children[2].type().bv_size() + 1);
+     case Kind::FP_TO_SBV:
+-    case Kind::FP_TO_UBV: return d_tm.mk_bv_type(indices[0]);
++    case Kind::FP_TO_UBV: return d_tm->mk_bv_type(indices[0]);
+ 
+     case Kind::FP_TO_FP_FROM_BV:
+     case Kind::FP_TO_FP_FROM_FP:
+     case Kind::FP_TO_FP_FROM_SBV:
+     case Kind::FP_TO_FP_FROM_UBV:
+-      return d_tm.mk_fp_type(indices[0], indices[1]);
++      return d_tm->mk_fp_type(indices[0], indices[1]);
+ 
+-    case Kind::FP_SYMFPU_RM: return d_tm.mk_bv_type(BZLA_RM_BV_SIZE);
++    case Kind::FP_SYMFPU_RM: return d_tm->mk_bv_type(BZLA_RM_BV_SIZE);
+ 
+     case Kind::FP_SYMFPU_INF:
+     case Kind::FP_SYMFPU_NAN:
+     case Kind::FP_SYMFPU_SIGN:
+-    case Kind::FP_SYMFPU_ZERO: return d_tm.mk_bv_type(1);
++    case Kind::FP_SYMFPU_ZERO: return d_tm->mk_bv_type(1);
+ 
+     case Kind::FP_SYMFPU_EXP:
+-      return d_tm.mk_bv_type(fp::WordBlaster::unpacked_exp_size(children[0]));
++      return d_tm->mk_bv_type(fp::WordBlaster::unpacked_exp_size(children[0]));
+     case Kind::FP_SYMFPU_SIG:
+-      return d_tm.mk_bv_type(fp::WordBlaster::unpacked_sig_size(children[0]));
++      return d_tm->mk_bv_type(fp::WordBlaster::unpacked_sig_size(children[0]));
+ 
+     case Kind::SELECT: return children[0].type().array_element();
+ 
+@@ -386,7 +394,7 @@ NodeManager::compute_type(Kind kind,
+       {
+         types.push_back(children[1].type());
+       }
+-      return d_tm.mk_fun_type(types);
++      return d_tm->mk_fun_type(types);
+     }
+   }
+ 
+@@ -851,6 +859,7 @@ NodeManager::init_id(NodeData* data)
+   data->d_id = d_node_id_counter++;
+   data->d_nm = this;
+   ++d_stats.d_num_node_data;
++  ++d_refs;  // Increment reference count on NodeManager
+ }
+ 
+ NodeData*
+@@ -931,6 +940,13 @@ NodeManager::garbage_collect(NodeData* data)
+   } while (!visit.empty());
+ 
+   d_in_gc_mode = false;
++
++  // NodeManager destruction is deferred to here during GC. Destruct
++  // NodeManager if garbage collection freed up all reference counts.
++  if (d_refs == 0)
++  {
++    delete this;
++  }
+ }
+ 
+ const std::optional<std::reference_wrapper<const std::string>>
+diff --git a/src/node/node_manager.h b/src/node/node_manager.h
+index 20fc55af..2181bed4 100644
+--- a/src/node/node_manager.h
++++ b/src/node/node_manager.h
+@@ -33,11 +33,17 @@ class NodeManager
+   friend node::NodeData;
+ 
+  public:
+-  NodeManager() = default;
++  NodeManager();
+   ~NodeManager();
+   NodeManager(const NodeManager&)            = delete;
+   NodeManager& operator=(const NodeManager&) = delete;
+ 
++  /**
++   * Decrement reference count of node manager. NodeManager is destroyed when
++   * reference count goes to zero.
++   */
++  void release();
++
+   type::TypeManager* tm();
+ 
+   /* --- Node interface ---------------------------------------------------- */
+@@ -242,8 +248,12 @@ class NodeManager
+   const std::optional<std::reference_wrapper<const std::string>> get_symbol(
+       const node::NodeData* d) const;
+ 
+-  /** Type manager. */
+-  type::TypeManager d_tm;
++  /**
++   * Type manager. Constructed by `NodeManager` and
++   * released through `NodeManager::release`, but never `delete`d directly.
++   * `TypeManager` self-destructs when its last `TypeData` dies.
++   */
++  type::TypeManager* d_tm;
+ 
+   /** Node id counter. */
+   uint64_t d_node_id_counter = 1;
+@@ -262,6 +272,9 @@ class NodeManager
+     uint64_t d_num_node_data = 0;
+     uint64_t d_num_node_data_dealloc = 0;
+   } d_stats;
++
++  /** Reference count: owning reference plus allocated NodeData. */
++  uint64_t d_refs = 1;
+ };
+ 
+ }  // namespace bzla
+diff --git a/src/node/node_unique_table.cpp b/src/node/node_unique_table.cpp
+index e2b10866..42a6930b 100644
+--- a/src/node/node_unique_table.cpp
++++ b/src/node/node_unique_table.cpp
+@@ -10,30 +10,9 @@ NodeUniqueTable::NodeUniqueTable() { d_buckets.resize(16, nullptr); }
+ 
+ NodeUniqueTable::~NodeUniqueTable()
+ {
+-  // Cleanup remaining node data.
+-  //
+-  // Note: Automatic reference counting of Node should actually prevent node
+-  //       data leaks. However, nodes that are stored in static memory do not
+-  //       get garbage collected. Hence, we have to make sure to invalidate all
+-  //       node data before destructing the unique table.
+-  for (size_t i = 0, size = d_buckets.size(); i < size; ++i)
+-  {
+-    NodeData* cur = d_buckets[i];
+-    while (cur != nullptr)
+-    {
+-      NodeData* next = cur->d_next;
+-      if (cur->has_children())
+-      {
+-        auto& payload = cur->payload_children();
+-        for (size_t j = 0; j < payload.d_num_children; ++j)
+-        {
+-          payload.d_children[j].d_data = nullptr;
+-        }
+-      }
+-      NodeData::dealloc(cur);
+-      cur = next;
+-    }
+-  }
++  // `NodeManager::release` defers destruction until the last `NodeData` is
++  // freed, so all hash-consed nodes are already gone by the time we run.
++  assert(d_num_elements == 0);
+ }
+ 
+ std::pair<bool, NodeData*>
+diff --git a/src/type/type_manager.cpp b/src/type/type_manager.cpp
+index c32a2f66..322b5f2a 100644
+--- a/src/type/type_manager.cpp
++++ b/src/type/type_manager.cpp
+@@ -19,31 +19,23 @@ namespace bzla::type {
+ 
+ /* --- TypeManager public -------------------------------------------------- */
+ 
+-TypeManager::~TypeManager()
++void
++TypeManager::release()
+ {
+-  // Cleanup remaining types without triggering garbage_collect().
+-  //
+-  // Note: Automatic reference counting of Type should actually prevent type
+-  //       leaks. However, types that are stored in static memory and are
+-  //       destructed after the TypeManager do not get garbage collected before
+-  //       destructing the NodeManager (the owner of TypeManager). Hence, we
+-  //       have to make sure to invalidate all types before destructing the
+-  //       type manager.
+-  for (std::unique_ptr<TypeData>& data : d_node_data)
++  assert(d_refs > 0);
++  if (--d_refs == 0 && !d_in_gc_mode)
+   {
+-    if (data == nullptr) continue;
+-    if (data->d_kind == TypeData::Kind::ARRAY
+-        || data->d_kind == TypeData::Kind::FUN)
+-    {
+-      auto& types = std::get<std::vector<Type>>(data->d_data);
+-      for (auto& type : types)
+-      {
+-        type.d_data = nullptr;
+-      }
+-    }
++    delete this;
+   }
+ }
+ 
++TypeManager::~TypeManager()
++{
++  // `release()` defers destruction until the last `TypeData` is freed, so
++  // no live `Type` can reference this TypeManager by the time we run.
++  assert(d_unique_types.empty());
++}
++
+ Type
+ TypeManager::mk_bool_type()
+ {
+@@ -103,6 +95,7 @@ TypeManager::init_id(TypeData* data)
+   d_node_data.emplace_back(data);
+   assert(d_node_data.size() == static_cast<size_t>(d_type_id_counter));
+   data->d_id = d_type_id_counter++;
++  ++d_refs;  // Increment reference count on TypeManager
+ }
+ 
+ TypeData*
+@@ -185,9 +178,18 @@ TypeManager::garbage_collect(TypeData* data)
+ 
+     assert(d_node_data[cur->d_id - 1]->d_id == cur->d_id);
+     d_node_data[cur->d_id - 1].reset(nullptr);
++    assert(d_refs > 0);
++    --d_refs;
+   } while (!visit.empty());
+ 
+   d_in_gc_mode = false;
++
++  // TypeManager destruction is deferred to here during GC. Destruct
++  // TypeManager if garbage collection freed up all reference counts.
++  if (d_refs == 0)
++  {
++    delete this;
++  }
+ }
+ 
+ }  // namespace bzla::type
+diff --git a/src/type/type_manager.h b/src/type/type_manager.h
+index 19f9597c..1aab6351 100644
+--- a/src/type/type_manager.h
++++ b/src/type/type_manager.h
+@@ -31,6 +31,12 @@ class TypeManager
+  public:
+   ~TypeManager();
+ 
++  /**
++   * Decrement reference count of type manager. TypeManager is destroyed when
++   * reference count goes to zero.
++   */
++  void release();
++
+   /**
+    * @return Boolean type.
+    */
+@@ -122,6 +128,9 @@ class TypeManager
+ 
+   /** Cache used for hash consing type data. */
+   std::unordered_set<TypeData*, TypeDataHash, TypeDataKeyEqual> d_unique_types;
++
++  /** Reference count: owning reference plus allocated TypeData. */
++  uint64_t d_refs = 1;
+ };
+ 
+ }  // namespace type
+-- 
+2.43.0
+

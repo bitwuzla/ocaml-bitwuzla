@@ -464,14 +464,6 @@ module Options : sig
             Values:
             - [true]: enable \[{b default}\]
             - [false]: disable *)
-    | Pp_elim_extracts : bool key
-        (** Preprocessing: Eliminate bit-vector extracts on bit-vector constants
-
-            When enabled, eliminates bit-vector extracts on constants.
-
-            Values:
-            - [true]: enable
-            - [false]: disable \[{b default}\] *)
     | Pp_elim_bvudiv : bool key
         (** Preprocessing: Eliminate bit-vector operators bvudiv and bvurem
 

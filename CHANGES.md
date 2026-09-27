@@ -1,3 +1,13 @@
+## 0.9.1 (2026-09-27)
+
+Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.9.1) sources.
+
++ Cherry pick upstream fix [3d63e18](https://github.com/bitwuzla/bitwuzla/commit/3d63e18d8e7dbf6ea735414bf120ad2758dfe51e)
+
+Vendor submodules:
+- [SymFPU](https://github.com/martin-cs/symfpu) commit:40bdec0
+- [Bitwuzla](https://github.com/bitwuzla/bitwuzla) tag:0.9.1
+
 ## 0.9.0 (2026-03-23)
 
 Update [Bitwuzla](https://github.com/bitwuzla/bitwuzla/releases/tag/0.9.0) sources.

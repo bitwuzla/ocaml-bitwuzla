@@ -123,7 +123,6 @@
    assertion_tracker
    assertion_vector
    contradicting_ands
-   elim_extract
    elim_lambda
    elim_udiv
    embedded_constraints
@@ -319,7 +318,8 @@
   (:p0001
    (file patch/0001-api-Add-hook-for-ocaml-z-value.patch))
   (:p0002
-   (file patch/0002-binding-Fix-segfault-with-parallel-instances.patch)))
+   (file
+    patch/0002-node-type-Introduce-reference-counting-for-NodeManag.patch)))
  (target .bitwuzla_tree)
  (action
   (no-infer
